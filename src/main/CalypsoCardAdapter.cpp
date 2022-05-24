@@ -152,7 +152,8 @@ void CalypsoCardAdapter::initializeWithFci(
     /* CL-SI-ASRFU.1 */
     mApplicationSubType = mStartupInfo[SI_APPLICATION_SUBTYPE];
     if (mApplicationSubType == 0x00 || mApplicationSubType == 0xFF) {
-        throw IllegalArgumentException("Unexpected application subtype: " + mApplicationSubType);
+        throw IllegalArgumentException("Unexpected application subtype: " +
+                                       std::to_string(mApplicationSubType));
     }
 
     mSessionModification = mStartupInfo[SI_BUFFER_SIZE_INDICATOR];
@@ -169,7 +170,7 @@ void CalypsoCardAdapter::initializeWithFci(
         if (mSessionModification < 0x04 || mSessionModification > 0x37) {
             throw IllegalArgumentException("Wrong session modification value for a Basic type " \
                                            "(should be between 04h and 37h): " +
-                                           mSessionModification);
+                                           std::to_string(mSessionModification));
         }
 
         mCalypsoCardClass = CalypsoCardClass::ISO;
@@ -184,7 +185,8 @@ void CalypsoCardAdapter::initializeWithFci(
          */
         if (mSessionModification < 0x06 || mSessionModification > 0x37) {
             throw IllegalArgumentException("Session modifications byte should be in range 06h to" \
-                                           " 47h. Was: " + mSessionModification);
+                                           " 47h. Was: " +
+                                           std::to_string(mSessionModification));
         }
 
         mModificationsCounterMax = BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE[mSessionModification];

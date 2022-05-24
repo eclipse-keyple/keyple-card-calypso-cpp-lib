@@ -32,7 +32,7 @@ namespace calypso {
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 
-const CalypsoCardCommand CmdCardAppendRecord::mCommand = CalypsoCardCommand::UPDATE_RECORD;
+const CalypsoCardCommand CmdCardAppendRecord::mCommand = CalypsoCardCommand::APPEND_RECORD;
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardAppendRecord::STATUS_TABLE = initStatusTable();
 

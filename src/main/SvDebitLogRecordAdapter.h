@@ -32,7 +32,7 @@ using namespace calypsonet::terminal::calypso::card;
  *
  * @since 2.0.0
  */
-class SvDebitLogRecordAdapter : public SvDebitLogRecord {
+class SvDebitLogRecordAdapter final : public SvDebitLogRecord {
 public:
     /**
      * Constructor

@@ -20,7 +20,7 @@ using namespace testing;
 
 using namespace calypsonet::terminal::card;
 
-class ApduResponseApiMock : public ApduResponseApi {
+class ApduResponseApiMock final : public ApduResponseApi {
 public:
     MOCK_METHOD(const std::vector<uint8_t>&, getApdu, (), (const, override));
     MOCK_METHOD(const std::vector<uint8_t>, getDataOut, (), (const, override));

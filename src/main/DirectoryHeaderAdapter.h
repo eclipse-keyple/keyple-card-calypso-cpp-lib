@@ -30,12 +30,11 @@ using namespace calypsonet::terminal::calypso::card;
 
 /**
  * (package-private)<br>
- * Implementation of {@link DirectoryHeader}.
+ * Implementation of DirectoryHeader.
  *
  * @since 2.0.0
  */
-class DirectoryHeaderAdapter
-: public DirectoryHeader {
+class DirectoryHeaderAdapter final : public DirectoryHeader {
 public:
     /**
      * (package-private)<br>

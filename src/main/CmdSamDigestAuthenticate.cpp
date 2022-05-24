@@ -29,7 +29,7 @@ namespace calypso {
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp::exception;
 
-const CalypsoSamCommand CmdSamDigestAuthenticate::mCommand = CalypsoSamCommand::DIGEST_CLOSE;
+const CalypsoSamCommand CmdSamDigestAuthenticate::mCommand = CalypsoSamCommand::DIGEST_AUTHENTICATE;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamDigestAuthenticate::STATUS_TABLE = initStatusTable();

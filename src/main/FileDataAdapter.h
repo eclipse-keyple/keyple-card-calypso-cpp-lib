@@ -33,11 +33,11 @@ using namespace keyple::core::util::cpp;
 
 /**
  * (package-private)<br>
- * Implementation of {@link FileData}.
+ * Implementation of FileData.
  *
  * @since 2.0.0
  */
-class FileDataAdapter : public FileData {
+class FileDataAdapter final : public FileData {
 public:
     /**
      * (package-private)<br>

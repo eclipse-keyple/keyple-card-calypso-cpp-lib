@@ -20,7 +20,7 @@ using namespace testing;
 
 using namespace calypsonet::terminal::calypso::sam;
 
-class CalypsoSamMock : public CalypsoSam {
+class CalypsoSamMock final : public CalypsoSam {
 public:
     MOCK_METHOD(ProductType, getProductType, (), (const, override));
     MOCK_METHOD(const std::string, getProductInfo, (), (const, override));

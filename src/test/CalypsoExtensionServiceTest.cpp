@@ -45,7 +45,7 @@ using namespace keyple::core::common;
 using namespace keyple::core::util::cpp::exception;
 
 static const std::string POWER_ON_DATA = "3B8F8001805A0A010320031124B77FE7829000F7";
-static CalypsoExtensionService& service = CalypsoExtensionService::getInstance();
+static std::shared_ptr<CalypsoExtensionService> service = CalypsoExtensionService::getInstance();
 static std::shared_ptr<CalypsoSamSelection> calypsoSamSelection;
 static std::shared_ptr<ReaderMock> reader;
 static std::shared_ptr<CalypsoCardAdapter> calypsoCard;
@@ -77,7 +77,7 @@ TEST(CalypsoExtensionServiceTest, getInstance_whenIsInvokedTwice_shouldReturnSam
 {
     setUp();
 
-    ASSERT_EQ(&CalypsoExtensionService::getInstance(), &service);
+    ASSERT_EQ(CalypsoExtensionService::getInstance(), service);
 
     tearDown();
 }
@@ -86,7 +86,7 @@ TEST(CalypsoExtensionServiceTest, getReaderApiVersion_whenInvoked_shouldReturn_E
 {
     setUp();
 
-    ASSERT_EQ(service.getReaderApiVersion(), ReaderApiProperties_VERSION);
+    ASSERT_EQ(service->getReaderApiVersion(), ReaderApiProperties_VERSION);
 
     tearDown();
 }
@@ -95,7 +95,7 @@ TEST(CalypsoExtensionServiceTest, getCardApiVersion_shouldReturnExpectedVersion)
 {
     setUp();
 
-    ASSERT_EQ(service.getCardApiVersion(), CardApiProperties_VERSION);
+    ASSERT_EQ(service->getCardApiVersion(), CardApiProperties_VERSION);
 
     tearDown();
 }
@@ -104,7 +104,7 @@ TEST(CalypsoExtensionServiceTest, getCommonApiVersion_shouldReturnExpectedVersio
 {
     setUp();
 
-    ASSERT_EQ(service.getCommonApiVersion(), CommonApiProperties_VERSION);
+    ASSERT_EQ(service->getCommonApiVersion(), CommonApiProperties_VERSION);
 
     tearDown();
 }
@@ -113,10 +113,10 @@ TEST(CalypsoExtensionServiceTest, createCardSelection_shouldReturnNewReference)
 {
     setUp();
 
-    const std::shared_ptr<CalypsoCardSelection> cardSelection = service.createCardSelection();
+    const std::shared_ptr<CalypsoCardSelection> cardSelection = service->createCardSelection();
 
     ASSERT_NE(cardSelection, nullptr);
-    ASSERT_NE(service.createCardSelection(), cardSelection);
+    ASSERT_NE(service->createCardSelection(), cardSelection);
 
     tearDown();
 }
@@ -125,7 +125,7 @@ TEST(CalypsoExtensionServiceTest, createCardSelection_shouldReturnInstanceOfInte
 {
     setUp();
 
-    const std::shared_ptr<CalypsoCardSelection> cardSelection = service.createCardSelection();
+    const std::shared_ptr<CalypsoCardSelection> cardSelection = service->createCardSelection();
 
     ASSERT_NE(std::dynamic_pointer_cast<CardSelectionSpi>(cardSelection), nullptr);
     ASSERT_NE(std::dynamic_pointer_cast<CalypsoCardSelectionAdapter>(cardSelection), nullptr);
@@ -137,10 +137,10 @@ TEST(CalypsoExtensionServiceTest, createSamSelection_shouldReturnNewReference)
 {
     setUp();
 
-    const std::shared_ptr<CalypsoSamSelection> samSelection = service.createSamSelection();
+    const std::shared_ptr<CalypsoSamSelection> samSelection = service->createSamSelection();
 
     ASSERT_NE(samSelection, nullptr);
-    ASSERT_NE(service.createSamSelection(), samSelection);
+    ASSERT_NE(service->createSamSelection(), samSelection);
 
     tearDown();
 }
@@ -149,7 +149,7 @@ TEST(CalypsoExtensionServiceTest, createSamSelection_shouldReturnInstanceOfInter
 {
     setUp();
 
-    const std::shared_ptr<CalypsoSamSelection> samSelection = service.createSamSelection();
+    const std::shared_ptr<CalypsoSamSelection> samSelection = service->createSamSelection();
     ASSERT_NE(std::dynamic_pointer_cast<CardSelectionSpi>(samSelection), nullptr);
     ASSERT_NE(std::dynamic_pointer_cast<CalypsoSamSelectionAdapter>(samSelection), nullptr);
 
@@ -161,10 +161,10 @@ TEST(CalypsoExtensionServiceTest, createSamResourceProfileExtension_shouldReturn
     setUp();
 
     const std::shared_ptr<CardResourceProfileExtension> samResourceProfileExtension =
-        service.createSamResourceProfileExtension(calypsoSamSelection);
+        service->createSamResourceProfileExtension(calypsoSamSelection);
 
     ASSERT_NE(samResourceProfileExtension, nullptr);
-    ASSERT_NE(service.createSamResourceProfileExtension(calypsoSamSelection),
+    ASSERT_NE(service->createSamResourceProfileExtension(calypsoSamSelection),
               samResourceProfileExtension);
 
     tearDown();
@@ -175,10 +175,10 @@ TEST(CalypsoExtensionServiceTest, createCardSecuritySetting_shouldReturnANewRefe
     setUp();
 
     const std::shared_ptr<CardSecuritySetting> cardSecuritySetting =
-        service.createCardSecuritySetting();
+        service->createCardSecuritySetting();
 
     ASSERT_NE(cardSecuritySetting, nullptr);
-    ASSERT_NE(service.createCardSecuritySetting(), cardSecuritySetting);
+    ASSERT_NE(service->createCardSecuritySetting(), cardSecuritySetting);
 
     tearDown();
 }
@@ -189,7 +189,7 @@ TEST(CalypsoExtensionServiceTest,
     setUp();
 
     const std::shared_ptr<CardSecuritySetting> cardSecuritySetting =
-        service.createCardSecuritySetting();
+        service->createCardSecuritySetting();
 
     ASSERT_NE(std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting), nullptr);
 
@@ -200,7 +200,7 @@ TEST(CalypsoExtensionServiceTest, createCardTransaction_whenInvokedWithNullReade
 {
     setUp();
 
-    EXPECT_THROW(service.createCardTransaction(nullptr,
+    EXPECT_THROW(service->createCardTransaction(nullptr,
                                                calypsoCard,
                                                cardSecuritySetting),
                  IllegalArgumentException);
@@ -213,7 +213,7 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    EXPECT_THROW(service.createCardTransaction(reader, nullptr, cardSecuritySetting),
+    EXPECT_THROW(service->createCardTransaction(reader, nullptr, cardSecuritySetting),
                  IllegalArgumentException);
 
     tearDown();
@@ -224,7 +224,7 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    EXPECT_THROW(service.createCardTransaction(reader, calypsoCard, nullptr),
+    EXPECT_THROW(service->createCardTransaction(reader, calypsoCard, nullptr),
                  IllegalArgumentException);
 
     tearDown();
@@ -235,7 +235,7 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    EXPECT_THROW(service.createCardTransaction(reader, calypsoCard, cardSecuritySetting),
+    EXPECT_THROW(service->createCardTransaction(reader, calypsoCard, cardSecuritySetting),
                  IllegalArgumentException);
 
     tearDown();
@@ -251,9 +251,9 @@ TEST(CalypsoExtensionServiceTest, createCardTransaction_shouldReturnANewReferenc
     adapter->setSamResource(reader, calypsoSam);
 
     const std::shared_ptr<CardTransactionManager> cardTransaction =
-        service.createCardTransaction(reader, calypsoCard, cardSecuritySetting);
+        service->createCardTransaction(reader, calypsoCard, cardSecuritySetting);
 
-    ASSERT_NE(service.createCardTransaction(reader, calypsoCard, cardSecuritySetting),
+    ASSERT_NE(service->createCardTransaction(reader, calypsoCard, cardSecuritySetting),
               cardTransaction);
 
     tearDown();
@@ -264,7 +264,7 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    EXPECT_THROW(service.createCardTransactionWithoutSecurity(nullptr, calypsoCard),
+    EXPECT_THROW(service->createCardTransactionWithoutSecurity(nullptr, calypsoCard),
                  IllegalArgumentException);
 
     tearDown();
@@ -275,7 +275,7 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    EXPECT_THROW(service.createCardTransactionWithoutSecurity(reader, nullptr),
+    EXPECT_THROW(service->createCardTransactionWithoutSecurity(reader, nullptr),
                  IllegalArgumentException);
 
     tearDown();
@@ -286,7 +286,7 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    EXPECT_THROW(service.createCardTransactionWithoutSecurity(reader, calypsoCard),
+    EXPECT_THROW(service->createCardTransactionWithoutSecurity(reader, calypsoCard),
                  IllegalArgumentException);
 
     tearDown();
@@ -304,9 +304,9 @@ TEST(CalypsoExtensionServiceTest,
     adapter->setSamResource(reader, calypsoSam);
 
     const std::shared_ptr<CardTransactionManager> cardTransaction =
-        service.createCardTransactionWithoutSecurity(reader, calypsoCard);
+        service->createCardTransactionWithoutSecurity(reader, calypsoCard);
 
-    ASSERT_NE(service.createCardTransactionWithoutSecurity(reader, calypsoCard), cardTransaction);
+    ASSERT_NE(service->createCardTransactionWithoutSecurity(reader, calypsoCard), cardTransaction);
 
     tearDown();
 }

@@ -205,7 +205,7 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     cardApduRequests.push_back(cmdCardOpenSession->getApduRequest());
 
     /* Add all optional commands to the card ApduRequestAdapter list */
-    Arrays::addAll(cardApduRequests, cardCommands);
+    Arrays::addAll(cardApduRequests, getApduRequests(cardCommands));
 
     /*
      * Create a CardRequest from the ApduRequestAdapter list, card AID as Selector, keep channel

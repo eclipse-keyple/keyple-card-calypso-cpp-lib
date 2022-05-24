@@ -140,7 +140,7 @@ CmdCardCloseSession& CmdCardCloseSession::setApduResponse(
             if (responseData.size() != 0) {
             throw IllegalArgumentException("Unexpected length in response to CloseSecureSession " \
                                            "command: " +
-                                           responseData.size());
+                                           std::to_string(responseData.size()));
             }
 
             /* Session abort case */

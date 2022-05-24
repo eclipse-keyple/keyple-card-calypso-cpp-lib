@@ -338,7 +338,7 @@ void CmdCardOpenSession::parseRev24(const std::vector<uint8_t>& apduResponseData
         break;
     default:
         throw IllegalStateException("Bad response length to Open Secure Session: " +
-                                    apduResponseData.size());
+                                    std::to_string(apduResponseData.size()));
     }
 
     const auto kvc = std::make_shared<uint8_t>(apduResponseData[0]);
@@ -379,20 +379,20 @@ void CmdCardOpenSession::parseRev10(const std::vector<uint8_t>& apduResponseData
         break;
     default:
         throw IllegalStateException("Bad response length to Open Secure Session: " +
-                                    apduResponseData.size());
+                                    std::to_string(apduResponseData.size()));
     }
 
     /* KVC doesn't exist and is set to null for this type of card */
     mSecureSession = std::shared_ptr<SecureSession>(
                          new SecureSession(
-                            Arrays::copyOfRange(apduResponseData, 0, 3),
-                            Arrays::copyOfRange(apduResponseData, 3, 4),
-                            previousSessionRatified,
-                            false,
-                            nullptr,
-                            nullptr,
-                            data,
-                            apduResponseData));
+                             Arrays::copyOfRange(apduResponseData, 0, 3),
+                             Arrays::copyOfRange(apduResponseData, 3, 4),
+                             previousSessionRatified,
+                             false,
+                             nullptr,
+                             nullptr,
+                             data,
+                             apduResponseData));
 }
 
 const std::vector<uint8_t>& CmdCardOpenSession::getCardChallenge() const

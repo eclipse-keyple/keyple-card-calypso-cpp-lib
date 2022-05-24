@@ -32,7 +32,7 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
-const CalypsoSamCommand CmdSamCardCipherPin::mCommand = CalypsoSamCommand::CARD_GENERATE_KEY;
+const CalypsoSamCommand CmdSamCardCipherPin::mCommand = CalypsoSamCommand::CARD_CIPHER_PIN;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamCardCipherPin::STATUS_TABLE = initStatusTable();

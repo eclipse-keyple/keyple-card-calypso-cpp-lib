@@ -29,7 +29,7 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
-const CalypsoSamCommand CmdSamGetChallenge::mCommand = CalypsoSamCommand::DIGEST_INIT;
+const CalypsoSamCommand CmdSamGetChallenge::mCommand = CalypsoSamCommand::GET_CHALLENGE;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamGetChallenge::STATUS_TABLE = initStatusTable();

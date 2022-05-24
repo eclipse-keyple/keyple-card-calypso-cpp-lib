@@ -83,7 +83,7 @@ void AbstractCardCommand::checkStatus()
     try {
         AbstractApduCommand::checkStatus();
     } catch (CalypsoApduCommandException& e) {
-        throw dynamic_cast<CardCommandException&>(e);
+        throw reinterpret_cast<CardCommandException&>(e);
     }
 }
 

@@ -27,7 +27,7 @@ namespace calypso {
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp::exception;
 
-const CalypsoSamCommand CmdSamGiveRandom::mCommand = CalypsoSamCommand::DIGEST_INIT;
+const CalypsoSamCommand CmdSamGiveRandom::mCommand = CalypsoSamCommand::GIVE_RANDOM;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamGiveRandom::STATUS_TABLE = initStatusTable();

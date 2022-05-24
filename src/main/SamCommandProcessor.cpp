@@ -71,7 +71,8 @@ SamCommandProcessor::SamCommandProcessor(
   const std::shared_ptr<CalypsoCard> calypsoCard,
   const std::shared_ptr<CardSecuritySetting> cardSecuritySetting)
 : mCardSecuritySettings(cardSecuritySetting),
-  mCalypsoCard(std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard))
+  mCalypsoCard(std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard)),
+  mIsDiversificationDone(false)
 {
     const auto stngs = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
     Assert::getInstance().notNull(stngs, "securitySettings")

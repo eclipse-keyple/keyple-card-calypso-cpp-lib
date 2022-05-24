@@ -127,7 +127,8 @@ public:
      *
      * @since 2.0.0
      */
-    CardSecuritySettingAdapter& addAuthorizedSessionKey(const uint8_t kif, const uint8_t kvc);
+    CardSecuritySettingAdapter& addAuthorizedSessionKey(const uint8_t kif, const uint8_t kvc)
+        override;
 
     /**
      * {@inheritDoc}

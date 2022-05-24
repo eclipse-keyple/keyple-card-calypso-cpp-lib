@@ -118,14 +118,14 @@ static const std::string NEW_PIN = "4567";
 static const std::string CIPHER_PIN_VERIFICATION_OK = "1122334455667788";
 static const std::string CIPHER_PIN_UPDATE_OK = "88776655443322111122334455667788";
 static const std::string PIN_5_DIGITS = "12345";
-static const uint8_t PIN_CIPHERING_KEY_KIF = 0x11;
-static const uint8_t PIN_CIPHERING_KEY_KVC = 0x22;
+//static const uint8_t PIN_CIPHERING_KEY_KIF = 0x11;
+//static const uint8_t PIN_CIPHERING_KEY_KVC = 0x22;
 
-static const uint8_t FILE7 = 0x07;
-static const uint8_t FILE8 = 0x08;
-static const uint8_t FILE9 = 0x09;
-static const uint8_t FILE10 = 0x10;
-static const uint8_t FILE11 = 0x11;
+//static const uint8_t FILE7 = 0x07;
+//static const uint8_t FILE8 = 0x08;
+//static const uint8_t FILE9 = 0x09;
+//static const uint8_t FILE10 = 0x10;
+//static const uint8_t FILE11 = 0x11;
 
 static const std::string SW1SW2_OK = "9000";
 static const std::string SW1SW2_KO = "6700";
@@ -171,9 +171,9 @@ static const std::vector<uint8_t> FILE8_REC1_29B_BYTES = ByteArrayUtil::fromHex(
 static const std::vector<uint8_t> FILE8_REC1_5B_BYTES = ByteArrayUtil::fromHex(FILE8_REC1_5B);
 static const std::vector<uint8_t> FILE8_REC1_4B_BYTES = ByteArrayUtil::fromHex(FILE8_REC1_4B);
 
-static const uint16_t LID_3F00 = (short) 0x3F00;
-static const uint16_t LID_0002 = (short) 0x0002;
-static const uint16_t LID_0003 = (short) 0x0003;
+//static const uint16_t LID_3F00 = (short) 0x3F00;
+//static const uint16_t LID_0002 = (short) 0x0002;
+//static const uint16_t LID_0003 = (short) 0x0003;
 static const std::string LID_3F00_STR = "3F00";
 static const std::string LID_0002_STR = "0002";
 static const std::string LID_0003_STR = "0003";
@@ -339,7 +339,7 @@ static const std::string CARD_VERIFY_PIN_KO_RSP = "63C2";
 static const std::string CARD_CHANGE_PIN_RSP = SW1SW2_OK;
 static const std::string CARD_CHANGE_PIN_PLAIN_RSP = SW1SW2_OK;
 
-static const int SV_BALANCE = 0x123456;
+//static const int SV_BALANCE = 0x123456;
 static const std::string SV_BALANCE_STR = "123456";
 static const std::string CARD_SV_GET_DEBIT_CMD = "007C000900";
 static const std::string CARD_SV_GET_DEBIT_RSP =
@@ -477,12 +477,12 @@ static void setUp()
 
     calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
 
-    cardSecuritySetting = CalypsoExtensionService::getInstance().createCardSecuritySetting();
+    cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
     cardSecuritySetting->setSamResource(samReader, calypsoSam);
 
     cardTransactionManager =
         CalypsoExtensionService::getInstance()
-            .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
+            ->createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
 }
 
 static void tearDown()

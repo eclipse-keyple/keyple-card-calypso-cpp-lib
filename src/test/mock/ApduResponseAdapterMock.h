@@ -23,7 +23,7 @@ using namespace keyple::core::util::cpp;
  * (private)<br>
  * Implementation of {@link ApduResponseApi}.
  */
-class ApduResponseAdapterMock : public ApduResponseApi {
+class ApduResponseAdapterMock final : public ApduResponseApi {
 public:
     /**
      * Constructor

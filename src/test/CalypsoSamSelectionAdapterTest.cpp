@@ -48,7 +48,7 @@ std::shared_ptr<CalypsoSamSelectionAdapter> samSelection;
 static void setUp()
 {
     samSelection = std::dynamic_pointer_cast<CalypsoSamSelectionAdapter>(
-                       CalypsoExtensionService::getInstance().createSamSelection());
+                       CalypsoExtensionService::getInstance()->createSamSelection());
 }
 
 static void tearDown()

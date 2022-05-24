@@ -41,7 +41,7 @@ static std::shared_ptr<CalypsoCardSelectionAdapter> cardSelection;
 static void setUp()
 {
     cardSelection = std::dynamic_pointer_cast<CalypsoCardSelectionAdapter>(
-                        CalypsoExtensionService::getInstance().createCardSelection());
+                        CalypsoExtensionService::getInstance()->createCardSelection());
 }
 
 static void tearDown()

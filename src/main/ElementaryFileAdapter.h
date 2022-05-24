@@ -35,7 +35,7 @@ using namespace calypsonet::terminal::calypso::card;
  *
  * @since 2.0.0
  */
-class ElementaryFileAdapter : public ElementaryFile {
+class ElementaryFileAdapter final : public ElementaryFile {
 public:
     /**
      * (package-private)<br>

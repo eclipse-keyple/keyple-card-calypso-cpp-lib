@@ -27,11 +27,11 @@ using namespace calypsonet::terminal::calypso::card;
 
 /**
  * (package-private)<br>
- * Implementation of {@link FileHeader}.
+ * Implementation of FileHeader.
  *
  * @since 2.0.0
  */
-class FileHeaderAdapter : public FileHeader {
+class FileHeaderAdapter final : public FileHeader {
 public:
     /**
      * (package-private)<br>

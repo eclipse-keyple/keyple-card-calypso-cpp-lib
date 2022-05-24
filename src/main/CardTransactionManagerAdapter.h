@@ -73,7 +73,7 @@ using namespace keyple::core::util::cpp;
  *
  * @since 2.0.0
  */
-class CardTransactionManagerAdapter : public CardTransactionManager {
+class CardTransactionManagerAdapter final : public CardTransactionManager {
 public:
     /**
      *
@@ -485,7 +485,7 @@ private:
      * (private)<br>
      * Adapter of ApduResponseApi used to create anticipated card responses.
      */
-    class ApduResponseAdapter : public ApduResponseApi {
+    class ApduResponseAdapter final : public ApduResponseApi {
     public:
         /**
          *
