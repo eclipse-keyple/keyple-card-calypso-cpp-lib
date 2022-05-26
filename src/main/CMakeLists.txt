@@ -23,6 +23,8 @@ SET(KEYPLE_SERVICE_DIR      "../../../keyple-service-cpp-lib")
 SET(KEYPLE_RESOURCE_DIR     "../../../keyple-service-resource-cpp-lib")
 SET(KEYPLE_UTIL_DIR         "../../../keyple-util-cpp-lib")
 
+SET(KEYPLE_UTIL_LIB         "keypleutilcpplib")
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/cpp
@@ -140,3 +142,7 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/SvDebitLogRecordJsonDeserializerAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SvLoadLogRecordJsonDeserializerAdapter.cpp
 )
+
+IF(APPLE)
+    TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${KEYPLE_UTIL_LIB})
+ENDIF(APPLE)

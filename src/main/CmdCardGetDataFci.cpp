@@ -60,8 +60,6 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
 {
     AbstractCardCommand::setApduResponse(apduResponse);
 
-    std::map<const int, const std::vector<uint8_t>> tags;
-
     /*
      * Check the command status to determine if the DF has been invalidated
      * CL-INV-STATUS.1
@@ -82,7 +80,8 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
          * CL-TLV-VAR.1
          * CL-TLV-ORDER.1
          */
-        tags = BerTlvUtil::parseSimple(responseData, true);
+        const std::map<const int, const std::vector<uint8_t>> tags = 
+            BerTlvUtil::parseSimple(responseData, true);
 
         auto it = tags.find(TAG_DF_NAME);
         if (it == tags.end()) {
