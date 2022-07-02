@@ -21,6 +21,9 @@
 #include "CardSelectionResponseApi.h"
 #include "SmartCardSpi.h"
 
+/* Keyple Card Calypso */
+#include "KeypleCardCalypsoExport.h"
+
 /* Keyple Core Util */
 #include "LoggerFactory.h"
 
@@ -35,11 +38,11 @@ using namespace keyple::core::util::cpp;
 
 /**
  * (package-private)<br>
- * Implementation of {@link CalypsoSam}.
+ * Implementation of CalypsoSam.
  *
  * @since 2.0.0
  */
-class CalypsoSamAdapter final : public CalypsoSam, public SmartCardSpi {
+class KEYPLECARDCALYPSO_API CalypsoSamAdapter final : public CalypsoSam, public SmartCardSpi {
 public:
     /**
      * Constructor.

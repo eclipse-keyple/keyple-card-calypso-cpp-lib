@@ -67,7 +67,6 @@ namespace calypso {
 
 using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card;
-using namespace keyple::card::calypso;
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
@@ -121,8 +120,10 @@ CardTransactionManagerAdapter::CardTransactionManagerAdapter(
                        nullptr),
   mCalypsoCard(std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard)),
   mSessionState(SessionState::SESSION_UNINITIALIZED),
+  mCurrentWriteAccessLevel(WriteAccessLevel::DEBIT), /* had to set a default value to please MSVC */
   mModificationsCounter(mCalypsoCard->getModificationsCounter()),
   mCardCommandManager(std::make_shared<CardCommandManager>()),
+  mSvAction(SvAction::DO), /* had to set a default value to please MSVC */
   mChannelControl(ChannelControl::KEEP_OPEN) {}
 
 CardTransactionManagerAdapter::CardTransactionManagerAdapter(
@@ -172,8 +173,8 @@ void CardTransactionManagerAdapter::processAtomicOpening(
      * The default value is 0 (no record to read) but we will optimize the exchanges if a read
      * record command has been prepared.
      */
-    int sfi = 0;
-    int recordNumber = 0;
+    uint8_t sfi = 0;
+    uint8_t recordNumber = 0;
 
     /*
      * Let's check if we have a read record command at the top of the command list.
@@ -196,7 +197,8 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     /* Build the card Open Secure Session command */
     auto cmdCardOpenSession =
         std::make_shared<CmdCardOpenSession>(mCalypsoCard,
-                                             static_cast<int>(writeAccessLevel) + 1,
+                                             static_cast<uint8_t>(
+                                                 static_cast<int>(writeAccessLevel) + 1),
                                              sessionTerminalChallenge,
                                              sfi,
                                              recordNumber);
@@ -313,9 +315,8 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     mSessionState = SessionState::SESSION_OPEN;
 }
 
-CardTransactionManager& CardTransactionManagerAdapter::prepareSetCounter(const uint8_t sfi,
-                                                                         const int counterNumber,
-                                                                         const int newValue)
+CardTransactionManager& CardTransactionManagerAdapter::prepareSetCounter(
+    const uint8_t sfi, const uint8_t counterNumber, const int newValue)
 {
     std::shared_ptr<int> oldValue;
 
@@ -527,7 +528,7 @@ void CardTransactionManagerAdapter::processAtomicClosing(
     apduRequests.push_back(cmdCardCloseSession->getApduRequest());
 
     /* Keep the cardsition of the Close Session command in request list */
-    const int closeCommandIndex = apduRequests.size() - 1;
+    const int closeCommandIndex = static_cast<int>(apduRequests.size()) - 1;
 
     /* Add the card Ratification command if any */
     bool ratificationCommandAdded;
@@ -643,7 +644,7 @@ void CardTransactionManagerAdapter::processAtomicClosing(
                          channelControl);
 }
 
-int CardTransactionManagerAdapter::getCounterValue(const int sfi, const int counter)
+int CardTransactionManagerAdapter::getCounterValue(const uint8_t sfi, const int counter)
 {
     const std::shared_ptr<ElementaryFile> ef = mCalypsoCard->getFileBySfi(sfi);
     if (ef != nullptr) {
@@ -662,7 +663,7 @@ int CardTransactionManagerAdapter::getCounterValue(const int sfi, const int coun
 }
 
 const std::map<const int, const int> CardTransactionManagerAdapter::getCounterValues(
-    const int sfi, const std::vector<int>& counters)
+    const uint8_t sfi, const std::vector<int>& counters)
 {
     const std::shared_ptr<ElementaryFile> ef = mCalypsoCard->getFileBySfi(sfi);
     if (ef != nullptr) {
@@ -740,7 +741,7 @@ const std::vector<std::shared_ptr<ApduResponseApi>>
             if (command->getCommandRef() == CalypsoCardCommand::INCREASE ||
                 command->getCommandRef() == CalypsoCardCommand::DECREASE) {
                 auto incdec = std::dynamic_pointer_cast<CmdCardIncreaseOrDecrease>(command);
-                const int sfi = incdec->getSfi();
+                const uint8_t sfi = incdec->getSfi();
                 const int counter = incdec->getCounterNumber();
 
                 apduResponses.push_back(
@@ -752,15 +753,14 @@ const std::vector<std::shared_ptr<ApduResponseApi>>
             } else if (command->getCommandRef() == CalypsoCardCommand::INCREASE_MULTIPLE ||
                        command->getCommandRef() == CalypsoCardCommand::DECREASE_MULTIPLE) {
                 auto incdec = std::dynamic_pointer_cast<CmdCardIncreaseOrDecreaseMultiple>(command);
-                const int sfi = incdec->getSfi();
+                const uint8_t sfi = incdec->getSfi();
                 const std::map<const int, const int> counterNumberToIncDecValueMap =
                     incdec->getCounterNumberToIncDecValueMap();
 
                 apduResponses.push_back(
                     createIncreaseDecreaseMultipleResponse(
                         command->getCommandRef() == CalypsoCardCommand::DECREASE_MULTIPLE,
-                        getCounterValues(sfi,
-                                         MapUtils::getKeySet(counterNumberToIncDecValueMap)),
+                        getCounterValues(sfi, MapUtils::getKeySet(counterNumberToIncDecValueMap)),
                         counterNumberToIncDecValueMap));
 
             } else if (command->getCommandRef() == CalypsoCardCommand::SV_RELOAD ||
@@ -1214,7 +1214,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
     return *this;
 }
 
-CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const int keyIndex,
+CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const uint8_t keyIndex,
                                                                         const uint8_t newKif,
                                                                         const uint8_t newKvc,
                                                                         const uint8_t issuerKif,
@@ -1398,8 +1398,8 @@ void CardTransactionManagerAdapter::checkSessionNotOpen()
     }
 }
 
-void CardTransactionManagerAdapter::checkCommandsResponsesSynchronization(const int commandsNumber,
-                                                                          const int responsesNumber)
+void CardTransactionManagerAdapter::checkCommandsResponsesSynchronization(
+    const size_t commandsNumber, const size_t responsesNumber)
 {
     if (commandsNumber != responsesNumber) {
         throw DesynchronizedExchangesException("The number of commands/responses does not match: " \
@@ -1417,7 +1417,7 @@ bool CardTransactionManagerAdapter::checkModifyingCommand(
 {
     if (command->isSessionBufferUsed()) {
         /* This command affects the card modifications buffer */
-        neededSessionBufferSpace = command->getApduRequest()->getApdu().size() +
+        neededSessionBufferSpace = static_cast<int>(command->getApduRequest()->getApdu().size()) +
                                    SESSION_BUFFER_CMD_ADDITIONAL_COST -
                                    APDU_HEADER_LENGTH;
 
@@ -1498,7 +1498,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSelectFile(
 {
     Assert::getInstance().isEqual(lid.size(), 2, "lid length");
 
-    return prepareSelectFile(ByteArrayUtil::twoBytesToInt(lid, 0));
+    return prepareSelectFile(static_cast<uint16_t>(ByteArrayUtil::twoBytesToInt(lid, 0)));
 }
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareSelectFile(const uint16_t lid)
@@ -1550,17 +1550,17 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareGetData(const GetD
     return *this;
 }
 
-CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordFile(const uint8_t sfi,
-                                                                             const int recordNumber)
+CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordFile(
+    const uint8_t sfi, const uint8_t recordNumber)
 {
     return prepareReadRecord(sfi, recordNumber);
 }
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordFile(
     const uint8_t sfi,
-    const int firstRecordNumber,
-    const int numberOfRecords,
-    const int recordSize)
+    const uint8_t firstRecordNumber,
+    const uint8_t numberOfRecords,
+    const uint8_t recordSize)
 {
     return prepareReadRecords(sfi,
                               firstRecordNumber,
@@ -1569,13 +1569,13 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordFile(
 }
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareReadCounterFile(
-    const uint8_t sfi, const int countersNumber)
+    const uint8_t sfi, const uint8_t countersNumber)
 {
     return prepareReadCounter(sfi, countersNumber);
 }
 
-CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecord(const uint8_t sfi,
-                                                                         const int recordNumber)
+CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecord(
+    const uint8_t sfi, const uint8_t recordNumber)
 {
     Assert::getInstance().isInRange(sfi,
                                     CalypsoCardConstant::SFI_MIN,
@@ -1597,7 +1597,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecord(const u
                                              sfi,
                                              recordNumber,
                                              CmdCardReadRecords::ReadMode::ONE_RECORD,
-                                             0);
+                                             static_cast<uint8_t>(0));
     mCardCommandManager->addRegularCommand(cmdCardReadRecords);
 
     return *this;
@@ -1605,9 +1605,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecord(const u
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecords(
     const uint8_t sfi,
-    const int fromRecordNumber,
-    const int toRecordNumber,
-    const int recordSize)
+    const uint8_t fromRecordNumber,
+    const uint8_t toRecordNumber,
+    const uint8_t recordSize)
 {
     Assert::getInstance().isInRange(sfi,
                                     CalypsoCardConstant::SFI_MIN,
@@ -1637,13 +1637,14 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecords(
          * Multiple APDUs can be generated depending on record size and transmission capacity.
          */
         const CalypsoCardClass cardClass = mCalypsoCard->getCardClass();
-        const int nbBytesPerRecord = recordSize + 2;
-        const int nbRecordsPerApdu = mCalypsoCard->getPayloadCapacity() / nbBytesPerRecord;
-        const int dataSizeMaxPerApdu = nbRecordsPerApdu * nbBytesPerRecord;
+        const uint8_t nbBytesPerRecord = recordSize + 2;
+        const uint8_t nbRecordsPerApdu = 
+            static_cast<uint8_t>(mCalypsoCard->getPayloadCapacity() / nbBytesPerRecord);
+        const uint8_t dataSizeMaxPerApdu = nbRecordsPerApdu * nbBytesPerRecord;
 
-        int currentRecordNumber = fromRecordNumber;
-        int nbRecordsRemainingToRead = toRecordNumber - fromRecordNumber + 1;
-        int currentLength;
+        uint8_t currentRecordNumber = fromRecordNumber;
+        uint8_t nbRecordsRemainingToRead = toRecordNumber - fromRecordNumber + 1;
+        uint8_t currentLength;
 
         while (currentRecordNumber < toRecordNumber) {
             currentLength = nbRecordsRemainingToRead <= nbRecordsPerApdu ?
@@ -1677,14 +1678,14 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecords(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordsPartially(
     const uint8_t sfi,
-    const int fromRecordNumber,
-    const int toRecordNumber,
-    const int offset,
-    const int nbBytesToRead)
+    const uint8_t fromRecordNumber,
+    const uint8_t toRecordNumber,
+    const uint8_t offset,
+    const uint8_t nbBytesToRead)
 {
     if (mCalypsoCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3 &&
         mCalypsoCard->getProductType() != CalypsoCard::ProductType::LIGHT) {
-        throw UnsupportedOperationException("The 'Read Record Multiple' command is not available " \
+        throw UnsupportedOperationException("The 'Read Record Multiple' command is not available "\
                                             "for this card.");
     }
 
@@ -1710,9 +1711,10 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordsPartial
                                    "nbBytesToRead");
 
     const CalypsoCardClass cardClass = mCalypsoCard->getCardClass();
-    const int nbRecordsPerApdu = mCalypsoCard->getPayloadCapacity() / nbBytesToRead;
+    const uint8_t nbRecordsPerApdu = 
+        static_cast<uint8_t>(mCalypsoCard->getPayloadCapacity() / nbBytesToRead);
 
-    int currentRecordNumber = fromRecordNumber;
+    uint8_t currentRecordNumber = fromRecordNumber;
 
     while (currentRecordNumber <= toRecordNumber) {
         mCardCommandManager->addRegularCommand(
@@ -1727,9 +1729,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordsPartial
     return *this;
 }
 
-CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(const uint8_t sfi,
-                                                                         const int offset,
-                                                                         const int nbBytesToRead)
+CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
+    const uint8_t sfi, const uint8_t offset, const uint8_t nbBytesToRead)
 {
     if (mCalypsoCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
         throw UnsupportedOperationException("The 'Read Binary' command is not available for this " \
@@ -1749,15 +1750,18 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(const u
     if (sfi > 0 && offset > 255) { /* FFh */
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0). */
         mCardCommandManager->addRegularCommand(
-            std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(), sfi, 0, 1));
+            std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(), 
+                                                sfi, 
+                                                static_cast<uint8_t>(0), 
+                                                static_cast<uint8_t>(1)));
     }
 
-    const int payloadCapacity = mCalypsoCard->getPayloadCapacity();
+    const uint8_t payloadCapacity = mCalypsoCard->getPayloadCapacity();
     const CalypsoCardClass cardClass = mCalypsoCard->getCardClass();
 
-    int currentLength;
-    int currentOffset = offset;
-    int nbBytesRemainingToRead = nbBytesToRead;
+    uint8_t currentLength;
+    uint8_t currentOffset = offset;
+    uint8_t nbBytesRemainingToRead = nbBytesToRead;
 
     do {
         currentLength = std::min(nbBytesRemainingToRead, payloadCapacity);
@@ -1770,9 +1774,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(const u
 
     return *this;
 }
-
+    
 CardTransactionManager& CardTransactionManagerAdapter::prepareReadCounter(
-    const uint8_t sfi, const int nbCountersToRead)
+    const uint8_t sfi, const uint8_t nbCountersToRead)
 {
     return prepareReadRecords(sfi, 1, 1, nbCountersToRead * 3);
 }
@@ -1838,7 +1842,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareAppendRecord(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateRecord(
     const uint8_t sfi,
-    const int recordNumber,
+    const uint8_t recordNumber,
     const std::vector<uint8_t>& recordData)
 {
     Assert::getInstance().isInRange(sfi,
@@ -1862,7 +1866,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateRecord(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareWriteRecord(
     const uint8_t sfi,
-    const int recordNumber,
+    const uint8_t recordNumber,
     const std::vector<uint8_t>& recordData)
 {
     Assert::getInstance().isInRange(sfi,
@@ -1886,7 +1890,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareWriteRecord(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateBinary(
     const uint8_t sfi,
-    const int offset,
+    const uint8_t offset,
     const std::vector<uint8_t>& data)
 {
     return prepareUpdateOrWriteBinary(true, sfi, offset, data);
@@ -1894,7 +1898,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateBinary(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareWriteBinary(
     const uint8_t sfi,
-    const int offset,
+    const uint8_t offset,
     const std::vector<uint8_t>& data)
 {
     return prepareUpdateOrWriteBinary(false, sfi, offset, data);
@@ -1903,7 +1907,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareWriteBinary(
 CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinary(
     const bool isUpdateCommand,
     const uint8_t sfi,
-    const int offset,
+    const uint8_t offset,
     const std::vector<uint8_t>& data)
 {
     if (mCalypsoCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
@@ -1924,19 +1928,24 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
     if (sfi > 0 && offset > 255) { /* FFh */
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0) */
         mCardCommandManager->addRegularCommand(
-            std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(), sfi, 0, 1));
+            std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(), 
+                                                sfi, 
+                                                static_cast<uint8_t>(0), 
+                                                static_cast<uint8_t>(1)));
     }
 
-    const int dataLength = data.size();
-    const int payloadCapacity = mCalypsoCard->getPayloadCapacity();
+    const uint8_t dataLength = static_cast<uint8_t>(data.size());
+    const uint8_t payloadCapacity = mCalypsoCard->getPayloadCapacity();
     const CalypsoCardClass cardClass = mCalypsoCard->getCardClass();
 
-    int currentLength;
-    int currentOffset = offset;
-    int currentIndex = 0;
+    uint8_t currentLength;
+    uint8_t currentOffset = offset;
+    uint8_t currentIndex = 0;
 
     do {
-        currentLength = std::min(dataLength - currentIndex, payloadCapacity);
+        currentLength = static_cast<uint8_t>(
+                            std::min(static_cast<int>(dataLength - currentIndex), 
+                                     static_cast<int>(payloadCapacity)));
 
         mCardCommandManager->addRegularCommand(
             std::make_shared<CmdCardUpdateOrWriteBinary>(
@@ -1956,7 +1965,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
 CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecreaseCounter(
     const bool isDecreaseCommand,
     const uint8_t sfi,
-    const int counterNumber,
+    const uint8_t counterNumber,
     const int incDecValue)
 {
     Assert::getInstance().isInRange(sfi,
@@ -1984,13 +1993,13 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
 }
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseCounter(
-    const uint8_t sfi, const int counterNumber, const int incValue)
+    const uint8_t sfi, const uint8_t counterNumber, const int incValue)
 {
     return prepareIncreaseOrDecreaseCounter(false, sfi, counterNumber, incValue);
 }
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareDecreaseCounter(
-    const uint8_t sfi, const int counterNumber, const int decValue)
+    const uint8_t sfi, const uint8_t counterNumber, const int decValue)
 {
     return prepareIncreaseOrDecreaseCounter(true, sfi, counterNumber, decValue);
 }

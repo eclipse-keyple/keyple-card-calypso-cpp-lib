@@ -27,7 +27,13 @@ using ProductType = CalypsoSam::ProductType;
 
 const std::string CardSecuritySettingAdapter::WRITE_ACCESS_LEVEL = "writeAccessLevel";
 
-CardSecuritySettingAdapter::CardSecuritySettingAdapter() {}
+CardSecuritySettingAdapter::CardSecuritySettingAdapter()
+: mIsMultipleSessionEnabled(false),
+  mIsRatificationMechanismEnabled(false),
+  mIsPinPlainTransmissionEnabled(false),
+  mIsTransactionAuditEnabled(false),
+  mIsSvLoadAndDebitLogEnabled(false),
+  mIsSvNegativeBalanceAuthorized(false) {}
 
 CardSecuritySetting& CardSecuritySettingAdapter::setSamResource(
     const std::shared_ptr<CardReader> samReader, const std::shared_ptr<CalypsoSam> calypsoSam)

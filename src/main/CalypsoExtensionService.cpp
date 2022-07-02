@@ -107,9 +107,14 @@ std::shared_ptr<CardTransactionManager> CalypsoExtensionService::createCardTrans
 
     Assert::getInstance().notNull(reader, "reader")
                          .notNull(calypsoCard, "calypsoCard")
-                         .isTrue(calypsoCard->getProductType() !=
-                                 CalypsoCard::ProductType::UNKNOWN, PRODUCT_TYPE)
                          .notNull(cardSecuritySetting, "cardSecuritySetting");
+
+    /*
+     * C++: check args data *after* nullity has been ruled out. Calls order doesn't seem
+     * respected by MSVC
+     */
+    Assert::getInstance().isTrue(calypsoCard->getProductType() != CalypsoCard::ProductType::UNKNOWN, 
+                                 PRODUCT_TYPE);
 
     return std::make_shared<CardTransactionManagerAdapter>(reader,
                                                            calypsoCard,
@@ -121,8 +126,13 @@ std::shared_ptr<CardTransactionManager>
         std::shared_ptr<CardReader> reader, const std::shared_ptr<CalypsoCard> calypsoCard)
 {
     Assert::getInstance().notNull(reader, "reader")
-                         .notNull(calypsoCard, "calypsoCard")
-                         .isTrue(calypsoCard->getProductType() != CalypsoCard::ProductType::UNKNOWN,
+                         .notNull(calypsoCard, "calypsoCard");
+
+    /*
+     * C++: check args data *after* nullity has been ruled out. Calls order doesn't seem
+     * respected by MSVC
+     */
+    Assert::getInstance().isTrue(calypsoCard->getProductType() != CalypsoCard::ProductType::UNKNOWN,
                                  PRODUCT_TYPE);
 
     return std::make_shared<CardTransactionManagerAdapter>(reader, calypsoCard);

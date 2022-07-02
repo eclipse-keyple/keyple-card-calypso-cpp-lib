@@ -32,14 +32,16 @@ FileDataAdapter::FileDataAdapter() {}
 
 FileDataAdapter::FileDataAdapter(const std::shared_ptr<FileData> source)
 {
-    const std::map<int, std::vector<uint8_t>>& sourceContent = source->getAllRecordsContent();
+    const std::map<const uint8_t, std::vector<uint8_t>>& sourceContent =
+        source->getAllRecordsContent();
 
     for (const auto& entry : sourceContent) {
         mRecords.insert({entry.first, entry.second});
     }
 }
 
-const std::map<int, std::vector<uint8_t>>& FileDataAdapter::getAllRecordsContent() const
+const std::map<const uint8_t, std::vector<uint8_t>>& FileDataAdapter::getAllRecordsContent() 
+    const
 {
     return mRecords;
 }
@@ -49,7 +51,7 @@ const std::vector<uint8_t> FileDataAdapter::getContent() const
     return getContent(1);
 }
 
-const std::vector<uint8_t> FileDataAdapter::getContent(const int numRecord) const
+const std::vector<uint8_t> FileDataAdapter::getContent(const uint8_t numRecord) const
 {
     const auto it = mRecords.find(numRecord);
     if (it == mRecords.end()) {
@@ -60,9 +62,9 @@ const std::vector<uint8_t> FileDataAdapter::getContent(const int numRecord) cons
     }
 }
 
-const std::vector<uint8_t> FileDataAdapter::getContent(const int numRecord,
-                                                       const int dataOffset,
-                                                       const int dataLength) const
+const std::vector<uint8_t> FileDataAdapter::getContent(const uint8_t numRecord,
+                                                       const uint8_t dataOffset,
+                                                       const uint8_t dataLength) const
 {
     Assert::getInstance().greaterOrEqual(dataOffset, 0, "dataOffset")
                          .greaterOrEqual(dataLength, 1, "dataLength");
@@ -130,7 +132,7 @@ const std::map<const int, const int> FileDataAdapter::getAllCountersValue() cons
     }
 
     const std::vector<uint8_t> rec1 = it->second;
-    const int length = rec1.size() - (rec1.size() % 3);
+    const int length = static_cast<int>(rec1.size() - (rec1.size() % 3));
     for (int i = 0, c = 1; i < length; i += 3, c++) {
         result.insert({c, ByteArrayUtil::threeBytesToInt(rec1, i)});
     }
@@ -138,22 +140,22 @@ const std::map<const int, const int> FileDataAdapter::getAllCountersValue() cons
     return result;
 }
 
-void FileDataAdapter::setContent(const int numRecord, const std::vector<uint8_t>& content)
+void FileDataAdapter::setContent(const uint8_t numRecord, const std::vector<uint8_t>& content)
 {
     mRecords.insert({numRecord, content});
 }
 
-void FileDataAdapter::setCounter(const int numCounter, const std::vector<uint8_t>& content)
+void FileDataAdapter::setCounter(const uint8_t numCounter, const std::vector<uint8_t>& content)
 {
     setContent(1, content, (numCounter - 1) * 3);
 }
 
-void FileDataAdapter::setContent(const int numRecord,
+void FileDataAdapter::setContent(const uint8_t numRecord,
                                  const std::vector<uint8_t> content,
-                                 const int offset)
+                                 const uint8_t offset)
 {
     std::vector<uint8_t> newContent;
-    const int newLength = offset + content.size();
+    const int newLength = static_cast<int>(offset + content.size());
 
     const auto it = mRecords.find(numRecord);
     if (it == mRecords.end()) {
@@ -175,9 +177,9 @@ void FileDataAdapter::setContent(const int numRecord,
     mRecords.insert({numRecord, newContent});
 }
 
-void FileDataAdapter::fillContent(const int numRecord,
+void FileDataAdapter::fillContent(const uint8_t numRecord,
                                   const std::vector<uint8_t> content,
-                                  const int offset)
+                                  const uint8_t offset)
 {
     std::vector<uint8_t> contentLeftPadded = content;
 
@@ -209,18 +211,17 @@ void FileDataAdapter::fillContent(const int numRecord,
 
 void FileDataAdapter::addCyclicContent(const std::vector<uint8_t>& content)
 {
-    std::vector<int> descendingKeys;
-    std::map<int, std::vector<uint8_t>>::iterator it;
+    std::vector<uint8_t> descendingKeys;
 
     for (auto it = mRecords.rbegin(); it != mRecords.rend(); ++it) {
         descendingKeys.push_back(it->first);
     }
 
     for (const auto& i : descendingKeys) {
-        mRecords.insert({i + 1, mRecords[i]});
+        mRecords.insert({static_cast<uint8_t>(i + 1), mRecords[i]});
     }
 
-    mRecords.insert({1, content});
+    mRecords.insert({static_cast<uint8_t>(1), content});
 }
 
 std::ostream& operator<<(std::ostream& os, const FileDataAdapter& fda)

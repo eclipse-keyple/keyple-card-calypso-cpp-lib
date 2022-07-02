@@ -54,7 +54,6 @@ namespace calypso {
 using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card;
 using namespace calypsonet::terminal::card::spi;
-using namespace keyple::card::calypso;
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
@@ -128,7 +127,7 @@ const std::vector<uint8_t> SamCommandProcessor::getSessionTerminalChallenge()
         samApduResponses = samCardResponse->getApduResponses();
     std::vector<uint8_t> sessionTerminalChallenge;
 
-    const int numberOfSamCmd = apduRequests.size();
+    const size_t numberOfSamCmd = apduRequests.size();
     if (static_cast<int>(samApduResponses.size()) == numberOfSamCmd) {
         samGetChallengeCmd->setApduResponse(samApduResponses[numberOfSamCmd - 1]).checkStatus();
         sessionTerminalChallenge = samGetChallengeCmd->getChallenge();
@@ -429,7 +428,7 @@ const std::vector<uint8_t> SamCommandProcessor::getEncryptedKey(
 
     samCommands.push_back(std::make_shared<CmdSamGiveRandom>(mSamProductType, poChallenge));
 
-    const int cardGenerateKeyCmdIndex = samCommands.size();
+    const size_t cardGenerateKeyCmdIndex = samCommands.size();
 
     auto cmdSamCardGenerateKey = std::make_shared<CmdSamCardGenerateKey>(mSamProductType,
                                                                          cipheringKif,
@@ -522,7 +521,7 @@ const std::vector<uint8_t> SamCommandProcessor::getCipheredPinData(
 
     samCommands.push_back(std::make_shared<CmdSamGiveRandom>(mSamProductType, poChallenge));
 
-    const int cardCipherPinCmdIndex = samCommands.size();
+    const size_t cardCipherPinCmdIndex = samCommands.size();
 
     auto cmdSamCardCipherPin = std::make_shared<CmdSamCardCipherPin>(mSamProductType,
                                                                      pinCipheringKif,
@@ -577,7 +576,7 @@ const std::vector<uint8_t> SamCommandProcessor::getSvComplementaryData(
         Arrays::addAll(samCommands, getPendingSamCommands(false));
     }
 
-    const int svPrepareOperationCmdIndex = samCommands.size();
+    const size_t svPrepareOperationCmdIndex = samCommands.size();
 
     samCommands.push_back(cmdSamSvPrepare);
 

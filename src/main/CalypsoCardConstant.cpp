@@ -79,10 +79,10 @@ const int CalypsoCardConstant::PIN_LENGTH = 4;
 /* Stored Value */
 const uint8_t CalypsoCardConstant::STORED_VALUE_FILE_STRUCTURE_ID = 0x20;
 const uint8_t CalypsoCardConstant::SV_RELOAD_LOG_FILE_SFI = 0x14;
-const int CalypsoCardConstant::SV_RELOAD_LOG_FILE_NB_REC = 1;
+const uint8_t CalypsoCardConstant::SV_RELOAD_LOG_FILE_NB_REC = 1;
 const uint8_t CalypsoCardConstant::SV_DEBIT_LOG_FILE_SFI = 0x15;
-const int CalypsoCardConstant::SV_DEBIT_LOG_FILE_NB_REC = 3;
-const int CalypsoCardConstant::SV_LOG_FILE_REC_LENGTH = 29;
+const uint8_t CalypsoCardConstant::SV_DEBIT_LOG_FILE_NB_REC = 3;
+const uint8_t CalypsoCardConstant::SV_LOG_FILE_REC_LENGTH = 29;
 
 /* Payload capacity */
 const int CalypsoCardConstant::PAYLOAD_CAPACITY_PRIME_REV3 = 250;

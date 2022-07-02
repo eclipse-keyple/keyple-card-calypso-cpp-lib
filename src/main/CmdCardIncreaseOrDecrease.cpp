@@ -40,7 +40,7 @@ CmdCardIncreaseOrDecrease::CmdCardIncreaseOrDecrease(
   const bool isDecreaseCommand,
   const CalypsoCardClass calypsoCardClass,
   const uint8_t sfi,
-  const int counterNumber,
+  const uint8_t counterNumber,
   const int incDecValue)
 : AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE : CalypsoCardCommand::INCREASE),
   mSfi(sfi),
@@ -88,12 +88,12 @@ bool CmdCardIncreaseOrDecrease::isSessionBufferUsed() const
     return true;
 }
 
-int CmdCardIncreaseOrDecrease::getSfi() const
+uint8_t CmdCardIncreaseOrDecrease::getSfi() const
 {
     return mSfi;
 }
 
-int CmdCardIncreaseOrDecrease::getCounterNumber() const
+uint8_t CmdCardIncreaseOrDecrease::getCounterNumber() const
 {
     return mCounterNumber;
 }
@@ -106,8 +106,7 @@ int CmdCardIncreaseOrDecrease::getIncDecValue() const
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardIncreaseOrDecrease::initStatusTable()
 {
-    std::map<const int, const std::shared_ptr<StatusProperties>> m =
-        CmdCardIncreaseOrDecrease::STATUS_TABLE;
+    std::map<const int, const std::shared_ptr<StatusProperties>> m;
 
     m.insert({0x6400,
               std::make_shared<StatusProperties>("Too many modifications in session.",

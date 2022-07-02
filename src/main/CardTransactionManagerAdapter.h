@@ -43,7 +43,6 @@ namespace calypso {
 using namespace calypsonet::terminal::calypso;
 using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card;
-using namespace keyple::card::calypso;
 using namespace keyple::core::util::cpp;
 
 /**
@@ -193,7 +192,7 @@ public:
      *
      * @since 2.1.0
      */
-    CardTransactionManager& processChangeKey(const int keyIndex,
+    CardTransactionManager& processChangeKey(const uint8_t keyIndex,
                                              const uint8_t newKif,
                                              const uint8_t newKvc,
                                              const uint8_t issuerKif,
@@ -241,7 +240,8 @@ public:
      * @since 2.0.0
      * @deprecated
      */
-    CardTransactionManager& prepareReadRecordFile(const uint8_t sfi, const int recordNumber) final;
+    CardTransactionManager& prepareReadRecordFile(const uint8_t sfi, const uint8_t recordNumber) 
+        final;
 
     /**
      * {@inheritDoc}
@@ -250,9 +250,9 @@ public:
      * @deprecated
      */
     CardTransactionManager& prepareReadRecordFile(const uint8_t sfi,
-                                                  const int firstRecordNumber,
-                                                  const int numberOfRecords,
-                                                  const int recordSize) final;
+                                                  const uint8_t firstRecordNumber,
+                                                  const uint8_t numberOfRecords,
+                                                  const uint8_t recordSize) final;
 
     /**
      * {@inheritDoc}
@@ -260,7 +260,7 @@ public:
      * @since 2.0.0
      * @deprecated
      */
-    CardTransactionManager& prepareReadCounterFile(const uint8_t sfi, const int countersNumber)
+    CardTransactionManager& prepareReadCounterFile(const uint8_t sfi, const uint8_t countersNumber)
         final;
 
     /**
@@ -268,7 +268,8 @@ public:
      *
      * @since 2.1.0
      */
-    CardTransactionManager& prepareReadRecord(const uint8_t sfi, const int recordNumber) override;
+    CardTransactionManager& prepareReadRecord(const uint8_t sfi, const uint8_t recordNumber) 
+        override;
 
     /**
      * {@inheritDoc}
@@ -276,9 +277,9 @@ public:
      * @since 2.1.0
      */
     CardTransactionManager& prepareReadRecords(const uint8_t sfi,
-                                               const int fromRecordNumber,
-                                               const int toRecordNumber,
-                                               const int recordSize) override;
+                                               const uint8_t fromRecordNumber,
+                                               const uint8_t toRecordNumber,
+                                               const uint8_t recordSize) override;
 
     /**
      * {@inheritDoc}
@@ -286,10 +287,10 @@ public:
      * @since 2.1.0
      */
     CardTransactionManager& prepareReadRecordsPartially(const uint8_t sfi,
-                                                        const int fromRecordNumber,
-                                                        const int toRecordNumber,
-                                                        const int offset,
-                                                        const int nbBytesToRead) override;
+                                                        const uint8_t fromRecordNumber,
+                                                        const uint8_t toRecordNumber,
+                                                        const uint8_t offset,
+                                                        const uint8_t nbBytesToRead) override;
 
     /**
      * {@inheritDoc}
@@ -297,15 +298,15 @@ public:
      * @since 2.1.0
      */
     CardTransactionManager& prepareReadBinary(const uint8_t sfi,
-                                              const int offset,
-                                              const int nbBytesToRead) override;
+                                              const uint8_t offset,
+                                              const uint8_t nbBytesToRead) override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.1.0
      */
-    CardTransactionManager& prepareReadCounter(const uint8_t sfi, const int nbCountersToRead)
+    CardTransactionManager& prepareReadCounter(const uint8_t sfi, const uint8_t nbCountersToRead)
         override;
 
     /**
@@ -330,7 +331,7 @@ public:
      * @since 2.0.0
      */
     CardTransactionManager& prepareUpdateRecord(const uint8_t sfi,
-                                                const int recordNumber,
+                                                const uint8_t recordNumber,
                                                 const std::vector<uint8_t>& recordData) final;
 
     /**
@@ -339,7 +340,7 @@ public:
      * @since 2.0.0
      */
     CardTransactionManager& prepareWriteRecord(const uint8_t sfi,
-                                               const int recordNumber,
+                                               const uint8_t recordNumber,
                                                const std::vector<uint8_t>& recordData) final;
 
     /**
@@ -348,7 +349,7 @@ public:
      * @since 2.1.0
      */
     CardTransactionManager& prepareUpdateBinary(const uint8_t sfi,
-                                                const int offset,
+                                                const uint8_t offset,
                                                 const std::vector<uint8_t>& data) final;
 
     /**
@@ -357,7 +358,7 @@ public:
      * @since 2.1.0
      */
     CardTransactionManager& prepareWriteBinary(const uint8_t sfi,
-                                               const int offset,
+                                               const uint8_t offset,
                                                const std::vector<uint8_t>& data) final;
 
     /**
@@ -366,7 +367,7 @@ public:
      * @since 2.0.0
      */
     CardTransactionManager& prepareIncreaseCounter(const uint8_t sfi,
-                                                   const int counterNumber,
+                                                   const uint8_t counterNumber,
                                                    const int incValue) final;
 
     /**
@@ -375,7 +376,7 @@ public:
      * @since 2.0.0
      */
     CardTransactionManager& prepareDecreaseCounter(const uint8_t sfi,
-                                                   const int counterNumber,
+                                                   const uint8_t counterNumber,
                                                    const int decValue) final;
 
     /**
@@ -402,7 +403,7 @@ public:
      * @since 2.0.0
      */
     CardTransactionManager& prepareSetCounter(const uint8_t sfi,
-                                              const int counterNumber,
+                                              const uint8_t counterNumber,
                                               const int newValue) final;
 
     /**
@@ -732,7 +733,7 @@ private:
      * @return The value of the counter
      * @throw IllegalStateException If the counter is not found.
      */
-    int getCounterValue(const int sfi, const int counter);
+    int getCounterValue(const uint8_t sfi, const int counter);
 
     /**
      * (private)
@@ -744,7 +745,7 @@ private:
      * @return A map containing the counters.
      * @throw IllegalStateException If one of the expected counter was found.
      */
-    const std::map<const int, const int> getCounterValues(const int sfi,
+    const std::map<const int, const int> getCounterValues(const uint8_t sfi,
                                                           const std::vector<int>& counters);
 
     /**
@@ -882,7 +883,8 @@ private:
      * @param responsesNumber the number of responses.
      * @throw DesynchronizedExchangesException if the test failed
      */
-    void checkCommandsResponsesSynchronization(const int commandsNumber, const int responsesNumber);
+    void checkCommandsResponsesSynchronization(const size_t commandsNumber, 
+                                               const size_t responsesNumber);
 
      /**
      * Checks the provided command from the session buffer overflow management perspective<br>
@@ -933,7 +935,7 @@ private:
      */
     CardTransactionManager& prepareUpdateOrWriteBinary(const bool isUpdateCommand,
                                                        const uint8_t sfi,
-                                                       const int offset,
+                                                       const uint8_t offset,
                                                        const std::vector<uint8_t>& data);
 
      /**
@@ -943,7 +945,7 @@ private:
      */
     CardTransactionManager& prepareIncreaseOrDecreaseCounter(const bool isDecreaseCommand,
                                                              const uint8_t sfi,
-                                                             const int counterNumber,
+                                                             const uint8_t counterNumber,
                                                              const int incDecValue);
 
     /**

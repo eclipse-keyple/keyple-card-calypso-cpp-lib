@@ -99,20 +99,27 @@ static const std::shared_ptr<ApduResponseApi> buildSelectApplicationResponse(
     std::vector<uint8_t> selAppResponse(23 + dfName.size() + startupInfo.size());
 
     selAppResponse[0] = 0x6F;
-    selAppResponse[1] = (11 + dfName.size() + serialNumber.size() + startupInfo.size());
+    selAppResponse[1] = static_cast<uint8_t>(11 + 
+                                             dfName.size() + 
+                                             serialNumber.size() + 
+                                             startupInfo.size());
     selAppResponse[2] = 0x84;
-    selAppResponse[3] = (dfName.size());
+    selAppResponse[3] = static_cast<uint8_t>(dfName.size());
     System::arraycopy(dfName, 0, selAppResponse, 4, dfName.size());
     selAppResponse[4 + dfName.size()] = 0xA5;
-    selAppResponse[5 + dfName.size()] = (7 + serialNumber.size() + startupInfo.size());
+    selAppResponse[5 + dfName.size()] = static_cast<uint8_t>(7 + 
+                                                             serialNumber.size() + 
+                                                             startupInfo.size());
     selAppResponse[6 + dfName.size()] = 0xBF;
     selAppResponse[7 + dfName.size()] = 0x0C;
-    selAppResponse[8 + dfName.size()] = (4 + serialNumber.size() + startupInfo.size());
+    selAppResponse[8 + dfName.size()] = static_cast<uint8_t>(4 + 
+                                                             serialNumber.size() + 
+                                                             startupInfo.size());
     selAppResponse[9 + dfName.size()] = 0xC7;
-    selAppResponse[10 + dfName.size()] = (serialNumber.size());
+    selAppResponse[10 + dfName.size()] = static_cast<uint8_t>(serialNumber.size());
     System::arraycopy(serialNumber, 0, selAppResponse, 11 + dfName.size(), 8);
     selAppResponse[19 + dfName.size()] = 0x53;
-    selAppResponse[20 + dfName.size()] = (startupInfo.size());
+    selAppResponse[20 + dfName.size()] = static_cast<uint8_t>(startupInfo.size());
     System::arraycopy(startupInfo, 0, selAppResponse, 21 + dfName.size(), startupInfo.size());
     selAppResponse[21 + dfName.size() + startupInfo.size()] = ((statusWord & 0xFF00) >> 8);
     selAppResponse[22 + dfName.size() + startupInfo.size()] = (statusWord & 0xFF);

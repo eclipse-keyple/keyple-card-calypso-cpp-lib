@@ -89,10 +89,10 @@ public:
     /* Stored Value */
     static const uint8_t STORED_VALUE_FILE_STRUCTURE_ID;
     static const uint8_t SV_RELOAD_LOG_FILE_SFI;
-    static const int SV_RELOAD_LOG_FILE_NB_REC;
+    static const uint8_t SV_RELOAD_LOG_FILE_NB_REC;
     static const uint8_t SV_DEBIT_LOG_FILE_SFI;
-    static const int SV_DEBIT_LOG_FILE_NB_REC;
-    static const int SV_LOG_FILE_REC_LENGTH;
+    static const uint8_t SV_DEBIT_LOG_FILE_NB_REC;
+    static const uint8_t SV_LOG_FILE_REC_LENGTH;
 
     /* Payload capacity */
     static const int PAYLOAD_CAPACITY_PRIME_REV3;

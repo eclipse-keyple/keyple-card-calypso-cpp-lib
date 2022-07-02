@@ -17,7 +17,11 @@ namespace card {
 namespace calypso {
 
 SearchCommandDataAdapter::SearchCommandDataAdapter()
-: mSfi(1), mRecordNumber(1) {}
+: mSfi(1), 
+  mRecordNumber(1), 
+  mOffset(0), 
+  mEnableRepeatedOffset(false),
+  mFetchFirstMatchingResult(false) {}
 
 SearchCommandData& SearchCommandDataAdapter::setSfi(const uint8_t sfi)
 {
@@ -26,7 +30,7 @@ SearchCommandData& SearchCommandDataAdapter::setSfi(const uint8_t sfi)
     return *this;
 }
 
-SearchCommandData& SearchCommandDataAdapter::startAtRecord(const int recordNumber)
+SearchCommandData& SearchCommandDataAdapter::startAtRecord(const uint8_t recordNumber)
 {
     mRecordNumber = recordNumber;
 
@@ -68,7 +72,7 @@ SearchCommandData& SearchCommandDataAdapter::fetchFirstMatchingResult()
     return *this;
 }
 
-std::vector<int>& SearchCommandDataAdapter::getMatchingRecordNumbers()
+std::vector<uint8_t>& SearchCommandDataAdapter::getMatchingRecordNumbers()
 {
     return mMatchingRecordNumbers;
 }
@@ -78,7 +82,7 @@ uint8_t SearchCommandDataAdapter::getSfi() const
     return mSfi;
 }
 
-int SearchCommandDataAdapter::getRecordNumber() const
+uint8_t SearchCommandDataAdapter::getRecordNumber() const
 {
     return mRecordNumber;
 }

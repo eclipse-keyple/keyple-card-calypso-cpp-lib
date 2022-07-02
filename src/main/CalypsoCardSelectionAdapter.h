@@ -27,6 +27,7 @@
 /* Keyple Card Calypso */
 #include "AbstractCardCommand.h"
 #include "CardSelectorAdapter.h"
+#include "KeypleCardCalypsoExport.h"
 
 namespace keyple {
 namespace card {
@@ -41,7 +42,7 @@ using namespace calypsonet::terminal::card::spi;
  *
  * @since 2.0.0
  */
-class CalypsoCardSelectionAdapter final : public CalypsoCardSelection, public CardSelectionSpi {
+class KEYPLECARDCALYPSO_API CalypsoCardSelectionAdapter final : public CalypsoCardSelection, public CardSelectionSpi {
 public:
     /**
      * (package-private)<br>
@@ -116,14 +117,15 @@ public:
      * @since 2.0.0
      * @deprecated
      */
-    CalypsoCardSelection& prepareReadRecordFile(const uint8_t sfi, const int recordNumber) override;
+    CalypsoCardSelection& prepareReadRecordFile(const uint8_t sfi, const uint8_t recordNumber) 
+        override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.1.0
      */
-    CalypsoCardSelection& prepareReadRecord(const uint8_t sfi, const int recordNumber) override;
+    CalypsoCardSelection& prepareReadRecord(const uint8_t sfi, const uint8_t recordNumber) override;
 
     /**
      * {@inheritDoc}

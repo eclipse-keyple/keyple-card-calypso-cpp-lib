@@ -61,7 +61,8 @@ public:
      *
      * @since 2.0.0
      */
-    const std::map<int, std::vector<uint8_t>>& getAllRecordsContent() const override;
+    const std::map<const uint8_t, std::vector<uint8_t>>& getAllRecordsContent() const
+        override;
 
     /**
      * {@inheritDoc}
@@ -75,16 +76,16 @@ public:
      *
      * @since 2.0.0
      */
-    const std::vector<uint8_t> getContent(const int numRecord) const override;
+    const std::vector<uint8_t> getContent(const uint8_t numRecord) const override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    const std::vector<uint8_t> getContent(const int numRecord,
-                                          const int dataOffset,
-                                          const int dataLength) const override;
+    const std::vector<uint8_t> getContent(const uint8_t numRecord,
+                                          const uint8_t dataOffset,
+                                          const uint8_t dataLength) const override;
 
     /**
      * {@inheritDoc}
@@ -108,7 +109,7 @@ public:
      * @param content the content (should be not empty).
      * @since 2.0.0
      */
-    void setContent(const int numRecord, const std::vector<uint8_t>& content);
+    void setContent(const uint8_t numRecord, const std::vector<uint8_t>& content);
 
     /**
      * (package-private)<br>
@@ -118,7 +119,7 @@ public:
      * @param content the counter value (should be not null and 3 bytes length).
      * @since 2.0.0
      */
-    void setCounter(const int numCounter, const std::vector<uint8_t>& content);
+    void setCounter(const uint8_t numCounter, const std::vector<uint8_t>& content);
 
     /**
      * (package-private)<br>
@@ -132,7 +133,9 @@ public:
      * @param offset the offset (should be {@code >=} 0).
      * @since 2.0.0
      */
-    void setContent(const int numRecord, const std::vector<uint8_t> content, const int offset);
+    void setContent(const uint8_t numRecord, 
+                    const std::vector<uint8_t> content,
+                    const uint8_t offset);
 
     /**
      * (package-private)<br>
@@ -146,7 +149,9 @@ public:
      * @param offset the offset (should be {@code >=} 0).
      * @since 2.0.0
      */
-    void fillContent(const int numRecord, const std::vector<uint8_t> content, const int offset);
+    void fillContent(const uint8_t numRecord, 
+                     const std::vector<uint8_t> content, 
+                     const uint8_t offset);
 
     /**
      * (package-private)<br>
@@ -174,7 +179,7 @@ private:
     /**
      *
      */
-    std::map<int, std::vector<uint8_t>> mRecords;
+    std::map<const uint8_t, std::vector<uint8_t>> mRecords;
 
 };
 

@@ -19,6 +19,9 @@
 /* Calypsonet Terminal Card */
 #include "ApduRequestSpi.h"
 
+/* Keyple Card Calypso */
+#include "KeypleCardCalypsoExport.h"
+
 namespace keyple {
 namespace card {
 namespace calypso {
@@ -40,7 +43,7 @@ using namespace calypsonet::terminal::card::spi;
  *
  * @since 2.0.0
  */
-class ApduRequestAdapter final : public ApduRequestSpi {
+class KEYPLECARDCALYPSO_API ApduRequestAdapter final : public ApduRequestSpi {
 public:
     /**
      * Builds an APDU request from a raw byte buffer.

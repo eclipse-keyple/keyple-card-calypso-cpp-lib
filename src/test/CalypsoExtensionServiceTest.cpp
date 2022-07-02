@@ -174,11 +174,11 @@ TEST(CalypsoExtensionServiceTest, createCardSecuritySetting_shouldReturnANewRefe
 {
     setUp();
 
-    const std::shared_ptr<CardSecuritySetting> cardSecuritySetting =
+    const std::shared_ptr<CardSecuritySetting> lCardSecuritySetting =
         service->createCardSecuritySetting();
 
-    ASSERT_NE(cardSecuritySetting, nullptr);
-    ASSERT_NE(service->createCardSecuritySetting(), cardSecuritySetting);
+    ASSERT_NE(lCardSecuritySetting, nullptr);
+    ASSERT_NE(service->createCardSecuritySetting(), lCardSecuritySetting);
 
     tearDown();
 }
@@ -188,10 +188,10 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    const std::shared_ptr<CardSecuritySetting> cardSecuritySetting =
+    const std::shared_ptr<CardSecuritySetting> lCardSecuritySetting =
         service->createCardSecuritySetting();
 
-    ASSERT_NE(std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting), nullptr);
+    ASSERT_NE(std::dynamic_pointer_cast<CardSecuritySettingAdapter>(lCardSecuritySetting), nullptr);
 
     tearDown();
 }
@@ -200,9 +200,7 @@ TEST(CalypsoExtensionServiceTest, createCardTransaction_whenInvokedWithNullReade
 {
     setUp();
 
-    EXPECT_THROW(service->createCardTransaction(nullptr,
-                                               calypsoCard,
-                                               cardSecuritySetting),
+    EXPECT_THROW(service->createCardTransaction(nullptr, calypsoCard, cardSecuritySetting),
                  IllegalArgumentException);
 
     tearDown();

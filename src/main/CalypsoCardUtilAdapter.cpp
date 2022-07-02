@@ -312,7 +312,6 @@ void CalypsoCardUtilAdapter::updateCalypsoCardWithFcp(
     const uint8_t fileType = proprietaryInformation[CalypsoCardConstant::SEL_TYPE_OFFSET];
 
     if (fileType == CalypsoCardConstant::FILE_TYPE_MF ||
-        fileType == CalypsoCardConstant::FILE_TYPE_MF ||
         fileType == CalypsoCardConstant::FILE_TYPE_DF) {
         const auto directoryHeader = createDirectoryHeader(proprietaryInformation);
         calypsoCard->setDirectoryHeader(directoryHeader);

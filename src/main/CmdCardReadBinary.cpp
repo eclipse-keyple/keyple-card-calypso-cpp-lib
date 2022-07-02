@@ -39,7 +39,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardReadBinary::CmdCardReadBinary(const CalypsoCardClass calypsoCardClass,
                                      const uint8_t sfi,
-                                     const int offset,
+                                     const uint8_t offset,
                                      const uint8_t length)
 : AbstractCardCommand(CalypsoCardCommand::READ_BINARY), mSfi(sfi), mOffset(offset)
 {
@@ -79,7 +79,7 @@ uint8_t CmdCardReadBinary::getSfi() const
     return mSfi;
 }
 
-int CmdCardReadBinary::getOffset() const
+uint8_t CmdCardReadBinary::getOffset() const
 {
     return mOffset;
 }

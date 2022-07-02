@@ -56,7 +56,7 @@ public:
      */
     CmdCardWriteRecord(const CalypsoCardClass calypsoCardClass,
                        const uint8_t sfi,
-                       const int recordNumber,
+                       const uint8_t recordNumber,
                        const std::vector<uint8_t>& newRecordData);
 
     /**
@@ -73,7 +73,7 @@ public:
      * @return the SFI of the accessed file
      * @since 2.0.1
      */
-    int getSfi() const;
+    uint8_t getSfi() const;
 
     /**
      * (package-private)<br>
@@ -81,7 +81,7 @@ public:
      * @return the number of the accessed record
      * @since 2.0.1
      */
-    int getRecordNumber() const;
+    uint8_t getRecordNumber() const;
 
     /**
      * (package-private)<br>
@@ -118,12 +118,12 @@ private:
     /**
      * Construction arguments
      */
-    const int mSfi;
+    const uint8_t mSfi;
 
     /**
      *
      */
-    const int mRecordNumber;
+    const uint8_t mRecordNumber;
 
     /**
      *

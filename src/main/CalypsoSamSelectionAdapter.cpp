@@ -106,6 +106,7 @@ CalypsoSamSelection& CalypsoSamSelectionAdapter::filterBySerialNumber(
     try {
         Pattern::compile(serialNumberRegex);
     } catch (const PatternSyntaxException& exception) {
+        (void)exception;
         throw IllegalArgumentException("Invalid regular expression: '" +
                                        serialNumberRegex +
                                        "'.");

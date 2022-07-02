@@ -28,7 +28,6 @@ namespace card {
 namespace calypso {
 
 using namespace calypsonet::terminal::calypso::card;
-using namespace keyple::card::calypso;
 
 using StatusProperties = AbstractApduCommand::StatusProperties;
 

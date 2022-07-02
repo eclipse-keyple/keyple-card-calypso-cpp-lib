@@ -60,7 +60,7 @@ public:
     CmdCardUpdateOrWriteBinary(const bool isUpdateCommand,
                                const CalypsoCardClass calypsoCardClass,
                                const uint8_t sfi,
-                               const int offset,
+                               const uint8_t offset,
                                const std::vector<uint8_t>& data);
 
     /**
@@ -87,7 +87,7 @@ public:
      * @return The offset.
      * @since 2.1.0
      */
-    int getOffset() const;
+    uint8_t getOffset() const;
 
     /**
      * (package-private)<br>
@@ -125,7 +125,7 @@ private:
     /**
      *
      */
-    const int mOffset;
+    const uint8_t mOffset;
 
     /**
      *

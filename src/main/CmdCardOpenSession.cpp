@@ -106,8 +106,8 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calypsoCard,
                                        const uint8_t debitKeyIndex,
                                        const std::vector<uint8_t> sessionTerminalChallenge,
-                                       const int sfi,
-                                       const int recordNumber)
+                                       const uint8_t sfi,
+                                       const uint8_t recordNumber)
 : AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION),
   mCalypsoCard(calypsoCard)
 {
@@ -132,23 +132,23 @@ CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calyps
 
 void CmdCardOpenSession::createRev3(const uint8_t keyIndex,
                                     const std::vector<uint8_t>& samChallenge,
-                                    const int sfi,
-                                    const int recordNumber,
+                                    const uint8_t sfi,
+                                    const uint8_t recordNumber,
                                     const std::shared_ptr<CalypsoCard> calypsoCard)
 {
     mSfi = sfi;
     mRecordNumber = recordNumber;
 
-    const uint8_t p1 = recordNumber * 8 + keyIndex;
+    const uint8_t p1 = static_cast<uint8_t>(recordNumber * 8 + keyIndex);
     uint8_t p2;
     std::vector<uint8_t> dataIn;
 
     /* CL-CSS-OSSMODE.1 fullfilled only for SAM C1 */
     if (!calypsoCard->isExtendedModeSupported()) {
-        p2 = sfi * 8 + 1;
+        p2 = static_cast<uint8_t>(sfi * 8 + 1);
         dataIn = samChallenge;
     } else {
-        p2 = sfi * 8 + 2;
+        p2 = static_cast<uint8_t>(sfi * 8 + 2);
         dataIn = std::vector<uint8_t>(samChallenge.size() + 1);
         dataIn[0] = 0x00;
         System::arraycopy(samChallenge, 0, dataIn, 1, samChallenge.size());
@@ -179,8 +179,8 @@ void CmdCardOpenSession::createRev3(const uint8_t keyIndex,
 
 void CmdCardOpenSession::createRev24(const uint8_t keyIndex,
                                      const std::vector<uint8_t>& samChallenge,
-                                     const int sfi,
-                                     const int recordNumber)
+                                     const uint8_t sfi,
+                                     const uint8_t recordNumber)
 {
     if (keyIndex == 0x00) {
         throw IllegalArgumentException("Key index can't be zero for rev 2.4!");
@@ -189,15 +189,15 @@ void CmdCardOpenSession::createRev24(const uint8_t keyIndex,
     mSfi = sfi;
     mRecordNumber = recordNumber;
 
-    const uint8_t p1 = 0x80 + recordNumber * 8 + keyIndex;
+    const uint8_t p1 = static_cast<uint8_t>(0x80 + recordNumber * 8 + keyIndex);
 
     buildLegacyApduRequest(keyIndex, samChallenge, sfi, recordNumber, p1);
 }
 
 void CmdCardOpenSession::createRev10(const uint8_t keyIndex,
                                      const std::vector<uint8_t>& samChallenge,
-                                     const int sfi,
-                                     const int recordNumber)
+                                     const uint8_t sfi,
+                                     const uint8_t recordNumber)
 {
     if (keyIndex == 0x00) {
         throw IllegalArgumentException("Key index can't be zero for rev 1.0!");
@@ -206,18 +206,18 @@ void CmdCardOpenSession::createRev10(const uint8_t keyIndex,
     mSfi = sfi;
     mRecordNumber = recordNumber;
 
-    const uint8_t p1 = recordNumber * 8 + keyIndex;
+    const uint8_t p1 = static_cast<uint8_t>(recordNumber * 8 + keyIndex);
 
     buildLegacyApduRequest(keyIndex, samChallenge, sfi, recordNumber, p1);
 }
 
 void CmdCardOpenSession::buildLegacyApduRequest(const uint8_t keyIndex,
                                                 const std::vector<uint8_t>& samChallenge,
-                                                const int sfi,
-                                                const int recordNumber,
+                                                const uint8_t sfi,
+                                                const uint8_t recordNumber,
                                                 const uint8_t p1)
 {
-    const uint8_t p2 = sfi * 8;
+    const uint8_t p2 = static_cast<uint8_t>(sfi * 8);
 
     /*
      * Case 4: this command contains incoming and outgoing data. We define le = 0, the actual
@@ -247,12 +247,12 @@ bool CmdCardOpenSession::isSessionBufferUsed() const
     return false;
 }
 
-int CmdCardOpenSession::getSfi() const
+uint8_t CmdCardOpenSession::getSfi() const
 {
     return mSfi;
 }
 
-int CmdCardOpenSession::getRecordNumber() const
+uint8_t CmdCardOpenSession::getRecordNumber() const
 {
     return mRecordNumber;
 }

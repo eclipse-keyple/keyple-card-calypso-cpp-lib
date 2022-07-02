@@ -69,7 +69,7 @@ public:
      * @return The SFI of the accessed file
      * @since 2.0.1
      */
-    int getSfi() const;
+    uint8_t getSfi() const;
 
     /**
      * (package-private)<br>

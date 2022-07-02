@@ -18,6 +18,9 @@
 /* Calypsonet Terminal Car */
 #include "CardRequestSpi.h"
 
+/* Keyple Card Cakypso */
+#include "KeypleCardCalypsoExport.h"
+
 namespace keyple {
 namespace card {
 namespace calypso {
@@ -31,7 +34,7 @@ using namespace calypsonet::terminal::card::spi;
  *
  * @since 2.0.0
  */
-class CardRequestAdapter final : public CardRequestSpi {
+class KEYPLECARDCALYPSO_API CardRequestAdapter final : public CardRequestSpi {
 public:
     /**
      * Builds a card request with a list of ApduRequestSpi and the flag indicating the

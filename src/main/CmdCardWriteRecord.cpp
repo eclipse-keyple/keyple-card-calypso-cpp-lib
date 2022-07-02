@@ -36,7 +36,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardWriteRecord::CmdCardWriteRecord(const CalypsoCardClass calypsoCardClass,
                                        const uint8_t sfi,
-                                       const int recordNumber,
+                                       const uint8_t recordNumber,
                                        const std::vector<uint8_t>& newRecordData)
 : AbstractCardCommand(mCommand),
   mSfi(sfi),
@@ -66,12 +66,12 @@ bool CmdCardWriteRecord::isSessionBufferUsed() const
     return true;
 }
 
-int CmdCardWriteRecord::getSfi() const
+uint8_t CmdCardWriteRecord::getSfi() const
 {
     return mSfi;
 }
 
-int CmdCardWriteRecord::getRecordNumber() const
+uint8_t CmdCardWriteRecord::getRecordNumber() const
 {
     return mRecordNumber;
 }

@@ -24,6 +24,9 @@
 /* Calypsonet Terminal Reader */
 #include "CardReader.h"
 
+/* Keyple Card Calypso */
+#include "KeypleCardCalypsoExport.h"
+
 namespace keyple {
 namespace card {
 namespace calypso {
@@ -39,7 +42,7 @@ using namespace calypsonet::terminal::reader;
  *
  * @since 2.0.0
  */
-class CardSecuritySettingAdapter final : public CardSecuritySetting {
+class KEYPLECARDCALYPSO_API CardSecuritySettingAdapter final : public CardSecuritySetting {
 public:
     /**
      * (package-private)<br>

@@ -26,6 +26,7 @@
 /* Keyple Card Calypso */
 #include "CalypsoCardSelectionAdapter.h"
 #include "CalypsoSamSelectionAdapter.h"
+#include "KeypleCardCalypsoExport.h"
 #include "SearchCommandDataAdapter.h"
 
 /* Keyple Core Common */
@@ -41,7 +42,6 @@ namespace calypso {
 using namespace calypsonet::terminal::calypso::card;
 using namespace calypsonet::terminal::calypso::sam;
 using namespace calypsonet::terminal::calypso::transaction;
-using namespace keyple::card::calypso;
 using namespace keyple::core::common;
 using namespace keyple::core::service::resource::spi;
 
@@ -51,7 +51,7 @@ using namespace keyple::core::service::resource::spi;
  *
  * @since 2.0.0
  */
-class CalypsoExtensionService final : public KeypleCardExtension {
+class KEYPLECARDCALYPSO_API CalypsoExtensionService final : public KeypleCardExtension {
 public:
     /**
      *

@@ -50,7 +50,7 @@ const int CalypsoCardAdapter::SI_APPLICATION_SUBTYPE = 3;
 const int CalypsoCardAdapter::SI_SOFTWARE_ISSUER = 4;
 const int CalypsoCardAdapter::SI_SOFTWARE_VERSION = 5;
 const int CalypsoCardAdapter::SI_SOFTWARE_REVISION = 6;
-const int CalypsoCardAdapter::PAY_LOAD_CAPACITY = 250;
+const uint8_t CalypsoCardAdapter::PAY_LOAD_CAPACITY = 250;
 
 const uint8_t CalypsoCardAdapter::APP_TYPE_WITH_CALYPSO_PIN = 0x01;
 const uint8_t CalypsoCardAdapter::APP_TYPE_WITH_CALYPSO_SV = 0x02;
@@ -66,9 +66,24 @@ const std::vector<int> CalypsoCardAdapter::BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE 
 };
 
 CalypsoCardAdapter::CalypsoCardAdapter()
-: mCalypsoCardClass(CalypsoCardClass::UNKNOWN),
+: mIsExtendedModeSupported(false),
+  mIsRatificationOnDeselectSupported(false),
+  mIsSvFeatureAvailable(false),
+  mIsPinFeatureAvailable(false),
+  mIsPkiModeSupported(false),
+  mIsDfInvalidated(false),
+  mCalypsoCardClass(CalypsoCardClass::UNKNOWN),
   mProductType(ProductType::UNKNOWN),
-  mIsModificationCounterInBytes(true) {}
+  mModificationsCounterMax(0),
+  mIsModificationCounterInBytes(true),
+  mCurrentSfi(0),
+  mCurrentLid(0),
+  mSvLastTNum(0),
+  mIsHce(false),
+  mSvKvc(0),
+  mApplicationSubType(0),
+  mApplicationType(0),
+  mSessionModification(0) {}
 
 void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnData)
 {
@@ -85,7 +100,7 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
         throw IllegalArgumentException("Unexpected ATR length: " + powerOnData);
     }
 
-    mDfName.empty();
+    mDfName.clear();
     mCalypsoSerialNumber = std::vector<uint8_t>(8);
 
     /*
@@ -260,7 +275,7 @@ const std::vector<uint8_t>& CalypsoCardAdapter::getStartupInfoRawData() const
     return mStartupInfo;
 }
 
-int CalypsoCardAdapter::getPayloadCapacity() const
+uint8_t CalypsoCardAdapter::getPayloadCapacity() const
 {
     // TODO make this value dependent on the type of card identified
     return PAY_LOAD_CAPACITY;
@@ -438,7 +453,8 @@ const std::vector<std::shared_ptr<SvDebitLogRecord>> CalypsoCardAdapter::getSvDe
         return svDebitLogRecords;
     }
 
-    const std::map<int, std::vector<uint8_t>>& logRecords = ef->getData()->getAllRecordsContent();
+    const std::map<const uint8_t, std::vector<uint8_t>>& logRecords = 
+        ef->getData()->getAllRecordsContent();
     for (const auto& entry : logRecords) {
         svDebitLogRecords.push_back(std::make_shared<SvDebitLogRecordAdapter>(entry.second, 0));
     }
@@ -592,7 +608,7 @@ void CalypsoCardAdapter::setFileHeader(const uint8_t sfi,
 }
 
 void CalypsoCardAdapter::setContent(const uint8_t sfi,
-                                    const int numRecord,
+                                    const uint8_t numRecord,
                                     const std::vector<uint8_t>& content)
 {
     updateCurrentSfi(sfi);
@@ -601,7 +617,7 @@ void CalypsoCardAdapter::setContent(const uint8_t sfi,
 }
 
 void CalypsoCardAdapter::setCounter(const uint8_t sfi,
-                                    const int numCounter,
+                                    const uint8_t numCounter,
                                     const std::vector<uint8_t>& content)
 {
     updateCurrentSfi(sfi);
@@ -610,9 +626,9 @@ void CalypsoCardAdapter::setCounter(const uint8_t sfi,
 }
 
 void CalypsoCardAdapter::setContent(const uint8_t sfi,
-                                    const int numRecord,
+                                    const uint8_t numRecord,
                                     const std::vector<uint8_t>& content,
-                                    const int offset)
+                                    const uint8_t offset)
 {
     updateCurrentSfi(sfi);
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile();
@@ -621,9 +637,9 @@ void CalypsoCardAdapter::setContent(const uint8_t sfi,
 }
 
 void CalypsoCardAdapter::fillContent(const uint8_t sfi,
-                                     const int numRecord,
+                                     const uint8_t numRecord,
                                      const std::vector<uint8_t>& content,
-                                     const int offset)
+                                     const uint8_t offset)
 {
     updateCurrentSfi(sfi);
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile();

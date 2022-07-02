@@ -92,7 +92,7 @@ public:
      * @return The SFI.
      * @since 2.1.0
      */
-    int getSfi() const;
+    uint8_t getSfi() const;
 
     /**
      * (package-private)<br>
@@ -108,7 +108,7 @@ public:
      *         empty map if no data is available.
      * @since 2.1.0
      */
-    const std::map<const int, const std::vector<uint8_t>>& getNewCounterValues() const;
+    const std::map<const uint8_t, const std::vector<uint8_t>>& getNewCounterValues() const;
 
 private:
     /**
@@ -135,7 +135,7 @@ private:
     /**
      *
      */
-    std::map<const int, const std::vector<uint8_t>> mNewCounterValues;
+    std::map<const uint8_t, const std::vector<uint8_t>> mNewCounterValues;
 
     /**
      *

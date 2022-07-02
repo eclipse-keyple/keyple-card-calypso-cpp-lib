@@ -53,7 +53,7 @@ public:
      *
      * @since 2.1.0
      */
-    SearchCommandData& startAtRecord(const int recordNumber) override;
+    SearchCommandData& startAtRecord(const uint8_t recordNumber) override;
 
     /**
      * {@inheritDoc}
@@ -95,7 +95,7 @@ public:
      *
      * @since 2.1.0
      */
-    std::vector<int>& getMatchingRecordNumbers() override;
+    std::vector<uint8_t>& getMatchingRecordNumbers() override;
 
     /**
      * (package-private)<br>
@@ -111,7 +111,7 @@ public:
      * @return The provided record number or 1 if it is not set.
      * @since 2.1.0
      */
-    int getRecordNumber() const;
+    uint8_t getRecordNumber() const;
 
     /**
      * (package-private)<br>
@@ -163,7 +163,7 @@ private:
     /**
      *
      */
-    int mRecordNumber = 1;
+    uint8_t mRecordNumber = 1;
 
     /**
      *
@@ -193,7 +193,7 @@ private:
     /**
      *
      */
-    std::vector<int> mMatchingRecordNumbers;
+    std::vector<uint8_t> mMatchingRecordNumbers;
 };
 
 }

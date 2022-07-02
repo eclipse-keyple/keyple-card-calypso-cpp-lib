@@ -41,7 +41,7 @@ CmdCardUpdateOrWriteBinary::CmdCardUpdateOrWriteBinary(
   const bool isUpdateCommand,
   const CalypsoCardClass calypsoCardClass,
   const uint8_t sfi,
-  const int offset,
+  const uint8_t offset,
   const std::vector<uint8_t>& data)
 : AbstractCardCommand(isUpdateCommand ? CalypsoCardCommand::UPDATE_BINARY :
                                         CalypsoCardCommand::WRITE_BINARY),
@@ -85,7 +85,7 @@ uint8_t CmdCardUpdateOrWriteBinary::getSfi() const
     return mSfi;
 }
 
-int CmdCardUpdateOrWriteBinary::getOffset() const
+uint8_t CmdCardUpdateOrWriteBinary::getOffset() const
 {
     return mOffset;
 }

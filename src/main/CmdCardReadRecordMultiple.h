@@ -88,7 +88,7 @@ public:
      * @return The SFI.
      * @since 2.1.0
      */
-    int getSfi() const;
+    uint8_t getSfi() const;
 
     /**
      * (package-private)<br>
@@ -105,7 +105,7 @@ public:
      *     available.
      * @since 2.1.0
      */
-    const std::map<const int, const std::vector<uint8_t>>& getResults() const;
+    const std::map<const uint8_t, const std::vector<uint8_t>>& getResults() const;
 
 private:
     /**
@@ -142,7 +142,7 @@ private:
     /**
      *
      */
-    std::map<const int, const std::vector<uint8_t>> mResults;
+    std::map<const uint8_t, const std::vector<uint8_t>> mResults;
 
     /**
      *

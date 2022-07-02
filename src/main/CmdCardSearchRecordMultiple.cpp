@@ -43,7 +43,7 @@ CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
 : AbstractCardCommand(CalypsoCardCommand::SEARCH_RECORD_MULTIPLE),
   mData(data)
 {
-    const int searchDataLength = data->getSearchData().size();
+    const int searchDataLength = static_cast<int>(data->getSearchData().size());
     const uint8_t p2 = data->getSfi() * 8 + 7;
 
     std::vector<uint8_t> dataIn(3 + (2 * searchDataLength));
@@ -55,8 +55,8 @@ CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
         dataIn[0] |= 1;
     }
 
-    dataIn[1] = data->getOffset();
-    dataIn[2] = searchDataLength;
+    dataIn[1] = static_cast<uint8_t>(data->getOffset());
+    dataIn[2] = static_cast<uint8_t>(searchDataLength);
 
     System::arraycopy(data->getSearchData(), 0, dataIn, 3, searchDataLength);
 

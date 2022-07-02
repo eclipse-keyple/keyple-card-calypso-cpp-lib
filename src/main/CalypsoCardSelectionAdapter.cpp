@@ -73,6 +73,7 @@ CalypsoCardSelection& CalypsoCardSelectionAdapter::filterByPowerOnData(
     try {
         Pattern::compile(powerOnDataRegex);
     } catch (const PatternSyntaxException& exception) {
+        (void)exception;
         throw IllegalArgumentException("Invalid regular expression: '" +
                                        powerOnDataRegex +
                                        "'.");
@@ -152,14 +153,14 @@ CalypsoCardSelection& CalypsoCardSelectionAdapter::acceptInvalidatedCard()
     return *this;
 }
 
-CalypsoCardSelection& CalypsoCardSelectionAdapter::prepareReadRecordFile(const uint8_t sfi,
-                                                                         const int recordNumber)
+CalypsoCardSelection& CalypsoCardSelectionAdapter::prepareReadRecordFile(
+    const uint8_t sfi, const uint8_t recordNumber)
 {
     return prepareReadRecord(sfi, recordNumber);
 }
 
 CalypsoCardSelection& CalypsoCardSelectionAdapter::prepareReadRecord(const uint8_t sfi,
-                                                                     const int recordNumber)
+                                                                     const uint8_t recordNumber)
 {
     Assert::getInstance().isInRange(sfi,
                                     CalypsoCardConstant::SFI_MIN,
@@ -174,7 +175,8 @@ CalypsoCardSelection& CalypsoCardSelectionAdapter::prepareReadRecord(const uint8
         std::make_shared<CmdCardReadRecords>(CalypsoCardClass::ISO,
                                              sfi,
                                              recordNumber,
-                                             CmdCardReadRecords::ReadMode::ONE_RECORD, 0));
+                                             CmdCardReadRecords::ReadMode::ONE_RECORD,
+                                             static_cast<uint8_t>(0)));
 
     return *this;
 }
@@ -208,7 +210,7 @@ CalypsoCardSelection& CalypsoCardSelectionAdapter::prepareSelectFile(
 {
     Assert::getInstance().isEqual(lid.size(), 2, "lid length");
 
-    return prepareSelectFile(ByteArrayUtil::twoBytesToInt(lid, 0));
+    return prepareSelectFile(static_cast<uint16_t>(ByteArrayUtil::twoBytesToInt(lid, 0)));
 }
 
 CalypsoCardSelection& CalypsoCardSelectionAdapter::prepareSelectFile(const uint16_t lid)

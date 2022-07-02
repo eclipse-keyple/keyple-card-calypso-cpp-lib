@@ -75,10 +75,10 @@ public:
      * @since 2.0.1
      */
     CmdCardReadRecords(const CalypsoCardClass calypsoCardClass,
-                       const int sfi,
-                       const int firstRecordNumber,
+                       const uint8_t sfi,
+                       const uint8_t firstRecordNumber,
                        const ReadMode readMode,
-                       const int expectedLength);
+                       const uint8_t expectedLength);
 
     /**
      * {@inheritDoc}
@@ -110,7 +110,7 @@ public:
      * @return the SFI of the accessed file
      * @since 2.0.1
      */
-    int getSfi() const;
+    uint8_t getSfi() const;
 
     /**
      * (package-private)<br>
@@ -118,7 +118,7 @@ public:
      * @return the number of the first record to read
      * @since 2.0.1
      */
-    int getFirstRecordNumber() const;
+    uint8_t getFirstRecordNumber() const;
 
     /**
      * (package-private)<br>
@@ -135,7 +135,7 @@ public:
      *         available.
      * @since 2.0.1
      */
-    const std::map<const int, const std::vector<uint8_t>>& getRecords() const;
+    const std::map<const uint8_t, const std::vector<uint8_t>>& getRecords() const;
 
     /**
      *
@@ -161,12 +161,12 @@ private:
     /**
      * Construction arguments used for parsing
      */
-    const int mSfi;
+    const uint8_t mSfi;
 
     /**
      *
      */
-    const int mFirstRecordNumber;
+    const uint8_t mFirstRecordNumber;
 
     /**
      *
@@ -176,7 +176,7 @@ private:
     /**
      *
      */
-    std::map<const int, const std::vector<uint8_t>> mRecords;
+    std::map<const uint8_t, const std::vector<uint8_t>> mRecords;
 
     /**
      *

@@ -36,17 +36,17 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardReadRecords::STATUS_TABLE = initStatusTable();
 
 CmdCardReadRecords::CmdCardReadRecords(const CalypsoCardClass calypsoCardClass,
-                                       const int sfi,
-                                       const int firstRecordNumber,
+                                       const uint8_t sfi,
+                                       const uint8_t firstRecordNumber,
                                        const ReadMode readMode,
-                                       const int expectedLength)
+                                       const uint8_t expectedLength)
 : AbstractCardCommand(mCommand),
   mSfi(sfi),
   mFirstRecordNumber(firstRecordNumber),
   mReadMode(readMode)
 {
-    const uint8_t p1 = firstRecordNumber;
-    uint8_t p2 = sfi == 0x00 ? 0x05 : (sfi * 8) + 5;
+    const uint8_t p1 = static_cast<uint8_t>(firstRecordNumber);
+    uint8_t p2 = sfi == 0x00 ? 0x05 : static_cast<uint8_t>((sfi * 8) + 5);
     if (readMode == ReadMode::ONE_RECORD) {
         p2 -= 0x01;
     }
@@ -122,8 +122,8 @@ CmdCardReadRecords& CmdCardReadRecords::setApduResponse(
             mRecords.insert({mFirstRecordNumber, apduResponse->getDataOut()});
         } else {
             const std::vector<uint8_t> mApdu = apduResponse->getDataOut();
-            int apduLen = mApdu.size();
-            int index = 0;
+            uint8_t apduLen = static_cast<uint8_t>(mApdu.size());
+            uint8_t index = 0;
             while (apduLen > 0) {
                 const uint8_t recordNb = mApdu[index++];
                 const uint8_t len = mApdu[index++];
@@ -137,12 +137,12 @@ CmdCardReadRecords& CmdCardReadRecords::setApduResponse(
     return *this;
 }
 
-int CmdCardReadRecords::getSfi() const
+uint8_t CmdCardReadRecords::getSfi() const
 {
     return mSfi;
 }
 
-int CmdCardReadRecords::getFirstRecordNumber() const
+uint8_t CmdCardReadRecords::getFirstRecordNumber() const
 {
     return mFirstRecordNumber;
 }
@@ -152,7 +152,7 @@ CmdCardReadRecords::ReadMode CmdCardReadRecords::getReadMode() const
     return mReadMode;
 }
 
-const std::map<const int, const std::vector<uint8_t>>& CmdCardReadRecords::getRecords() const
+const std::map<const uint8_t, const std::vector<uint8_t>>& CmdCardReadRecords::getRecords() const
 {
     return mRecords;
 }

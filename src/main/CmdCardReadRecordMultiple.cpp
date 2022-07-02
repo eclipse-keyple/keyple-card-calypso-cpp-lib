@@ -135,9 +135,9 @@ CmdCardReadRecordMultiple& CmdCardReadRecordMultiple::setApduResponse(
 
     if (apduResponse->getDataOut().size() > 0) {
         const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
-        const int nbRecords = dataOut.size() / mLength;
+        const uint8_t nbRecords = static_cast<uint8_t>(dataOut.size() / mLength);
         for (int i = 0; i < nbRecords; i++) {
-            mResults.insert({mRecordNumber + i,
+            mResults.insert({static_cast<uint8_t>(mRecordNumber + i),
                              Arrays::copyOfRange(dataOut, i * mLength, (i + 1) * mLength)});
         }
     }
@@ -145,7 +145,7 @@ CmdCardReadRecordMultiple& CmdCardReadRecordMultiple::setApduResponse(
     return *this;
 }
 
-int CmdCardReadRecordMultiple::getSfi() const
+uint8_t CmdCardReadRecordMultiple::getSfi() const
 {
     return mSfi;
 }
@@ -155,7 +155,8 @@ uint8_t CmdCardReadRecordMultiple::getOffset() const
     return mOffset;
 }
 
-const std::map<const int, const std::vector<uint8_t>>& CmdCardReadRecordMultiple::getResults() const
+const std::map<const uint8_t, const std::vector<uint8_t>>& CmdCardReadRecordMultiple::getResults() 
+    const
 {
     return mResults;
 }

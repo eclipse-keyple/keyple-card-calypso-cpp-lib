@@ -52,7 +52,7 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
     int index = 0;
 
     for (const auto& entry : counterNumberToIncDecValueMap) {
-        dataIn[index] = entry.first;
+        dataIn[index] = static_cast<uint8_t>(entry.first);
         const int incDecValue = entry.second;
         dataIn[index + 1] = ((incDecValue >> 16) & 0xFF);
         dataIn[index + 2] = ((incDecValue >> 8) & 0xFF);
@@ -139,9 +139,9 @@ CmdCardIncreaseOrDecreaseMultiple& CmdCardIncreaseOrDecreaseMultiple::setApduRes
 
     if (apduResponse->getDataOut().size() > 0) {
         const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
-        const int nbCounters = dataOut.size() / 4;
+        const int nbCounters = static_cast<int>(dataOut.size() / 4);
         for (int i = 0; i < nbCounters; i++) {
-            mNewCounterValues.insert({dataOut[i * 4] & 0xFF,
+            mNewCounterValues.insert({dataOut[i * 4],
                                      Arrays::copyOfRange(dataOut, (i * 4) + 1, (i * 4) + 4)});
         }
     }
@@ -149,7 +149,7 @@ CmdCardIncreaseOrDecreaseMultiple& CmdCardIncreaseOrDecreaseMultiple::setApduRes
     return *this;
 }
 
-int CmdCardIncreaseOrDecreaseMultiple::getSfi() const
+uint8_t CmdCardIncreaseOrDecreaseMultiple::getSfi() const
 {
     return mSfi;
 }
@@ -160,7 +160,7 @@ const std::map<const int, const int>&
     return mCounterNumberToIncDecValueMap;
 }
 
-const std::map<const int, const std::vector<uint8_t>>&
+const std::map<const uint8_t, const std::vector<uint8_t>>&
     CmdCardIncreaseOrDecreaseMultiple::getNewCounterValues() const
 {
     return mNewCounterValues;

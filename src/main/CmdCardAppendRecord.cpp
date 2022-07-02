@@ -62,7 +62,7 @@ bool CmdCardAppendRecord::isSessionBufferUsed() const
     return true;
 }
 
-int CmdCardAppendRecord::getSfi() const
+uint8_t CmdCardAppendRecord::getSfi() const
 {
     return mSfi;
 }

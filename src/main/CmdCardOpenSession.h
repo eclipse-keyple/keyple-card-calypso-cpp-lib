@@ -57,8 +57,8 @@ public:
     CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calypsoCard,
                        const uint8_t debitKeyIndex,
                        const std::vector<uint8_t> sessionTerminalChallenge,
-                       const int sfi,
-                       const int recordNumber);
+                       const uint8_t sfi,
+                       const uint8_t recordNumber);
 
     /**
      * (private)<br>
@@ -73,8 +73,8 @@ public:
      */
     void createRev3(const uint8_t keyIndex,
                     const std::vector<uint8_t>& samChallenge,
-                    const int sfi,
-                    const int recordNumber,
+                    const uint8_t sfi,
+                    const uint8_t recordNumber,
                     const std::shared_ptr<CalypsoCard> calypsoCard);
 
     /**
@@ -90,8 +90,8 @@ public:
      */
     void createRev24(const uint8_t keyIndex,
                      const std::vector<uint8_t>& samChallenge,
-                     const int sfi,
-                     const int recordNumber);
+                     const uint8_t sfi,
+                     const uint8_t recordNumber);
 
     /**
      * (private)<br>
@@ -106,8 +106,8 @@ public:
      */
     void createRev10(const uint8_t keyIndex,
                      const std::vector<uint8_t>& samChallenge,
-                     const int sfi,
-                     const int recordNumber);
+                     const uint8_t sfi,
+                     const uint8_t recordNumber);
 
     /**
      * (private)<br>
@@ -122,8 +122,8 @@ public:
      */
     void buildLegacyApduRequest(const uint8_t keyIndex,
                                 const std::vector<uint8_t>& samChallenge,
-                                const int sfi,
-                                const int recordNumber,
+                                const uint8_t sfi,
+                                const uint8_t recordNumber,
                                 const uint8_t p1) ;
 
     /**
@@ -140,7 +140,7 @@ public:
      * @return the SFI of the file read while opening the secure session
      * @since 2.0.1
      */
-    int getSfi() const;
+    uint8_t getSfi() const;
 
     /**
      * (package-private)<br>
@@ -148,7 +148,7 @@ public:
      * @return the record number to read
      * @since 2.0.1
      */
-    int getRecordNumber() const;
+    uint8_t getRecordNumber() const;
 
     /**
      * {@inheritDoc}
@@ -443,12 +443,12 @@ private:
     /**
      *
      */
-    int mSfi;
+    uint8_t mSfi;
 
     /**
      *
      */
-    int mRecordNumber;
+    uint8_t mRecordNumber;
 
     /**
      * The secure session

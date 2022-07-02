@@ -30,6 +30,7 @@
 /* Keyple Card Calypso */
 #include "CalypsoCardClass.h"
 #include "ElementaryFileAdapter.h"
+#include "KeypleCardCalypsoExport.h"
 
 /* Keyple Core Util */
 #include "LoggerFactory.h"
@@ -50,7 +51,7 @@ using namespace keyple::core::util::cpp;
  *
  * @since 2.0.0
  */
-class CalypsoCardAdapter final : public CalypsoCard, public SmartCardSpi {
+class KEYPLECARDCALYPSO_API CalypsoCardAdapter final : public CalypsoCard, public SmartCardSpi {
 public:
     /**
      * Constructor.
@@ -136,7 +137,7 @@ public:
      * @return An int
      * @since 2.0.0
      */
-    int getPayloadCapacity() const;
+    uint8_t getPayloadCapacity() const;
 
     /**
      * (package-private)<br>
@@ -436,7 +437,9 @@ public:
      * @param content the content (should be not empty).
      * @since 2.0.0
      */
-    void setContent(const uint8_t sfi, const int numRecord, const std::vector<uint8_t>& content);
+    void setContent(const uint8_t sfi, 
+                    const uint8_t numRecord, 
+                    const std::vector<uint8_t>& content);
 
     /**
      * (package-private)<br>
@@ -448,7 +451,7 @@ public:
      * @param content the counter value (should be not null and 3 bytes length).
      * @since 2.0.0
      */
-    void setCounter(const uint8_t sfi, const int numCounter, const std::vector<uint8_t>& content);
+    void setCounter(const uint8_t sfi, const uint8_t numCounter, const std::vector<uint8_t>& content);
 
     /**
      * (package-private)<br>
@@ -465,9 +468,9 @@ public:
      * @since 2.0.0
      */
     void setContent(const uint8_t sfi,
-                    const int numRecord,
+                    const uint8_t numRecord,
                     const std::vector<uint8_t>& content,
-                    const int offset);
+                    const uint8_t offset);
 
     /**
      * (package-private)<br>
@@ -483,9 +486,9 @@ public:
      * @since 2.1.0
      */
     void fillContent(const uint8_t sfi,
-                     const int numRecord,
+                     const uint8_t numRecord,
                      const std::vector<uint8_t>& content,
-                     const int offset);
+                     const uint8_t offset);
 
     /**
      * (package-private)<br>
@@ -613,13 +616,14 @@ public:
     /**
      *
      */
-    friend std::ostream& operator<<(std::ostream& os, const CalypsoCardAdapter& cca);
+    friend KEYPLECARDCALYPSO_API std::ostream& operator<<(std::ostream& os, 
+                                                          const CalypsoCardAdapter& cca);
 
     /**
      *
      */
-    friend std::ostream& operator<<(std::ostream& os,
-                                    const std::shared_ptr<CalypsoCardAdapter> cca);
+    friend KEYPLECARDCALYPSO_API std::ostream& operator<<(
+        std::ostream& os, const std::shared_ptr<CalypsoCardAdapter> cca);
 
 private:
     /**
@@ -646,7 +650,7 @@ private:
     static const int SI_SOFTWARE_ISSUER;
     static const int SI_SOFTWARE_VERSION;
     static const int SI_SOFTWARE_REVISION;
-    static const int PAY_LOAD_CAPACITY;
+    static const uint8_t PAY_LOAD_CAPACITY;
 
     /**
      * Application type bitmasks features

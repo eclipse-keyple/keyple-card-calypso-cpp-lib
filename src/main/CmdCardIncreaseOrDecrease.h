@@ -59,7 +59,7 @@ public:
     CmdCardIncreaseOrDecrease(const bool isDecreaseCommand,
                               const CalypsoCardClass calypsoCardClass,
                               const uint8_t sfi,
-                              const int counterValue,
+                              const uint8_t counterValue,
                               const int incDecValue);
 
     /**
@@ -76,7 +76,7 @@ public:
      * @return The SFI of the accessed file
      * @since 2.0.1
      */
-    int getSfi() const;
+    uint8_t getSfi() const;
 
     /**
      * (package-private)<br>
@@ -84,7 +84,7 @@ public:
      * @return The counter number
      * @since 2.0.1
      */
-    int getCounterNumber() const;
+    uint8_t getCounterNumber() const;
 
     /**
      * (package-private)<br>
@@ -123,7 +123,7 @@ private:
     /**
      *
      */
-    const int mCounterNumber;
+    const uint8_t mCounterNumber;
 
     /**
      *
