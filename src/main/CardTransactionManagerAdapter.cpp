@@ -1747,7 +1747,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
                                     OFFSET)
                          .greaterOrEqual(nbBytesToRead, 1, "nbBytesToRead");
 
-    if (sfi > 0 && offset > 255) { /* FFh */
+    /* C++: no need to check offset > 255, forced by value type */
+    if (sfi > 0) {
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0). */
         mCardCommandManager->addRegularCommand(
             std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(), 
@@ -1925,7 +1926,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
                                     OFFSET)
                         .notEmpty(data, "data");
 
-    if (sfi > 0 && offset > 255) { /* FFh */
+    /* C++: no need to check offset > 255, forced by value type */
+    if (sfi > 0) {
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0) */
         mCardCommandManager->addRegularCommand(
             std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(), 
