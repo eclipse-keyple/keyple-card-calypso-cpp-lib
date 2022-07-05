@@ -128,7 +128,7 @@ const std::vector<uint8_t> SamCommandProcessor::getSessionTerminalChallenge()
     std::vector<uint8_t> sessionTerminalChallenge;
 
     const size_t numberOfSamCmd = apduRequests.size();
-    if (static_cast<int>(samApduResponses.size()) == numberOfSamCmd) {
+    if (samApduResponses.size() == numberOfSamCmd) {
         samGetChallengeCmd->setApduResponse(samApduResponses[numberOfSamCmd - 1]).checkStatus();
         sessionTerminalChallenge = samGetChallengeCmd->getChallenge();
         mLogger->debug("identification: TERMINALCHALLENGE = %\n",
