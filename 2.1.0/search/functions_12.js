@@ -1,0 +1,5 @@
+var searchData=
+[
+  ['updatecalypsocard_0',['updateCalypsoCard',['../classkeyple_1_1card_1_1calypso_1_1_calypso_card_util_adapter.html#a44b888faff051edbe2410cce05126b70',1,'keyple::card::calypso::CalypsoCardUtilAdapter::updateCalypsoCard(std::shared_ptr&lt; CalypsoCardAdapter &gt; calypsoCard, const std::shared_ptr&lt; AbstractCardCommand &gt; command, const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse, const bool isSessionOpen)'],['../classkeyple_1_1card_1_1calypso_1_1_calypso_card_util_adapter.html#aa71efe6b4f0098a4904b42273cafbb3d',1,'keyple::card::calypso::CalypsoCardUtilAdapter::updateCalypsoCard(std::shared_ptr&lt; CalypsoCardAdapter &gt; calypsoCard, const std::vector&lt; std::shared_ptr&lt; AbstractCardCommand &gt; &gt; &amp;commands, const std::vector&lt; std::shared_ptr&lt; ApduResponseApi &gt; &gt; &amp;apduResponses, const bool isSessionOpen)']]],
+  ['updatemissinginfofrom_1',['updateMissingInfoFrom',['../classkeyple_1_1card_1_1calypso_1_1_file_header_adapter.html#a4fb61f814da5187cb79c2dcd24fb47a5',1,'keyple::card::calypso::FileHeaderAdapter']]]
+];
