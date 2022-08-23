@@ -1,0 +1,49 @@
+# This workflow forces the documentation generation to a specified value.
+# It can be useful to bypass version checking by the automatic script.
+# Launch this workflow in command line using 'gh' with for example :
+#      gh workflow run --ref branch-name
+# follow the instructions.
+
+name: Force API documentation publishing
+
+on:
+  workflow_dispatch:
+    inputs:
+      projectVersion:
+        description: 'Project version to use for the doc generation'
+        required: true
+        default: ''
+  push:
+    branches:
+      - doxygen
+
+jobs:
+  publish-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code from ${{ github.repository }}/${{ github.ref }}
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Make scripts executable
+        run: chmod +x ./.github/scripts/*.sh
+      - name: Set specific version
+        working-directory: .
+        run: echo "PROJECT_VERSION=${{ github.event.inputs.projectVersion }}" >> $GITHUB_ENV
+      - name: Patch Doxyfile
+        working-directory: .
+        run: ./.github/scripts/patch_doxyfile.sh ${{ env.PROJECT_VERSION }}
+      - name: Generate project documentation with Doxygen
+        uses: mattnotmitt/doxygen-action@v1.9.2
+        with:
+          working-directory: .github/doxygen/
+          doxyfile-path: ./Doxyfile
+      - name: Prepare Doxygen doc page locally
+        working-directory: .
+        run: ./.github/scripts/prepare_doxygen.sh ${{ env.PROJECT_VERSION }}
+      - name: Deploy Doxygen documentation to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./${{ github.event.repository.name }}
+          enable_jekyll: true
