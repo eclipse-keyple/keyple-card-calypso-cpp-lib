@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -18,7 +18,6 @@
 #include <vector>
 
 /* Calypsonet Terminal Calypso */
-#include "CalypsoCard.h"
 #include "SvDebitLogRecord.h"
 #include "SvLoadLogRecord.h"
 #include "SvOperation.h"
@@ -53,15 +52,15 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardSvGet.
      *
-     * @param calypsoCardClass the card class.
-     * @param calypsoCard the Calypso card.
+     * @param calypsoCardClass Indicated which CLA byte should be used for the Apdu.
      * @param svOperation the desired SV operation.
+     * @param useExtendedMode True if the extended mode must be used
      * @throw IllegalArgumentException If the command is inconsistent
      * @since 2.0.1
      */
     CmdCardSvGet(const CalypsoCardClass calypsoCardClass,
-                 const std::shared_ptr<CalypsoCard> calypsoCard,
-                 const SvOperation svOperation);
+                 const SvOperation svOperation,
+                 const bool useExtendedMode);
 
     /**
      * {@inheritDoc}

@@ -16,18 +16,14 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoCard.h"
-
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardClass.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::card;
 
 using StatusProperties = AbstractApduCommand::StatusProperties;
 
@@ -71,21 +67,23 @@ public:
      * <p>The process is carried out in two steps: first to check and store the card and application
      * data, then to create the final APDU with the data from the SAM (see finalizeCommand).
      *
-     * @param calypsoCard the Calypso card.
+     * @param calypsoCardClass Indicates which CLA byte should be used for the Apdu.
      * @param amount amount to debit (signed integer from -8388608 to 8388607).
      * @param kvc debit key KVC (not checked by the card).
      * @param date debit date (not checked by the card).
      * @param time debit time (not checked by the card).
      * @param free 2 free bytes stored in the log but not processed by the card.
+     * @param useExtendedMode True if the extended mode must be used.
      * @throw IllegalArgumentException If the command is inconsistent
      * @since 2.0.1
      */
-    CmdCardSvReload(const std::shared_ptr<CalypsoCard> calypsoCard,
+    CmdCardSvReload(const CalypsoCardClass calypsoCardClass,
                     const int amount,
                     const uint8_t kvc,
                     const std::vector<uint8_t>& date,
                     const std::vector<uint8_t>& time,
-                    const std::vector<uint8_t>& free);
+                    const std::vector<uint8_t>& free,
+                    const bool useExtendedMode);
 
     /**
      * (package-private)<br>
@@ -166,7 +164,12 @@ private:
     /**
      *
      */
-    std::shared_ptr<CalypsoCard> mCalypsoCard;
+    CalypsoCardClass mCalypsoCardClass;
+
+    /**
+     *
+     */
+    bool mUseExtendedMode;
 
     /**
      * Apdu data array

@@ -10,7 +10,7 @@
  * SPDX-License-Identifier: EPL-2.0                                                               *
  **************************************************************************************************/
 
-#include "CmdSamSvPrepareDebit.h"
+#include "CmdSamSvPrepareDebitOrUndebit.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoCardAdapter.h"
@@ -37,43 +37,44 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
-const CalypsoSamCommand CmdSamSvPrepareDebit::mCommand = CalypsoSamCommand::SV_PREPARE_DEBIT;
-
 const std::map<const int, const std::shared_ptr<StatusProperties>>
-    CmdSamSvPrepareDebit::STATUS_TABLE = initStatusTable();
+    CmdSamSvPrepareDebitOrUndebit::STATUS_TABLE = initStatusTable();
 
-CmdSamSvPrepareDebit::CmdSamSvPrepareDebit(const CalypsoSam::ProductType productType,
-                                           const std::vector<uint8_t>& svGetHeader,
-                                           const std::vector<uint8_t>& svGetData,
-                                           const std::vector<uint8_t>& svDebitCmdBuildData)
-: AbstractSamCommand(mCommand)
+CmdSamSvPrepareDebitOrUndebit::CmdSamSvPrepareDebitOrUndebit(
+  const bool isDebitCommand,
+  const CalypsoSam::ProductType productType,
+  const std::vector<uint8_t>& svGetHeader,
+  const std::vector<uint8_t>& svGetData,
+  const std::vector<uint8_t>& svDebitOrUndebitCmdBuildData)
+: AbstractSamCommand(
+    isDebitCommand ? CalypsoSamCommand::SV_PREPARE_DEBIT : CalypsoSamCommand::SV_PREPARE_UNDEBIT)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);
     const uint8_t p1 = 0x01;
     const uint8_t p2 = 0xFF;
-    std::vector<uint8_t> data(16 + svGetData.size()); /* Header(4) + SvDebit data (12) = 16 bytes*/
+    std::vector<uint8_t> data(16 + svGetData.size()); /* Header(4) + SvUndebit data (12) = 16 bytes*/
 
     System::arraycopy(svGetHeader, 0, data, 0, 4);
     System::arraycopy(svGetData, 0, data, 4, svGetData.size());
-    System::arraycopy(svDebitCmdBuildData,
+    System::arraycopy(svDebitOrUndebitCmdBuildData,
                       0,
                       data,
                       4 + svGetData.size(),
-                      svDebitCmdBuildData.size());
+                      svDebitOrUndebitCmdBuildData.size());
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, data)));
+            ApduUtil::build(cla, getCommandRef().getInstructionByte(), p1, p2, data)));
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
-    CmdSamSvPrepareDebit::initStatusTable()
+    CmdSamSvPrepareDebitOrUndebit::initStatusTable()
 {
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
         AbstractSamCommand::STATUS_TABLE;
 
     m.insert({0x6700,
-              std::make_shared<StatusProperties>("Lc value not supported.",
+              std::make_shared<StatusProperties>("Incorrect Lc.",
                                                  typeid(CardIllegalParameterException))});
     m.insert({0x6985,
               std::make_shared<StatusProperties>("Preconditions not satisfied.",
@@ -92,7 +93,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>&
-    CmdSamSvPrepareDebit::getStatusTable() const
+    CmdSamSvPrepareDebitOrUndebit::getStatusTable() const
 {
     return STATUS_TABLE;
 }

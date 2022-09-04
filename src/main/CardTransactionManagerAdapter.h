@@ -240,7 +240,7 @@ public:
      * @since 2.0.0
      * @deprecated
      */
-    CardTransactionManager& prepareReadRecordFile(const uint8_t sfi, const uint8_t recordNumber) 
+    CardTransactionManager& prepareReadRecordFile(const uint8_t sfi, const uint8_t recordNumber)
         final;
 
     /**
@@ -268,7 +268,7 @@ public:
      *
      * @since 2.1.0
      */
-    CardTransactionManager& prepareReadRecord(const uint8_t sfi, const uint8_t recordNumber) 
+    CardTransactionManager& prepareReadRecord(const uint8_t sfi, const uint8_t recordNumber)
         override;
 
     /**
@@ -606,6 +606,12 @@ private:
     SvAction mSvAction;
 
     /**
+     * Flag indicating if an SV operation has been performed during the current secure session.
+     */
+    bool mIsSvOperationInsideSession;
+
+
+    /**
      * The ChannelControl action
      */
     ChannelControl mChannelControl;
@@ -883,7 +889,7 @@ private:
      * @param responsesNumber the number of responses.
      * @throw DesynchronizedExchangesException if the test failed
      */
-    void checkCommandsResponsesSynchronization(const size_t commandsNumber, 
+    void checkCommandsResponsesSynchronization(const size_t commandsNumber,
                                                const size_t responsesNumber);
 
      /**
@@ -980,12 +986,15 @@ private:
      * @param amount the amount to be subtracted, positive integer in the range 0..32767
      * @param date 2-byte free value.
      * @param time 2-byte free value.
+     * @param useExtendedMode True if the extended mode must be used.
      */
     void prepareInternalSvUndebit(const int amount,
                                   const std::vector<uint8_t>& date,
-                                  const std::vector<uint8_t>& time);
+                                  const std::vector<uint8_t>& time,
+                                  const bool useExtendedMode);
 
     /**
+     * (private)<br>
      * Schedules the execution of a <b>SV Debit</b> command to decrease the current SV balance.
      *
      * <p>It consists in decreasing the current balance of the SV by a certain amount.
@@ -995,10 +1004,12 @@ private:
      * @param amount the amount to be subtracted, positive integer in the range 0..32767
      * @param date 2-byte free value.
      * @param time 2-byte free value.
+     * @param useExtendedMode True if the extended mode must be used.
      */
     void prepareInternalSvDebit(const int amount,
                                 const std::vector<uint8_t>& date,
-                                const std::vector<uint8_t>& time);
+                                const std::vector<uint8_t>& time,
+                                const bool useExtendedMode);
 
     /**
      *

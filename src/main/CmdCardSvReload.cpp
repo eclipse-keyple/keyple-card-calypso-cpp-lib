@@ -41,13 +41,17 @@ const CalypsoCardCommand CmdCardSvReload::mCommand = CalypsoCardCommand::SV_RELO
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardSvReload::STATUS_TABLE = initStatusTable();
 
-CmdCardSvReload::CmdCardSvReload(const std::shared_ptr<CalypsoCard> calypsoCard,
+CmdCardSvReload::CmdCardSvReload(const CalypsoCardClass calypsoCardClass,
                                  const int amount,
                                  const uint8_t kvc,
                                  const std::vector<uint8_t>& date,
                                  const std::vector<uint8_t>& time,
-                                 const std::vector<uint8_t>& free)
-: AbstractCardCommand(mCommand)
+                                 const std::vector<uint8_t>& free,
+                                 const bool useExtendedMode)
+: AbstractCardCommand(mCommand),
+  /* Keeps a copy of these fields until the builder is finalized */
+  mCalypsoCardClass(calypsoCardClass),
+  mUseExtendedMode(useExtendedMode)
 {
     if (amount < -8388608 || amount > 8388607) {
         throw IllegalArgumentException("Amount is outside allowed boundaries (-8388608 <= amount " \
@@ -62,14 +66,11 @@ CmdCardSvReload::CmdCardSvReload(const std::shared_ptr<CalypsoCard> calypsoCard,
         throw IllegalArgumentException("date, time and free must be 2-byte arrays");
     }
 
-    /* Keeps a copy of these fields until the builder is finalized */
-    mCalypsoCard = calypsoCard;
-
     /*
      * Handle the dataIn size with signatureHi length according to card revision (3.2 rev have a
      * 10-byte signature)
      */
-    mDataIn = std::vector<uint8_t>(18 + (mCalypsoCard->isExtendedModeSupported() ? 10 : 5));
+    mDataIn = std::vector<uint8_t>(18 + useExtendedMode ? 10 : 5);
 
     /* dataIn[0] will be filled in at the finalization phase */
     mDataIn[1] = date[0];
@@ -87,8 +88,8 @@ CmdCardSvReload::CmdCardSvReload(const std::shared_ptr<CalypsoCard> calypsoCard,
 
 void CmdCardSvReload::finalizeCommand(const std::vector<uint8_t>& reloadComplementaryData)
 {
-    if ((mCalypsoCard->isExtendedModeSupported() && reloadComplementaryData.size() != 20) ||
-        (!mCalypsoCard->isExtendedModeSupported() && reloadComplementaryData.size() != 15)) {
+    if ((mUseExtendedMode && reloadComplementaryData.size() != 20) ||
+        (!mUseExtendedMode && reloadComplementaryData.size() != 15)) {
         throw IllegalArgumentException("Bad SV prepare load data length.");
     }
 
@@ -100,8 +101,7 @@ void CmdCardSvReload::finalizeCommand(const std::vector<uint8_t>& reloadCompleme
     System::arraycopy(reloadComplementaryData, 7, mDataIn, 15, 3);
     System::arraycopy(reloadComplementaryData, 10, mDataIn, 18, reloadComplementaryData.size()-10);
 
-    const auto adapter = std::dynamic_pointer_cast<CalypsoCardAdapter>(mCalypsoCard);
-    const uint8_t cardClass = adapter->getCardClass() == CalypsoCardClass::LEGACY ?
+    const uint8_t cardClass = mCalypsoCardClass == CalypsoCardClass::LEGACY ?
                                   CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :
                                   CalypsoCardClass::ISO.getValue();
 
@@ -124,7 +124,7 @@ const std::vector<uint8_t> CmdCardSvReload::getSvReloadData() const
      * svReloadData[1,2] / P1P2 not set because ignored
      * Lc is 5 bytes longer in revision 3.2
      */
-    svReloadData[3] = mCalypsoCard->isExtendedModeSupported() ? 0x1C : 0x17;
+    svReloadData[3] = mUseExtendedMode ? 0x1C : 0x17;
 
     /* Appends the fixed part of dataIn */
     System::arraycopy(mDataIn, 0, svReloadData, 4, 11);

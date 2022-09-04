@@ -27,8 +27,7 @@
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 #include "CalypsoCardAdapter.h"
-#include "CmdCardSvDebit.h"
-#include "CmdCardSvUndebit.h"
+#include "CmdCardSvDebitOrUndebit.h"
 #include "CmdCardSvReload.h"
 
 /* Keyple Core Util */
@@ -245,45 +244,24 @@ public:
     /**
      * Computes the cryptographic data required for the SvDebit command.
      *
-     * <p>Use the data from the SvGet command and the partial data from the SvDebit command for this
-     * purpose.
+     * <p>Use the data from the SvGet command and the partial data from the SvDebit or SvUndebit
+     * command for this purpose.
      *
      * <p>The returned data will be used to finalize the card SvDebit command.
      *
+     * @param isDebitCommand
      * @param svGetHeader the SV Get command header.
      * @param svGetData the SV Get command response data.
-     * @return the complementary security data to finalize the SvDebit card command (sam ID + SV
-     *     prepare load output)
+     * @return the complementary security data to finalize the SvDebit/SvUndebit card command (sam
+     *     ID + SV prepare load output)
      * @throws CalypsoSamCommandException if the SAM has responded with an error status
      * @throws ReaderBrokenCommunicationException if the communication with the SAM reader has failed.
      * @throws CardBrokenCommunicationException if the communication with the SAM has failed.
      * @since 2.0.0
      */
-    const std::vector<uint8_t> getSvDebitComplementaryData(
-        const std::shared_ptr<CmdCardSvDebit> cmdCardSvDebit,
-        const std::vector<uint8_t>& svGetHeader,
-        const std::vector<uint8_t>& svGetData);
-
-    /**
-     * Computes the cryptographic data required for the SvUndebit command.
-     *
-     * <p>Use the data from the SvGet command and the partial data from the SvUndebit command for
-     * this purpose.
-     *
-     * <p>The returned data will be used to finalize the card SvUndebit command.
-     *
-     * @param svGetHeader the SV Get command header.
-     * @param svGetData the SV Get command response data.
-     * @return the complementary security data to finalize the SvUndebit card command (sam ID + SV
-     *         prepare load output)
-     * @throw CalypsoSamCommandException if the SAM has responded with an error status
-     * @throw ReaderBrokenCommunicationException if the communication with the SAM reader has
-     *        failed.
-     * @throw CardBrokenCommunicationException if the communication with the SAM has failed.
-     * @since 2.0.0
-     */
-    const std::vector<uint8_t> getSvUndebitComplementaryData(
-        const std::shared_ptr<CmdCardSvUndebit> cmdCardSvUndebit,
+    const std::vector<uint8_t> getSvDebitOrUndebitComplementaryData(
+        const bool isDebitCommand,
+        const std::shared_ptr<CmdCardSvDebitOrUndebit> cmdCardSvDebitOrUndebit,
         const std::vector<uint8_t>& svGetHeader,
         const std::vector<uint8_t>& svGetData);
 

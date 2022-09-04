@@ -204,7 +204,7 @@ TEST(CalypsoCardSelectionAdapterTest,
     setUp();
 
     cardSelection->filterByDfName("1122334455");
-    cardSelection->prepareReadRecordFile(0x07, 1);
+    cardSelection->prepareReadRecord(0x07, 1);
 
     const std::shared_ptr<CardSelectionRequestSpi> cardSelectionRequest =
         cardSelection->getCardSelectionRequest();

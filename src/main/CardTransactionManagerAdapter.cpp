@@ -124,6 +124,7 @@ CardTransactionManagerAdapter::CardTransactionManagerAdapter(
   mModificationsCounter(mCalypsoCard->getModificationsCounter()),
   mCardCommandManager(std::make_shared<CardCommandManager>()),
   mSvAction(SvAction::DO), /* had to set a default value to please MSVC */
+  mIsSvOperationInsideSession(false), /* CL-SV-1PCSS.1 */
   mChannelControl(ChannelControl::KEEP_OPEN) {}
 
 CardTransactionManagerAdapter::CardTransactionManagerAdapter(
@@ -1638,7 +1639,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecords(
          */
         const CalypsoCardClass cardClass = mCalypsoCard->getCardClass();
         const uint8_t nbBytesPerRecord = recordSize + 2;
-        const uint8_t nbRecordsPerApdu = 
+        const uint8_t nbRecordsPerApdu =
             static_cast<uint8_t>(mCalypsoCard->getPayloadCapacity() / nbBytesPerRecord);
         const uint8_t dataSizeMaxPerApdu = nbRecordsPerApdu * nbBytesPerRecord;
 
@@ -1711,7 +1712,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordsPartial
                                    "nbBytesToRead");
 
     const CalypsoCardClass cardClass = mCalypsoCard->getCardClass();
-    const uint8_t nbRecordsPerApdu = 
+    const uint8_t nbRecordsPerApdu =
         static_cast<uint8_t>(mCalypsoCard->getPayloadCapacity() / nbBytesToRead);
 
     uint8_t currentRecordNumber = fromRecordNumber;
@@ -1751,9 +1752,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
     if (sfi > 0) {
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0). */
         mCardCommandManager->addRegularCommand(
-            std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(), 
-                                                sfi, 
-                                                static_cast<uint8_t>(0), 
+            std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(),
+                                                sfi,
+                                                static_cast<uint8_t>(0),
                                                 static_cast<uint8_t>(1)));
     }
 
@@ -1775,7 +1776,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
 
     return *this;
 }
-    
+
 CardTransactionManager& CardTransactionManagerAdapter::prepareReadCounter(
     const uint8_t sfi, const uint8_t nbCountersToRead)
 {
@@ -1930,9 +1931,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
     if (sfi > 0) {
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0) */
         mCardCommandManager->addRegularCommand(
-            std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(), 
-                                                sfi, 
-                                                static_cast<uint8_t>(0), 
+            std::make_shared<CmdCardReadBinary>(mCalypsoCard->getCardClass(),
+                                                sfi,
+                                                static_cast<uint8_t>(0),
                                                 static_cast<uint8_t>(1)));
     }
 
@@ -1946,7 +1947,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
 
     do {
         currentLength = static_cast<uint8_t>(
-                            std::min(static_cast<int>(dataLength - currentIndex), 
+                            std::min(static_cast<int>(dataLength - currentIndex),
                                      static_cast<int>(payloadCapacity)));
 
         mCardCommandManager->addRegularCommand(
@@ -2040,9 +2041,17 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvGet(const SvOper
         throw UnsupportedOperationException("Stored Value is not available for this card.");
     }
 
+    /* CL-SV-CMDMODE.1 */
+    std::shared_ptr<CalypsoSam> calypsoSam =
+        std::dynamic_pointer_cast<CardSecuritySettingAdapter>(mCardSecuritySettings)
+            ->getCalypsoSam();
+    const bool useExtendedMode =
+        mCalypsoCard->isExtendedModeSupported() &&
+        (calypsoSam == nullptr || calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1);
+
     if (std::dynamic_pointer_cast<CardSecuritySettingAdapter>(mCardSecuritySettings)
             ->isSvLoadAndDebitLogEnabled() &&
-        !mCalypsoCard->isExtendedModeSupported()) {
+        !useExtendedMode) {
         /*
          * @see Calypso Layer ID 8.09/8.10 (200108): both reload and debit logs are requested
          * for a non rev3.2 card add two SvGet commands (for RELOAD then for DEBIT).
@@ -2051,12 +2060,12 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvGet(const SvOper
         const SvOperation operation1 = SvOperation::RELOAD == svOperation ? SvOperation::DEBIT :
                                                                             SvOperation::RELOAD;
         mCardCommandManager->addStoredValueCommand(
-            std::make_shared<CmdCardSvGet>(mCalypsoCard->getCardClass(), mCalypsoCard, operation1),
+            std::make_shared<CmdCardSvGet>(mCalypsoCard->getCardClass(), operation1, false),
             operation1);
     }
 
     mCardCommandManager->addStoredValueCommand(
-        std::make_shared<CmdCardSvGet>(mCalypsoCard->getCardClass(), mCalypsoCard, svOperation),
+        std::make_shared<CmdCardSvGet>(mCalypsoCard->getCardClass(), svOperation, useExtendedMode),
         svOperation);
 
     mSvAction = svAction;
@@ -2070,13 +2079,31 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvReload(
     const std::vector<uint8_t>& time,
     const std::vector<uint8_t>& free)
 {
+    /* CL-SV-1PCSS.1 */
+    if (mSessionState == SessionState::SESSION_OPEN) {
+        if (!mIsSvOperationInsideSession) {
+            mIsSvOperationInsideSession = true;
+        } else {
+            throw IllegalStateException("Only one SV operation is allowed per Secure Session");
+        }
+    }
+
+    /* CL-SV-CMDMODE.1 */
+    std::shared_ptr<CalypsoSam> calypsoSam =
+        std::dynamic_pointer_cast<CardSecuritySettingAdapter>(mCardSecuritySettings)
+            ->getCalypsoSam();
+    const bool useExtendedMode =
+        mCalypsoCard->isExtendedModeSupported() &&
+        calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1;
+
     /* Create the initial command with the application data */
-    auto svReloadCmdBuild = std::make_shared<CmdCardSvReload>(mCalypsoCard,
+    auto svReloadCmdBuild = std::make_shared<CmdCardSvReload>(mCalypsoCard->getCardClass(),
                                                               amount,
                                                               mCalypsoCard->getSvKvc(),
                                                               date,
                                                               time,
-                                                              free);
+                                                              free,
+                                                              useExtendedMode);
 
     /* Get the security data from the SAM */
     std::vector<uint8_t> svReloadComplementaryData;
@@ -2121,12 +2148,29 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvDebit(
     const std::vector<uint8_t>& date,
     const std::vector<uint8_t>& time)
 {
+    /* CL-SV-1PCSS.1 */
+    if (mSessionState == SessionState::SESSION_OPEN) {
+        if (!mIsSvOperationInsideSession) {
+            mIsSvOperationInsideSession = true;
+        } else {
+            throw IllegalStateException("Only one SV operation is allowed per Secure Session");
+        }
+    }
+
+    /* CL-SV-CMDMODE.1 */
+    std::shared_ptr<CalypsoSam> calypsoSam =
+        std::dynamic_pointer_cast<CardSecuritySettingAdapter>(mCardSecuritySettings)
+            ->getCalypsoSam();
+    const bool useExtendedMode = mCalypsoCard->isExtendedModeSupported() &&
+                                 calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1;
+
     try {
         if (SvAction::DO == mSvAction) {
-            prepareInternalSvDebit(amount, date, time);
+            prepareInternalSvDebit(amount, date, time, useExtendedMode);
         } else {
-            prepareInternalSvUndebit(amount, date, time);
+            prepareInternalSvUndebit(amount, date, time, useExtendedMode);
         }
+
     } catch (const CalypsoSamCommandException& e) {
         throw SamAnomalyException(SAM_COMMAND_ERROR +
                                   "preparing the SV debit/undebit command: " +
@@ -2147,7 +2191,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvDebit(
 
 void CardTransactionManagerAdapter::prepareInternalSvDebit(const int amount,
                                                            const std::vector<uint8_t>& date,
-                                                           const std::vector<uint8_t>& time)
+                                                           const std::vector<uint8_t>& time,
+                                                           const bool useExtendedMode)
 {
     if (!std::dynamic_pointer_cast<CardSecuritySettingAdapter>(mCardSecuritySettings)
             ->isSvNegativeBalanceAuthorized() &&
@@ -2156,17 +2201,20 @@ void CardTransactionManagerAdapter::prepareInternalSvDebit(const int amount,
     }
 
     /* Create the initial command with the application data */
-    auto svDebitCmdBuild = std::make_shared<CmdCardSvDebit>(mCalypsoCard,
-                                                            amount,
-                                                            mCalypsoCard->getSvKvc(),
-                                                            date,
-                                                            time);
+    auto svDebitCmdBuild = std::make_shared<CmdCardSvDebitOrUndebit>(true,
+                                                                     mCalypsoCard->getCardClass(),
+                                                                     amount,
+                                                                     mCalypsoCard->getSvKvc(),
+                                                                     date,
+                                                                     time,
+                                                                     useExtendedMode);
 
     /* Get the security data from the SAM */
     const std::vector<uint8_t> svDebitComplementaryData =
-        mSamCommandProcessor->getSvDebitComplementaryData(svDebitCmdBuild,
-                                                          mCalypsoCard->getSvGetHeader(),
-                                                          mCalypsoCard->getSvGetData());
+        mSamCommandProcessor->getSvDebitOrUndebitComplementaryData(true,
+                                                                   svDebitCmdBuild,
+                                                                   mCalypsoCard->getSvGetHeader(),
+                                                                   mCalypsoCard->getSvGetData());
 
     /* Finalize the SvDebit command with the data provided by the SAM */
     svDebitCmdBuild->finalizeCommand(svDebitComplementaryData);
@@ -2177,24 +2225,28 @@ void CardTransactionManagerAdapter::prepareInternalSvDebit(const int amount,
 
 void CardTransactionManagerAdapter::prepareInternalSvUndebit(const int amount,
                                                              const std::vector<uint8_t>& date,
-                                                             const std::vector<uint8_t>& time)
+                                                             const std::vector<uint8_t>& time,
+                                                             const bool useExtendedMode)
 {
     /* Create the initial command with the application data */
-    auto svUndebitCmdBuild = std::make_shared<CmdCardSvUndebit>(mCalypsoCard,
-                                                                amount,
-                                                                mCalypsoCard->getSvKvc(),
-                                                                date,
-                                                                time);
+    auto svUndebitCmdBuild = std::make_shared<CmdCardSvDebitOrUndebit>(false,
+                                                                       mCalypsoCard->getCardClass(),
+                                                                       amount,
+                                                                       mCalypsoCard->getSvKvc(),
+                                                                       date,
+                                                                       time,
+                                                                       useExtendedMode);
 
     /* Get the security data from the SAM */
-    std::vector<uint8_t> svDebitComplementaryData;
-    svDebitComplementaryData =
-        mSamCommandProcessor->getSvUndebitComplementaryData(svUndebitCmdBuild,
-                                                            mCalypsoCard->getSvGetHeader(),
-                                                            mCalypsoCard->getSvGetData());
+    std::vector<uint8_t> svUndebitComplementaryData;
+    svUndebitComplementaryData =
+        mSamCommandProcessor->getSvDebitOrUndebitComplementaryData(false,
+                                                                   svUndebitCmdBuild,
+                                                                   mCalypsoCard->getSvGetHeader(),
+                                                                   mCalypsoCard->getSvGetData());
 
     /* Finalize the SvUndebit command with the data provided by the SAM */
-    svUndebitCmdBuild->finalizeCommand(svDebitComplementaryData);
+    svUndebitCmdBuild->finalizeCommand(svUndebitComplementaryData);
 
     /* Create and keep the CalypsoCardCommand */
     mCardCommandManager->addStoredValueCommand(svUndebitCmdBuild, SvOperation::DEBIT);

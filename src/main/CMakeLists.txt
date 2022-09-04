@@ -108,10 +108,9 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardRehabilitate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardSearchRecordMultiple.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardSelectFile.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardSvDebit.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardSvDebitOrUndebit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardSvGet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardSvReload.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardSvUndebit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardUpdateOrWriteBinary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardUpdateRecord.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardVerifyPin.cpp
@@ -126,9 +125,8 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGiveRandom.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSelectDiversifier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvCheck.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareDebit.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareDebitOrUndebit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareLoad.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareUndebit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamUnlock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DirectoryHeaderAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ElementaryFileAdapter.cpp

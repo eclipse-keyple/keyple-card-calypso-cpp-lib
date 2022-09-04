@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -42,16 +42,15 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardSvGet::STATUS_TABLE = initStatusTable();
 
 CmdCardSvGet::CmdCardSvGet(const CalypsoCardClass calypsoCardClass,
-                           const std::shared_ptr<CalypsoCard> calypsoCard,
-                           const SvOperation svOperation)
+                           const SvOperation svOperation,
+                           const bool useExtendedMode)
 : AbstractCardCommand(mCommand)
 {
     const uint8_t cla = calypsoCardClass == CalypsoCardClass::LEGACY ?
                             CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :
                             CalypsoCardClass::ISO.getValue();
 
-    /* CL-SV-CMDMODE.1 Requirement fullfilled only for SAM C1 */
-    const uint8_t p1 = calypsoCard->isExtendedModeSupported() ? 0x01 : 0x00;
+    const uint8_t p1 = useExtendedMode ? 0x01 : 0x00;
     const uint8_t p2 = svOperation == SvOperation::RELOAD ? 0x07 : 0x09;
 
     setApduRequest(

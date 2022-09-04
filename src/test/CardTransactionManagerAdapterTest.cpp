@@ -327,13 +327,13 @@ static const std::string CARD_GET_DATA_TRACEABILITY_INFORMATION_RSP =
     "001122334455667788999000";
 
 static const std::string CARD_VERIFY_PIN_PLAIN_OK_CMD =
-    "0020000004" + ByteArrayUtil::toHex(std::vector<char>(PIN_OK.begin(), PIN_OK.end()));
+    "0020000004" + ByteArrayUtil::toHex(std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end()));
 static const std::string CARD_VERIFY_PIN_ENCRYPTED_OK_CMD =
     "0020000008" + CIPHER_PIN_VERIFICATION_OK;
 static const std::string CARD_CHECK_PIN_CMD = "0020000000";
 static const std::string CARD_CHANGE_PIN_CMD = "00D800FF10" + CIPHER_PIN_UPDATE_OK;
 static const std::string CARD_CHANGE_PIN_PLAIN_CMD =
-    "00D800FF04" + ByteArrayUtil::toHex(std::vector<char>(NEW_PIN.begin(), NEW_PIN.end()));
+    "00D800FF04" + ByteArrayUtil::toHex(std::vector<uint8_t>(NEW_PIN.begin(), NEW_PIN.end()));
 static const std::string CARD_VERIFY_PIN_OK_RSP = SW1SW2_OK;
 static const std::string CARD_VERIFY_PIN_KO_RSP = "63C2";
 static const std::string CARD_CHANGE_PIN_RSP = SW1SW2_OK;
@@ -423,12 +423,12 @@ static const std::string SAM_DIGEST_AUTHENTICATE_CMD = "8082000004" + CARD_SIGNA
 static const std::string SAM_DIGEST_AUTHENTICATE_FAILED = "6988";
 
 static const std::string SAM_CARD_CIPHER_PIN_VERIFICATION_CMD =
-    "801280FF060000" + ByteArrayUtil::toHex(std::vector<char>(PIN_OK.begin(), PIN_OK.end()));
+    "801280FF060000" + ByteArrayUtil::toHex(std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end()));
 static const std::string SAM_CARD_CIPHER_PIN_VERIFICATION_RSP =
     CIPHER_PIN_VERIFICATION_OK + SW1SW2_OK;
 static const std::string SAM_CARD_CIPHER_PIN_UPDATE_CMD =
     "801240FF0A112200000000" +
-    ByteArrayUtil::toHex(std::vector<char>(NEW_PIN.begin(), NEW_PIN.end()));
+    ByteArrayUtil::toHex(std::vector<uint8_t>(NEW_PIN.begin(), NEW_PIN.end()));
 static const std::string SAM_CARD_CIPHER_PIN_UPDATE_RSP = CIPHER_PIN_UPDATE_OK + SW1SW2_OK;
 static const std::string SAM_GIVE_RANDOM_CMD = "8086000008" + CARD_CHALLENGE;
 static const std::string SAM_GIVE_RANDOM_RSP = SW1SW2_OK;

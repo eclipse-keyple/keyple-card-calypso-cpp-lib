@@ -32,9 +32,8 @@
 #include "CmdSamGiveRandom.h"
 #include "CmdSamSelectDiversifier.h"
 #include "CmdSamSvCheck.h"
-#include "CmdSamSvPrepareDebit.h"
+#include "CmdSamSvPrepareDebitOrUndebit.h"
 #include "CmdSamSvPrepareLoad.h"
-#include "CmdSamSvPrepareUndebit.h"
 
 /* Keyple Card Generic */
 #include "CardRequestAdapter.h"
@@ -627,34 +626,21 @@ const std::vector<uint8_t> SamCommandProcessor::getSvReloadComplementaryData(
     return getSvComplementaryData(cmdSamSvPrepareLoad);
 }
 
-const std::vector<uint8_t> SamCommandProcessor::getSvDebitComplementaryData(
-    const std::shared_ptr<CmdCardSvDebit> cmdCardSvDebit,
+const std::vector<uint8_t> SamCommandProcessor::getSvDebitOrUndebitComplementaryData(
+    const bool isDebitCommand,
+    const std::shared_ptr<CmdCardSvDebitOrUndebit> cmdCardSvDebitOrUndebit,
     const std::vector<uint8_t>& svGetHeader,
     const std::vector<uint8_t>& svGetData)
 {
     /* Get the complementary data from the SAM */
-    const auto cmdSamSvPrepareDebit =
-        std::make_shared<CmdSamSvPrepareDebit>(mSamProductType,
-                                               svGetHeader,
-                                               svGetData,
-                                               cmdCardSvDebit->getSvDebitData());
+    const auto cmdSamSvPrepareDebitOrUndebit =
+        std::make_shared<CmdSamSvPrepareDebitOrUndebit>(isDebitCommand,
+                                                        mSamProductType,
+                                                        svGetHeader,
+                                                        svGetData,
+                                                        cmdCardSvDebitOrUndebit->getSvDebitOrUndebitData());
 
-    return getSvComplementaryData(cmdSamSvPrepareDebit);
-}
-
-const std::vector<uint8_t> SamCommandProcessor::getSvUndebitComplementaryData(
-    const std::shared_ptr<CmdCardSvUndebit> cmdCardSvUndebit,
-    const std::vector<uint8_t>& svGetHeader,
-    const std::vector<uint8_t>& svGetData)
-{
-    /* Get the complementary data from the SAM */
-    const auto cmdSamSvPrepareUndebit =
-        std::make_shared<CmdSamSvPrepareUndebit>(mSamProductType,
-                                                 svGetHeader,
-                                                 svGetData,
-                                                 cmdCardSvUndebit->getSvUndebitData());
-
-    return getSvComplementaryData(cmdSamSvPrepareUndebit);
+    return getSvComplementaryData(cmdSamSvPrepareDebitOrUndebit);
 }
 
 void SamCommandProcessor::checkSvStatus(const std::vector<uint8_t>& svOperationResponseData)

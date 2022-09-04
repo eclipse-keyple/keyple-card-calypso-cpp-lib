@@ -33,26 +33,29 @@ using StatusProperties = AbstractApduCommand::StatusProperties;
 
 /**
  * (package-private)<br>
- * Builds the SV Prepare Debit APDU command.
+ * Builds the SV Debit or Undebit APDU command.
  *
  * @since 2.0.1
  */
-class CmdSamSvPrepareDebit final : public AbstractSamCommand {
+class CmdSamSvPrepareDebitOrUndebit final : public AbstractSamCommand {
 public:
     /**
      * (package-private)<br>
-     * Instantiates a new CmdSamSvPrepareDebit to prepare a debit transaction.
+     * Instantiates a new CmdSamSvPrepareDebit to prepare a debit or cancel transaction.
      *
+     * @param isDebitCommand True if the current card command is an "SV Debit" command, false if it
+     *        is an "SV Undebit" command.
      * @param productType the SAM product type.
      * @param svGetHeader the SV Get command header.
      * @param svGetData a byte array containing the data from the SV get command and response.
-     * @param svDebitCmdBuildData the SV debit command data.
+     * @param svDebitOrUndebitCmdBuildData the SV debit/undebit command data.
      * @since 2.0.1
      */
-    CmdSamSvPrepareDebit(const CalypsoSam::ProductType productType,
-                         const std::vector<uint8_t>& svGetHeader,
-                         const std::vector<uint8_t>& svGetData,
-                         const std::vector<uint8_t>& svDebitCmdBuildData);
+    CmdSamSvPrepareDebitOrUndebit(const bool isDebitCommand,
+                                  const CalypsoSam::ProductType productType,
+                                  const std::vector<uint8_t>& svGetHeader,
+                                  const std::vector<uint8_t>& svGetData,
+                                  const std::vector<uint8_t>& svDebitOrUndebitCmdBuildData);
 
     /**
      * {@inheritDoc}
@@ -63,11 +66,6 @@ public:
         override;
 
 private:
-    /**
-     * The command
-     */
-    static const CalypsoSamCommand mCommand;
-
     /**
      *
      */

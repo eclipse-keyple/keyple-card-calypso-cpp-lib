@@ -437,14 +437,14 @@ private:
 
     /**
      * (private)<br>
-     * Checks the response to a SV Operation command (reload, debit or undebit) response received from
-     * the card<br>
+     * Checks the response to a SV Operation command (reload, debit or undebit) response received
+     * from the card<br>
      * Stores the card SV signature if any (command executed outside a secure session) in the
      * CalypsoCardAdapter.
      *
      * @param calypsoCard the CalypsoCardAdapter object to update.
-     * @param cmdCardSvOperation the SV Operation command (CmdCardSvReload, CmdCardSvDebit or
-     *        CmdCardSvUndebit)
+     * @param cmdCardSvOperation the SV Operation command (CmdCardSvReload or
+     *        CmdCardSvDebitOrUndebit)
      * @param apduResponse the response received.
      * @throw CardCommandException if a response from the card was unexpected
      */

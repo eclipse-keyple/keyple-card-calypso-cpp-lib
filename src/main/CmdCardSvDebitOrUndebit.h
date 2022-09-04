@@ -16,24 +16,20 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoCard.h"
-
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardClass.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
-using namespace calypsonet::terminal::calypso::card;
-
 using StatusProperties = AbstractApduCommand::StatusProperties;
 
 /**
  * (package-private)<br>
- * Builds the SV Debit command.
+ * Builds the SV Debit or SV Undebit command.
  *
  * <p>See specs: Calypso Stored Value balance (signed binaries' coding based on the two's complement
  * method)
@@ -75,25 +71,30 @@ using StatusProperties = AbstractApduCommand::StatusProperties;
  *
  * @since 2.0.1
  */
-class CmdCardSvDebit final : public AbstractCardCommand {
+class CmdCardSvDebitOrUndebit final : public AbstractCardCommand {
 public:
     /**
      * (package-private)<br>
-     * Instantiates a new CmdCardSvDebit.
+     * Instantiates a new CmdCardSvDebitOrUndebit.
      *
-     * @param calypsoCard the Calypso card.
-     * @param amount amount to debit (positive integer from 0 to 32767).
+     * @param isDebitCommand True if it is an "SV Debit" command, false if it is an "SV Undebit"
+     *        command
+     * @param calypsoCardClass Indicated which CLA byte should be used for the Apdu.
+     * @param amount amount to debit or undebit (positive integer from 0 to 32767).
      * @param kvc the KVC.
-     * @param date debit date (not checked by the card).
-     * @param time debit time (not checked by the card).
+     * @param date operation date (not checked by the card).
+     * @param time operation time (not checked by the card).
+     * @param useExtendedMode True if the extended mode must be used.
      * @throw IllegalArgumentException If the command is inconsistent
      * @since 2.0.1
      */
-    CmdCardSvDebit(const std::shared_ptr<CalypsoCard> calypsoCard,
-                    const int amount,
-                    const uint8_t kvc,
-                    const std::vector<uint8_t>& date,
-                    const std::vector<uint8_t>& time);
+    CmdCardSvDebitOrUndebit(const bool isDebitCommand,
+                            const CalypsoCardClass calypsoCardClass,
+                            const int amount,
+                            const uint8_t kvc,
+                            const std::vector<uint8_t>& date,
+                            const std::vector<uint8_t>& time,
+                            const bool useExtendedMode);
 
     /**
      * (package-private)<br>
@@ -108,19 +109,19 @@ public:
      *
      * <p>5 or 10 byte signature (hi part)
      *
-     * @param debitComplementaryData the data out from the SvPrepareDebit SAM command.
+     * @param debitOrUndebitComplementaryData the data out from the SvPrepareDebit SAM command.
      * @since 2.0.1
      */
-    void finalizeCommand(const std::vector<uint8_t>& debitComplementaryData);
+    void finalizeCommand(const std::vector<uint8_t>& debitOrUndebitComplementaryData);
 
     /**
      * (package-private)<br>
-     * Gets the SV Debit part of the data to include in the SAM SV Prepare Debit command
+     * Gets the SV Debit/Undebit part of the data to include in the SAM SV Prepare Debit command
      *
-     * @return a byte array containing the SV debit data
+     * @return A byte array containing the SV debit/undebit data
      * @since 2.0.1
      */
-    const std::vector<uint8_t> getSvDebitData() const;
+    const std::vector<uint8_t> getSvDebitOrUndebitData() const;
 
     /**
      * {@inheritDoc}
@@ -138,7 +139,8 @@ public:
      * @throws IllegalStateException If the length is incorrect.
      * @since 2.0.1
      */
-    CmdCardSvDebit& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
+    CmdCardSvDebitOrUndebit& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+         override;
 
     /**
      * (package-private)<br>
@@ -146,7 +148,7 @@ public:
      * The signature can be empty here in the case of a secure session where the transmission of the
      * signature is postponed until the end of the session.
      *
-     * @return a byte array containing the signature
+     * @return A byte array containing the signature
      * @since 2.0.1
      */
     const std::vector<uint8_t> getSignatureLo() const;
@@ -160,10 +162,6 @@ public:
         override;
 
 private:
-    /**
-     * The command
-     */
-    static const CalypsoCardCommand mCommand;
 
     /**
      *
@@ -173,7 +171,12 @@ private:
     /**
      *
      */
-    std::shared_ptr<CalypsoCard> mCalypsoCard;
+    CalypsoCardClass mCalypsoCardClass;
+
+    /**
+     *
+     */
+    bool mUseExtendedMode;
 
     /**
      * Apdu data array
