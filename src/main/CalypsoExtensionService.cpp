@@ -113,12 +113,16 @@ std::shared_ptr<CardTransactionManager> CalypsoExtensionService::createCardTrans
      * C++: check args data *after* nullity has been ruled out. Calls order doesn't seem
      * respected by MSVC
      */
-    Assert::getInstance().isTrue(calypsoCard->getProductType() != CalypsoCard::ProductType::UNKNOWN, 
+    Assert::getInstance().isTrue(calypsoCard->getProductType() != CalypsoCard::ProductType::UNKNOWN,
                                  PRODUCT_TYPE);
 
-    return std::make_shared<CardTransactionManagerAdapter>(reader,
-                                                           calypsoCard,
-                                                           cardSecuritySetting);
+    const auto adapter = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
+    if (!adapter) {
+        throw IllegalArgumentException("The provided 'cardSecuritySetting' must be an instance of" \
+                                       " 'CardSecuritySettingAdapter' class.");
+    }
+
+    return std::make_shared<CardTransactionManagerAdapter>(reader, calypsoCard, adapter);
 }
 
 std::shared_ptr<CardTransactionManager>

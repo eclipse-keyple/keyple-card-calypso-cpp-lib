@@ -67,79 +67,53 @@ std::vector<std::vector<uint8_t>> SamCommandProcessor::mCardDigestDataCache;
 
 SamCommandProcessor::SamCommandProcessor(
   const std::shared_ptr<CalypsoCard> calypsoCard,
-  const std::shared_ptr<CardSecuritySetting> cardSecuritySetting)
-: mCardSecuritySettings(cardSecuritySetting),
+  const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting)
+: mCardSecuritySetting(cardSecuritySetting),
   mCalypsoCard(std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard)),
   mIsDiversificationDone(false)
 {
-    const auto stngs = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
-    Assert::getInstance().notNull(stngs, "securitySettings")
-                         .notNull(stngs->getSamReader(), "samReader")
-                         .notNull(stngs->getCalypsoSam(), "calypsoSam");
+    Assert::getInstance().notNull(cardSecuritySetting, "securitySettings")
+                         .notNull(cardSecuritySetting->getSamReader(), "samReader")
+                         .notNull(cardSecuritySetting->getCalypsoSam(), "calypsoSam");
 
-    const auto calypsoSam = stngs->getCalypsoSam();
+    const auto calypsoSam = cardSecuritySetting->getCalypsoSam();
     mSamProductType = calypsoSam->getProductType();
     mSamSerialNumber = calypsoSam->getSerialNumber();
-    mSamReader = std::dynamic_pointer_cast<ProxyReaderApi>(stngs->getSamReader());
+    mSamReader = std::dynamic_pointer_cast<ProxyReaderApi>(cardSecuritySetting->getSamReader());
 }
 
-const std::vector<uint8_t> SamCommandProcessor::getSessionTerminalChallenge()
+const std::vector<uint8_t> SamCommandProcessor::getChallenge()
 {
-    std::vector<std::shared_ptr<ApduRequestSpi>> apduRequests;
+    std::vector<std::shared_ptr<AbstractSamCommand>> samCommands;
 
     /* Diversify only if this has not already been done */
     if (!mIsDiversificationDone) {
         /*
-         * Build the SAM Select Diversifier command to provide the SAM with the card S/N
+         * Build the "Select Diversifier" SAM command to provide the SAM with the card S/N
          * CL-SAM-CSN.1
          */
-        const auto selectDiversifierCmd =
+        samCommands.push_back(
             std::make_shared<CmdSamSelectDiversifier>(mSamProductType,
-                                                      mCalypsoCard->getCalypsoSerialNumberFull());
-
-        apduRequests.push_back(selectDiversifierCmd->getApduRequest());
+                                                      mCalypsoCard->getCalypsoSerialNumberFull()));
 
         /* Note that the diversification has been made */
         mIsDiversificationDone = true;
     }
 
-    /* Build the SAM Get Challenge command */
+    /* Build the "Get Challenge" SAM command */
     const uint8_t challengeLength = mCalypsoCard->isExtendedModeSupported() ?
                                     CHALLENGE_LENGTH_REV32 : CHALLENGE_LENGTH_REV_INF_32;
+    auto cmdSamGetChallenge = std::make_shared<CmdSamGetChallenge>(mSamProductType,challengeLength);
+    samCommands.push_back(cmdSamGetChallenge);
 
-    auto samGetChallengeCmd = std::make_shared<CmdSamGetChallenge>(mSamProductType,challengeLength);
+    /* Transmit the commands to the SAM */
+    transmitCommands(samCommands);
 
-    apduRequests.push_back(samGetChallengeCmd->getApduRequest());
+    /* Retrieve the SAM challenge */
+    const std::vector<uint8_t> samChallenge = cmdSamGetChallenge->getChallenge();
+    mLogger->debug("identification: TERMINALCHALLENGE=%\n", ByteArrayUtil::toHex(samChallenge));
 
-    /* Transmit the CardRequest to the SAM and get back the CardResponse (list of ApduResponseApi)*/
-    std::shared_ptr<CardResponseApi> samCardResponse;
-    try {
-        samCardResponse = mSamReader->transmitCardRequest(
-                              std::make_shared<CardRequestAdapter>(apduRequests, false),
-                              ChannelControl::KEEP_OPEN);
-    } catch (const UnexpectedStatusWordException& e) {
-        throw IllegalStateException(UNEXPECTED_EXCEPTION,
-                                    std::make_shared<UnexpectedStatusWordException>(e));
-    }
-
-    const std::vector<std::shared_ptr<ApduResponseApi>>&
-        samApduResponses = samCardResponse->getApduResponses();
-    std::vector<uint8_t> sessionTerminalChallenge;
-
-    const size_t numberOfSamCmd = apduRequests.size();
-    if (samApduResponses.size() == numberOfSamCmd) {
-        samGetChallengeCmd->setApduResponse(samApduResponses[numberOfSamCmd - 1]).checkStatus();
-        sessionTerminalChallenge = samGetChallengeCmd->getChallenge();
-        mLogger->debug("identification: TERMINALCHALLENGE = %\n",
-                       ByteArrayUtil::toHex(sessionTerminalChallenge));
-
-    } else {
-        throw DesynchronizedExchangesException("The number of commands/responses does not match: " \
-                                               "cmd=" + std::to_string(numberOfSamCmd) + ", " +
-                                               "resp=" + std::to_string(samApduResponses.size()));
-    }
-
-    return sessionTerminalChallenge;
+    return samChallenge;
 }
 
 const std::shared_ptr<uint8_t> SamCommandProcessor::computeKvc(
@@ -149,8 +123,7 @@ const std::shared_ptr<uint8_t> SamCommandProcessor::computeKvc(
         return kvc;
     }
 
-    return std::dynamic_pointer_cast<CardSecuritySettingAdapter>(mCardSecuritySettings)
-               ->getDefaultKvc(writeAccessLevel);
+    return mCardSecuritySetting->getDefaultKvc(writeAccessLevel);
 }
 
 const std::shared_ptr<uint8_t> SamCommandProcessor::computeKif(
@@ -164,10 +137,9 @@ const std::shared_ptr<uint8_t> SamCommandProcessor::computeKif(
     }
 
     /* CL-KEY-KIFUNK.1 */
-    const auto adptr = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(mCardSecuritySettings);
-    std::shared_ptr<uint8_t> result = adptr->getKif(writeAccessLevel, *kvc.get());
+    std::shared_ptr<uint8_t> result = mCardSecuritySetting->getKif(writeAccessLevel, *kvc.get());
     if (result == nullptr) {
-        result = adptr->getDefaultKif(writeAccessLevel);
+        result = mCardSecuritySetting->getDefaultKif(writeAccessLevel);
     }
 
     return result;
@@ -184,16 +156,16 @@ void SamCommandProcessor::initializeDigester(const bool sessionEncryption,
     mKif = kif;
     mKvc = kvc;
 
-    mLogger->debug("initialize: POREVISION = %, SAMREVISION = %, SESSIONENCRYPTION = %, " \
-                   "VERIFICATIONMODE = %\n",
+    mLogger->debug("initialize: CARDREVISION=%, SAMREVISION=%, SESSIONENCRYPTION=%, " \
+                   "VERIFICATIONMODE=%\n",
                    mCalypsoCard->getProductType(),
                    mSamProductType,
                    sessionEncryption,
                    verificationMode);
-    mLogger->debug("initialize: VERIFICATIONMODE = %, REV32MODE = %\n",
+    mLogger->debug("initialize: VERIFICATIONMODE=%, REV32MODE=%\n",
                    verificationMode,
                    mCalypsoCard->isExtendedModeSupported());
-    mLogger->debug("initialize: KIF = %, KVC %, DIGESTDATA = %\n",
+    mLogger->debug("initialize: KIF=%, KVC=%, DIGESTDATA=%\n",
                    kif,
                    kvc,
                    ByteArrayUtil::toHex(digestData));
@@ -318,42 +290,17 @@ const std::vector<uint8_t> SamCommandProcessor::getTerminalSignature()
      */
     std::vector<std::shared_ptr<AbstractSamCommand>> samCommands = getPendingSamCommands(true);
 
-    auto samCardRequest = std::make_shared<CardRequestAdapter>(getApduRequests(samCommands), false);
-
-    /* Transmit CardRequest and get CardResponse */
-    std::shared_ptr<CardResponseApi> samCardResponse;
-
-    try {
-        samCardResponse = mSamReader->transmitCardRequest(samCardRequest,
-                                                          ChannelControl::KEEP_OPEN);
-    } catch (const UnexpectedStatusWordException& e) {
-        throw IllegalStateException(UNEXPECTED_EXCEPTION,
-                                    std::make_shared<UnexpectedStatusWordException>(e));
-    }
-
-    std::vector<std::shared_ptr<ApduResponseApi>> samApduResponses =
-        samCardResponse->getApduResponses();
-
-    if (samApduResponses.size() != samCommands.size()) {
-        throw DesynchronizedExchangesException("The number of commands/responses does not match: " \
-                                               "cmd=" + std::to_string(samCommands.size()) + ", " +
-                                               "resp="+ std::to_string(samApduResponses.size()));
-    }
-
-    /* Check all responses status */
-    for (int i = 0; i < static_cast<int>(samApduResponses.size()); i++) {
-        samCommands[i]->setApduResponse(samApduResponses[i]).checkStatus();
-    }
+    /* Transmit the commands to the SAM */
+    transmitCommands(samCommands);
 
     /* Get Terminal Signature from the latest response */
-    auto cmdSamDigestClose = std::dynamic_pointer_cast<CmdSamDigestClose>(samCommands.back());
-    cmdSamDigestClose->setApduResponse(samApduResponses[samCommands.size() - 1]);
+    const std::vector<uint8_t> terminalSignature =
+        std::dynamic_pointer_cast<CmdSamDigestClose>(samCommands[samCommands.size() - 1])
+            ->getSignature();
 
-    const std::vector<uint8_t> sessionTerminalSignature = cmdSamDigestClose->getSignature();
+    mLogger->debug("SIGNATURE=%\n", ByteArrayUtil::toHex(terminalSignature));
 
-    mLogger->debug("SIGNATURE = %\n", ByteArrayUtil::toHex(sessionTerminalSignature));
-
-    return sessionTerminalSignature;
+    return terminalSignature;
 }
 
 const std::vector<std::shared_ptr<ApduRequestSpi>> SamCommandProcessor::getApduRequests(
@@ -370,43 +317,69 @@ const std::vector<std::shared_ptr<ApduRequestSpi>> SamCommandProcessor::getApduR
     return apduRequests;
 }
 
+void SamCommandProcessor::transmitCommands(
+    const std::vector<std::shared_ptr<AbstractSamCommand>>& samCommands)
+{
+    const std::vector<std::shared_ptr<ApduRequestSpi>> apduRequests = getApduRequests(samCommands);
+    auto cardRequest = std::make_shared<CardRequestAdapter>(apduRequests, true);
+    std::shared_ptr<CardResponseApi> cardResponse = nullptr;
+
+    try {
+        cardResponse = mSamReader->transmitCardRequest(cardRequest, ChannelControl::KEEP_OPEN);
+    } catch (const UnexpectedStatusWordException& e) {
+        mLogger->debug("A SAM card command has failed: %\n", e.getMessage());
+        cardResponse = e.getCardResponse();
+    }
+
+    const std::vector<std::shared_ptr<ApduResponseApi>> apduResponses = 
+        cardResponse->getApduResponses();
+
+    /*
+     * If there are more responses than requests, then we are unable to fill the card image. In this
+     * case we stop processing immediately because it may be a case of fraud, and we throw a
+     * desynchronized exception.
+     */
+    if (apduResponses.size() > apduRequests.size()) {
+        throw DesynchronizedExchangesException("The number of SAM commands/responses does not " \
+                                               "match: commands=" +
+                                               std::to_string(apduRequests.size()) + 
+                                               ", responses=" + 
+                                               std::to_string(apduResponses.size()));
+    }
+
+    /*
+     * We go through all the responses (and not the requests) because there may be fewer in the case
+     * of an error that occurred in strict mode. In this case the last response will raise an
+     * exception.
+     */
+    for (int i = 0; i < static_cast<int>(apduResponses.size()); i++) {
+        samCommands[i]->setApduResponse(apduResponses[i]).checkStatus();
+    }
+
+    /*
+     * Finally, if no error has occurred and there are fewer responses than requests, then we
+     * throw a desynchronized exception.
+     */
+    if (apduResponses.size() < apduRequests.size()) {
+        throw DesynchronizedExchangesException("The number of SAM commands/responses does not " \
+                                               "match: commands=" + 
+                                               std::to_string(apduRequests.size()) +
+                                               ", responses=" + 
+                                               std::to_string(apduResponses.size()));
+    }
+}
+
 void SamCommandProcessor::authenticateCardSignature(const std::vector<uint8_t>& cardSignatureLo)
 {
-    /*
-     * Check the card signature part with the SAM
-     * Build and send SAM Digest Authenticate command
-     */
-    auto cmdSamDigestAuthenticate = std::make_shared<CmdSamDigestAuthenticate>(mSamProductType,
-                                                                               cardSignatureLo);
+    std::vector<std::shared_ptr<AbstractSamCommand>> samCommands(1);
+    samCommands.push_back(
+        std::make_shared<CmdSamDigestAuthenticate>(mSamProductType, cardSignatureLo));
 
-    std::vector<std::shared_ptr<ApduRequestSpi>> samApduRequests;
-    samApduRequests.push_back(cmdSamDigestAuthenticate->getApduRequest());
-
-    auto samCardRequest = std::dynamic_pointer_cast<CardRequestSpi>(
-                              std::make_shared<CardRequestAdapter>(samApduRequests, false));
-
-    std::shared_ptr<CardResponseApi> samCardResponse;
-    try {
-        samCardResponse = mSamReader->transmitCardRequest(samCardRequest,
-                                                          ChannelControl::KEEP_OPEN);
-    } catch (const UnexpectedStatusWordException& e) {
-        throw IllegalStateException(UNEXPECTED_EXCEPTION,
-                                    std::make_shared<UnexpectedStatusWordException>(e));
-    }
-
-    /* Get transaction result parsing the response */
-    std::vector<std::shared_ptr<ApduResponseApi>> samApduResponses =
-        samCardResponse->getApduResponses();
-
-    if (samApduResponses.empty()) {
-        throw DesynchronizedExchangesException("No response to Digest Authenticate command.");
-    }
-
-    cmdSamDigestAuthenticate->setApduResponse(samApduResponses[0]).checkStatus();
+    transmitCommands(samCommands);
 }
 
 const std::vector<uint8_t> SamCommandProcessor::getEncryptedKey(
-    const std::vector<uint8_t>& poChallenge,
+    const std::vector<uint8_t>& cardChallenge,
     const uint8_t cipheringKif,
     const uint8_t cipheringKvc,
     const uint8_t sourceKif,
@@ -425,9 +398,7 @@ const std::vector<uint8_t> SamCommandProcessor::getEncryptedKey(
         mIsDiversificationDone = true;
     }
 
-    samCommands.push_back(std::make_shared<CmdSamGiveRandom>(mSamProductType, poChallenge));
-
-    const size_t cardGenerateKeyCmdIndex = samCommands.size();
+    samCommands.push_back(std::make_shared<CmdSamGiveRandom>(mSamProductType, cardChallenge));
 
     auto cmdSamCardGenerateKey = std::make_shared<CmdSamCardGenerateKey>(mSamProductType,
                                                                          cipheringKif,
@@ -437,30 +408,14 @@ const std::vector<uint8_t> SamCommandProcessor::getEncryptedKey(
 
     samCommands.push_back(cmdSamCardGenerateKey);
 
-    /* Build a SAM CardRequest */
-    auto samCardRequest = std::make_shared<CardRequestAdapter>(getApduRequests(samCommands), false);
-
-    /* Execute the command */
-    std::shared_ptr<CardResponseApi> samCardResponse;
-    try {
-        samCardResponse = mSamReader->transmitCardRequest(samCardRequest,
-                                                          ChannelControl::KEEP_OPEN);
-    } catch (const UnexpectedStatusWordException& e) {
-        throw IllegalStateException(UNEXPECTED_EXCEPTION,
-                                    std::make_shared<UnexpectedStatusWordException>(e));
-    }
-
-    std::shared_ptr<ApduResponseApi> cmdSamCardGenerateKeyResponse =
-        samCardResponse->getApduResponses()[cardGenerateKeyCmdIndex];
-
-    /* Check execution status */
-    cmdSamCardGenerateKey->setApduResponse(cmdSamCardGenerateKeyResponse).checkStatus();
+    /* Transmit the commands to the SAM */
+    transmitCommands(samCommands);
 
     return cmdSamCardGenerateKey->getCipheredData();
 }
 
 const std::vector<uint8_t> SamCommandProcessor::getCipheredPinData(
-    const std::vector<uint8_t>& poChallenge,
+    const std::vector<uint8_t>& cardChallenge,
     const std::vector<uint8_t>& currentPin,
     const std::vector<uint8_t>& newPin)
 {
@@ -473,30 +428,28 @@ const std::vector<uint8_t> SamCommandProcessor::getCipheredPinData(
         pinCipheringKif = mKif;
         pinCipheringKvc = mKvc;
     } else {
-        auto adapter = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(mCardSecuritySettings);
-
         /* No current work key is available (outside secure session) */
         if (newPin.empty()) {
             /* PIN verification */
 
-            if (adapter->getPinVerificationCipheringKif() == nullptr ||
-                adapter->getPinVerificationCipheringKvc() == nullptr) {
+            if (mCardSecuritySetting->getPinVerificationCipheringKif() == nullptr ||
+                mCardSecuritySetting->getPinVerificationCipheringKvc() == nullptr) {
                 throw IllegalStateException("No KIF or KVC defined for the PIN verification " \
                                             "ciphering key");
             }
 
-            pinCipheringKif = *adapter->getPinVerificationCipheringKif();
-            pinCipheringKvc = *adapter->getPinVerificationCipheringKvc();
+            pinCipheringKif = *mCardSecuritySetting->getPinVerificationCipheringKif();
+            pinCipheringKvc = *mCardSecuritySetting->getPinVerificationCipheringKvc();
         } else {
             /* PIN modification */
-            if (adapter->getPinModificationCipheringKif() == nullptr ||
-                adapter->getPinModificationCipheringKvc() == nullptr) {
+            if (mCardSecuritySetting->getPinModificationCipheringKif() == nullptr ||
+                mCardSecuritySetting->getPinModificationCipheringKvc() == nullptr) {
                 throw IllegalStateException("No KIF or KVC defined for the PIN modification " \
                                             "ciphering key");
             }
 
-            pinCipheringKif = *adapter->getPinModificationCipheringKif();
-            pinCipheringKvc = *adapter->getPinModificationCipheringKvc();
+            pinCipheringKif = *mCardSecuritySetting->getPinModificationCipheringKif();
+            pinCipheringKvc = *mCardSecuritySetting->getPinModificationCipheringKvc();
         }
     }
 
@@ -518,9 +471,7 @@ const std::vector<uint8_t> SamCommandProcessor::getCipheredPinData(
         Arrays::addAll(samCommands, getPendingSamCommands(false));
     }
 
-    samCommands.push_back(std::make_shared<CmdSamGiveRandom>(mSamProductType, poChallenge));
-
-    const size_t cardCipherPinCmdIndex = samCommands.size();
+    samCommands.push_back(std::make_shared<CmdSamGiveRandom>(mSamProductType, cardChallenge));
 
     auto cmdSamCardCipherPin = std::make_shared<CmdSamCardCipherPin>(mSamProductType,
                                                                      pinCipheringKif,
@@ -530,24 +481,7 @@ const std::vector<uint8_t> SamCommandProcessor::getCipheredPinData(
 
     samCommands.push_back(cmdSamCardCipherPin);
 
-    /* Build a SAM CardRequest */
-    auto samCardRequest = std::make_shared<CardRequestAdapter>(getApduRequests(samCommands), false);
-
-    /* Execute the command */
-    std::shared_ptr<CardResponseApi> samCardResponse;
-    try {
-        samCardResponse = mSamReader->transmitCardRequest(samCardRequest,
-                                                          ChannelControl::KEEP_OPEN);
-    } catch (const UnexpectedStatusWordException& e) {
-        throw IllegalStateException(UNEXPECTED_EXCEPTION,
-                                    std::make_shared<UnexpectedStatusWordException>(e));
-    }
-
-    std::shared_ptr<ApduResponseApi> cardCipherPinResponse =
-        samCardResponse->getApduResponses()[cardCipherPinCmdIndex];
-
-    /* Check execution status */
-    cmdSamCardCipherPin->setApduResponse(cardCipherPinResponse).checkStatus();
+    transmitCommands(samCommands);
 
     return cmdSamCardCipherPin->getCipheredData();
 }
@@ -575,28 +509,9 @@ const std::vector<uint8_t> SamCommandProcessor::getSvComplementaryData(
         Arrays::addAll(samCommands, getPendingSamCommands(false));
     }
 
-    const size_t svPrepareOperationCmdIndex = samCommands.size();
-
     samCommands.push_back(cmdSamSvPrepare);
 
-    /* Build a SAM CardRequest */
-    auto samCardRequest = std::make_shared<CardRequestAdapter>(getApduRequests(samCommands), false);
-
-    /* Execute the command */
-    std::shared_ptr<CardResponseApi> samCardResponse;
-    try {
-        samCardResponse = mSamReader->transmitCardRequest(samCardRequest,
-                                                          ChannelControl::KEEP_OPEN);
-    } catch (const UnexpectedStatusWordException& e) {
-        throw IllegalStateException(UNEXPECTED_EXCEPTION,
-                                    std::make_shared<UnexpectedStatusWordException>(e));
-    }
-
-    const std::shared_ptr<ApduResponseApi> svPrepareResponse =
-        samCardResponse->getApduResponses()[svPrepareOperationCmdIndex];
-
-    /* Check execution status */
-    cmdSamSvPrepare->setApduResponse(svPrepareResponse).checkStatus();
+    transmitCommands(samCommands);
 
     std::vector<uint8_t> prepareOperationData = cmdSamSvPrepare->getApduResponse()->getDataOut();
     std::vector<uint8_t> operationComplementaryData(mSamSerialNumber.size() + prepareOperationData.size());
@@ -616,7 +531,6 @@ const std::vector<uint8_t> SamCommandProcessor::getSvReloadComplementaryData(
     const std::vector<uint8_t>& svGetHeader,
     const std::vector<uint8_t>& svGetData)
 {
-    /* Get the complementary data from the SAM */
     const auto cmdSamSvPrepareLoad =
         std::make_shared<CmdSamSvPrepareLoad>(mSamProductType,
                                               svGetHeader,
@@ -632,7 +546,6 @@ const std::vector<uint8_t> SamCommandProcessor::getSvDebitOrUndebitComplementary
     const std::vector<uint8_t>& svGetHeader,
     const std::vector<uint8_t>& svGetData)
 {
-    /* Get the complementary data from the SAM */
     const auto cmdSamSvPrepareDebitOrUndebit =
         std::make_shared<CmdSamSvPrepareDebitOrUndebit>(isDebitCommand,
                                                         mSamProductType,
@@ -646,29 +559,10 @@ const std::vector<uint8_t> SamCommandProcessor::getSvDebitOrUndebitComplementary
 void SamCommandProcessor::checkSvStatus(const std::vector<uint8_t>& svOperationResponseData)
 {
     std::vector<std::shared_ptr<AbstractSamCommand>> samCommands;
-    const auto cmdSamSvCheck = std::make_shared<CmdSamSvCheck>(mSamProductType,
-                                                               svOperationResponseData);
-    samCommands.push_back(cmdSamSvCheck);
-
-    /* Build a SAM CardRequest */
-    auto samCardRequest = std::dynamic_pointer_cast<CardRequestSpi>(
-                              std::make_shared<CardRequestAdapter>(getApduRequests(samCommands),
-                                                                   false));
-
-    /* Execute the command */
-    std::shared_ptr<CardResponseApi> samCardResponse;
-    try {
-        samCardResponse = mSamReader->transmitCardRequest(samCardRequest,
-                                                          ChannelControl::KEEP_OPEN);
-    } catch (const UnexpectedStatusWordException& e) {
-        throw IllegalStateException(UNEXPECTED_EXCEPTION,
-                                    std::make_shared<UnexpectedStatusWordException>(e));
-    }
-
-    const std::shared_ptr<ApduResponseApi> svCheckResponse = samCardResponse->getApduResponses()[0];
-
-    /* Check execution status */
-    cmdSamSvCheck->setApduResponse(svCheckResponse).checkStatus();
+    samCommands.push_back(
+        std::make_shared<CmdSamSvCheck>(mSamProductType, svOperationResponseData));
+    
+    transmitCommands(samCommands);
 }
 
 }

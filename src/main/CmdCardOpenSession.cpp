@@ -104,8 +104,8 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardOpenSession::STATUS_TABLE = initStatusTable();
 
 CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calypsoCard,
-                                       const uint8_t debitKeyIndex,
-                                       const std::vector<uint8_t> sessionTerminalChallenge,
+                                       const uint8_t keyIndex,
+                                       const std::vector<uint8_t>& samChallenge,
                                        const uint8_t sfi,
                                        const uint8_t recordNumber)
 : AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION),
@@ -113,15 +113,15 @@ CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calyps
 {
     switch (calypsoCard->getProductType()) {
     case CalypsoCard::ProductType::PRIME_REVISION_1:
-        createRev10(debitKeyIndex, sessionTerminalChallenge, sfi, recordNumber);
+        createRev10(keyIndex, samChallenge, sfi, recordNumber);
         break;
     case CalypsoCard::ProductType::PRIME_REVISION_2:
-        createRev24(debitKeyIndex, sessionTerminalChallenge, sfi, recordNumber);
+        createRev24(keyIndex, samChallenge, sfi, recordNumber);
         break;
     case CalypsoCard::ProductType::PRIME_REVISION_3:
     case CalypsoCard::ProductType::LIGHT:
     case CalypsoCard::ProductType::BASIC:
-        createRev3(debitKeyIndex, sessionTerminalChallenge, sfi, recordNumber, calypsoCard);
+        createRev3(keyIndex, samChallenge, sfi, recordNumber, calypsoCard);
         break;
     default:
         std::stringstream ss;
@@ -143,7 +143,7 @@ void CmdCardOpenSession::createRev3(const uint8_t keyIndex,
     uint8_t p2;
     std::vector<uint8_t> dataIn;
 
-    /* CL-CSS-OSSMODE.1 fullfilled only for SAM C1 */
+    /* CL-CSS-OSSMODE.1 fulfilled only for SAM C1 */
     if (!calypsoCard->isExtendedModeSupported()) {
         p2 = static_cast<uint8_t>(sfi * 8 + 1);
         dataIn = samChallenge;

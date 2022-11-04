@@ -120,6 +120,14 @@ public:
      */
     bool isSvOperationCompleteOneTime();
 
+    /**
+     * (package-private)<br>
+     *
+     * @return The last SV modifying command or null.
+     * @since 2.1.1
+     */
+    std::shared_ptr<AbstractCardCommand> getSvLastModifyingCommand() const;
+
 private:
     /**
      *
@@ -134,7 +142,12 @@ private:
     /**
      *
      */
-    CalypsoCardCommand mSvLastCommand;
+    CalypsoCardCommand mSvLastCommandRef;
+
+    /**
+     *
+     */
+    std::shared_ptr<AbstractCardCommand> mSvLastModifyingCommand;
 
     /**
      *

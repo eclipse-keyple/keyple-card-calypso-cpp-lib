@@ -12,6 +12,9 @@
 
 #include "CalypsoCardUtilAdapter.h"
 
+/* Calypsonet Terminal Calypso */
+#include "DesynchronizedExchangesException.h"
+
 /* Keyple Card Calypso */
 #include "CalypsoCardCommand.h"
 #include "CalypsoCardConstant.h"
@@ -32,6 +35,7 @@ namespace keyple {
 namespace card {
 namespace calypso {
 
+using namespace calypsonet::terminal::calypso::transaction;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
@@ -168,13 +172,41 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
     const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses,
     const bool isSessionOpen)
 {
-    auto responseIterator = apduResponses.begin();
+    /*
+     * If there are more responses than requests, then we are unable to fill the card image. In this
+     * case we stop processing immediately because it may be a case of fraud, and we throw a
+     * desynchronized exception.
+     */
+    if (apduResponses.size() > commands.size()) {
+        throw DesynchronizedExchangesException(
+                  "The number of commands/responses does not match: commands=" +
+                  std::to_string(commands.size()) +
+                  ", responses=" +
+                  std::to_string(apduResponses.size()));
+    }
 
-    if (!commands.empty()) {
-        for (const auto&  command : commands) {
-            const std::shared_ptr<ApduResponseApi> apduResponse = *responseIterator++;
-            updateCalypsoCard(calypsoCard, command, apduResponse, isSessionOpen);
-        }
+    /*
+     * We go through all the responses (and not the requests) because there may be fewer in the case
+     * of an error that occurred in strict mode. In this case the last response will raise an
+     * exception.
+     */
+    std::vector<std::shared_ptr<AbstractCardCommand>>::const_iterator
+        commandIterator = commands.begin();
+    for (const auto& apduResponse : apduResponses) {
+        auto command = *commandIterator++;
+        updateCalypsoCard(calypsoCard, command, apduResponse, isSessionOpen);
+    }
+
+    /*
+     * Finally, if no error has occurred and there are fewer responses than requests, then we
+     * throw a desynchronized exception.
+     */
+    if (apduResponses.size() < commands.size()) {
+        throw DesynchronizedExchangesException(
+                  "The number of commands/responses does not match: commands=" +
+                  std::to_string(commands.size()) +
+                  ", responses=" +
+                  std::to_string(apduResponses.size()));
     }
 }
 

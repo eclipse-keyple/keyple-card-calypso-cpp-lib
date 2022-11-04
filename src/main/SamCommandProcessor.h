@@ -19,7 +19,6 @@
 
 /* Calypsonet Terminal Calypso */
 #include "CalypsoSam.h"
-#include "CardSecuritySetting.h"
 
 /* Calypsonet Terminal Card */
 #include "ProxyReaderApi.h"
@@ -27,6 +26,7 @@
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 #include "CalypsoCardAdapter.h"
+#include "CardSecuritySettingAdapter.h"
 #include "CmdCardSvDebitOrUndebit.h"
 #include "CmdCardSvReload.h"
 
@@ -39,7 +39,6 @@ namespace calypso {
 
 using namespace calypsonet::terminal::calypso;
 using namespace calypsonet::terminal::calypso::sam;
-using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card;
 using namespace keyple::core::util::cpp;
 
@@ -65,10 +64,10 @@ public:
      * @since 2.0.0
      */
     SamCommandProcessor(const std::shared_ptr<CalypsoCard> calypsoCard,
-                        const std::shared_ptr<CardSecuritySetting> cardSecuritySetting);
+                        const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting);
 
     /**
-     * Gets the terminal challenge
+     * Gets the SAM challenge
      *
      * <p>Performs key diversification if necessary by sending the SAM Select Diversifier command
      * prior to the Get Challenge command. The diversification flag is set to avoid further
@@ -86,7 +85,7 @@ public:
      * @throw DesynchronizedExchangesException if the APDU SAM exchanges are out of sync
      * @since 2.0.0
      */
-    const std::vector<uint8_t> getSessionTerminalChallenge();
+    const std::vector<uint8_t> getChallenge();
 
     /**
      * (package-private)<br>
@@ -152,19 +151,32 @@ public:
                                const int startIndex);
 
     /**
-     * Gets the terminal signature from the SAM
+     * (package-private)<br>
+     * Gets the terminal signature's high part from the SAM
      *
      * <p>All remaining data in the digest cache is sent to the SAM and the Digest Close command is
      * executed.
      *
-     * @return the terminal signature
+     * @return The terminal signature's high part.
      * @throws CalypsoSamCommandException if the SAM has responded with an error status
      * @throw ReaderBrokenCommunicationException if the communication with the SAM reader has failed.
      * @throw CardBrokenCommunicationException if the communication with the SAM has failed.
-     * @throw DesynchronizedExchangesException if the APDU SAM exchanges are out of sync
+     * @throw DesynchronizedExchangesException if the APDU SAM exchanges are out of sync.
      * @since 2.0.0
      */
     const std::vector<uint8_t> getTerminalSignature();
+
+    /**
+     * (private)<br>
+     * Transmits the provided commands to the SAM, then attach responses and check status words.
+     *
+     * @param samCommands The SAM commands.
+     * @throw ReaderBrokenCommunicationException If the communication with the SAM reader has failed.
+     * @throw CardBrokenCommunicationException If the communication with the SAM has failed.
+     * @throw CalypsoSamCommandException If the SAM has responded with an error status.
+     * @throw DesynchronizedExchangesException If the APDU SAM exchanges are out of sync.
+     */
+    void transmitCommands(const std::vector<std::shared_ptr<AbstractSamCommand>>& samCommands);
 
     /**
      * Authenticates the signature part from the card
@@ -184,7 +196,7 @@ public:
      * (package-private)<br>
      * Compute the encrypted key data for the "Change Key" command.
      *
-     * @param poChallenge The challenge from the card.
+     * @param cardChallenge The challenge from the card.
      * @param cipheringKif The KIF of the key used for encryption.
      * @param cipheringKvc The KVC of the key used for encryption.
      * @param sourceKif The KIF of the key to encrypt.
@@ -195,7 +207,7 @@ public:
      * @throw CardBrokenCommunicationException if the communication with the SAM has failed.
      * @since 2.1.0
      */
-    const std::vector<uint8_t> getEncryptedKey(const std::vector<uint8_t>& poChallenge,
+    const std::vector<uint8_t> getEncryptedKey(const std::vector<uint8_t>& cardChallenge,
                                                const uint8_t cipheringKif,
                                                const uint8_t cipheringKvc,
                                                const uint8_t sourceKif,
@@ -205,7 +217,7 @@ public:
      * (package-private)<br>
      * Compute the PIN ciphered data for the encrypted PIN verification or PIN update commands
      *
-     * @param poChallenge the challenge from the card.
+     * @param cardChallenge the challenge from the card.
      * @param currentPin the current PIN value.
      * @param newPin the new PIN value (set to null if the operation is a PIN presentation).
      * @return the PIN ciphered data
@@ -214,7 +226,7 @@ public:
      * @throw CardBrokenCommunicationException if the communication with the SAM has failed.
      * @since 2.0.0
      */
-    const std::vector<uint8_t> getCipheredPinData(const std::vector<uint8_t>& poChallenge,
+    const std::vector<uint8_t> getCipheredPinData(const std::vector<uint8_t>& cardChallenge,
                                                   const std::vector<uint8_t>& currentPin,
                                                   const std::vector<uint8_t>& newPin);
 
@@ -242,6 +254,7 @@ public:
         const std::vector<uint8_t>& svGetData);
 
     /**
+     * (package-private)<br>
      * Computes the cryptographic data required for the SvDebit command.
      *
      * <p>Use the data from the SvGet command and the partial data from the SvDebit or SvUndebit
@@ -249,7 +262,7 @@ public:
      *
      * <p>The returned data will be used to finalize the card SvDebit command.
      *
-     * @param isDebitCommand
+     * @param isDebitCommand True if the command is a DEBIT, false for UNDEBIT.
      * @param svGetHeader the SV Get command header.
      * @param svGetData the SV Get command response data.
      * @return the complementary security data to finalize the SvDebit/SvUndebit card command (sam
@@ -302,7 +315,7 @@ private:
     /**
      *
      */
-    const std::shared_ptr<CardSecuritySetting> mCardSecuritySettings;
+    const std::shared_ptr<CardSecuritySettingAdapter> mCardSecuritySetting;
 
     /**
      *

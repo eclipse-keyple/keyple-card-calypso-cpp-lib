@@ -76,12 +76,13 @@ public:
      * (package-private)<br>
      * Fills the CalypsoCard with the card's responses to a list of commands
      *
-     * @param calypsoCard the CalypsoCardAdapter object to fill with the provided response from the
-     *        card
-     * @param commands the list of commands that get the responses.
-     * @param apduResponses the APDU responses returned by the card to all commands.
-     * @param isSessionOpen true when a secure session is open.
-     * @throw CardCommandException if a response from the card was unexpected
+     * @param calypsoCard The CalypsoCardAdapter object to fill with the provided response from the
+     *        card.
+     * @param commands The list of commands that get the responses.
+     * @param apduResponses The APDU responses returned by the card to all commands.
+     * @param isSessionOpen True when a secure session is open.
+     * @throw CardCommandException If a response from the card was unexpected.
+     * @throw DesynchronizedExchangesException If the number of commands/responses does not match.
      * @since 2.0.0
      */
     static void updateCalypsoCard(

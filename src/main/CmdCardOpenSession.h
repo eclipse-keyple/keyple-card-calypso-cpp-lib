@@ -49,14 +49,18 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardOpenSession.
      *
-     * @param calypsoCard the {@link CalypsoCard}.
-     * @throws IllegalArgumentException If the key index is 0 and rev is 2.4
-     * @throws IllegalArgumentException If the request is inconsistent
+     * 
+     * @param calypsoCard The card image.
+     * @param keyIndex The key index.
+     * @param samChallenge The SAM challenge.
+     * @param sfi The optional SFI of the file to read.
+     * @param recordNumber The optional record number to read.
+     * @throw IllegalArgumentException If the key index is 0 and rev is 2.4
      * @since 2.0.1
      */
     CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calypsoCard,
-                       const uint8_t debitKeyIndex,
-                       const std::vector<uint8_t> sessionTerminalChallenge,
+                       const uint8_t keyIndex,
+                       const std::vector<uint8_t>& samChallenge,
                        const uint8_t sfi,
                        const uint8_t recordNumber);
 

@@ -70,7 +70,7 @@ CmdCardSvReload::CmdCardSvReload(const CalypsoCardClass calypsoCardClass,
      * Handle the dataIn size with signatureHi length according to card revision (3.2 rev have a
      * 10-byte signature)
      */
-    mDataIn = std::vector<uint8_t>(18 + useExtendedMode ? 10 : 5);
+    mDataIn = std::vector<uint8_t>(18 + (useExtendedMode ? 10 : 5));
 
     /* dataIn[0] will be filled in at the finalization phase */
     mDataIn[1] = date[0];

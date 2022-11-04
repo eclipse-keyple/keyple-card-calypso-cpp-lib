@@ -31,6 +31,7 @@
 /* Keyple Card Calypso */
 #include "CalypsoCardAdapter.h"
 #include "CardCommandManager.h"
+#include "CardSecuritySettingAdapter.h"
 #include "SamCommandProcessor.h"
 
 /* Keyple Core Util */
@@ -68,6 +69,11 @@ using namespace keyple::core::util::cpp;
  *   <li>CL-SF-SFI.1
  *   <li>CL-PERF-HFLOW.1
  *   <li>CL-CSS-INFOEND.1
+ *   <li>CL-SW-CHECK.1
+ *   <li>CL-CSS-SMEXCEED.1
+ *   <li>CL-CSS-6D006E00.1
+ *   <li>CL-CSS-UNEXPERR.1
+ *   <li>CL-CSS-INFOCSS.1
  * </ul>
  *
  * @since 2.0.0
@@ -95,6 +101,7 @@ public:
     };
 
     /**
+     * (package-private)<br>
      * Creates an instance of CardTransactionManager for secure operations.
      *
      * <p>Secure operations are enabled by the presence of CardSecuritySetting.
@@ -104,9 +111,10 @@ public:
      * @param cardSecuritySetting The security settings.
      * @since 2.0.0
      */
-    CardTransactionManagerAdapter(const std::shared_ptr<CardReader> cardReader,
-                                  const std::shared_ptr<CalypsoCard> calypsoCard,
-                                  const std::shared_ptr<CardSecuritySetting> cardSecuritySetting);
+    CardTransactionManagerAdapter(
+        const std::shared_ptr<CardReader> cardReader,
+        const std::shared_ptr<CalypsoCard> calypsoCard,
+        const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting);
 
     /**
      * Creates an instance of CardTransactionManager for non-secure operations.
@@ -532,6 +540,11 @@ private:
         LoggerFactory::getLogger(typeid(CardTransactionManagerAdapter));
 
     /**
+     *
+     */
+    static const std::string PATTERN_1_BYTE_HEX;
+
+    /**
      * Prefix/suffix used to compose exception messages
      */
     static const std::string CARD_READER_COMMUNICATION_ERROR;
@@ -545,7 +558,6 @@ private:
     static const std::string GENERATING_OF_THE_KEY_CIPHERED_DATA_ERROR;
     static const std::string TRANSMITTING_COMMANDS;
     static const std::string CHECKING_THE_SV_OPERATION;
-    static const std::string UNEXPECTED_EXCEPTION;
     static const std::string RECORD_NUMBER;
 
     /**
@@ -561,6 +573,12 @@ private:
     static const std::string OFFSET;
 
     /**
+     *
+     */
+    static const std::shared_ptr<ApduResponseApi> RESPONSE_OK;
+    static const std::shared_ptr<ApduResponseApi> RESPONSE_OK_POSTPONED;
+
+    /**
      * The reader for the card
      */
     const std::shared_ptr<ProxyReaderApi> mCardReader;
@@ -568,7 +586,7 @@ private:
     /**
      * The card security settings used to manage the secure session
      */
-    const std::shared_ptr<CardSecuritySetting> mCardSecuritySettings;
+    const std::shared_ptr<CardSecuritySettingAdapter> mCardSecuritySetting;
 
     /**
      * The SAM commands processor
@@ -617,21 +635,16 @@ private:
     ChannelControl mChannelControl;
 
     /**
-     *
-     */
-    static const std::shared_ptr<ApduResponseApi> RESPONSE_OK;
-    static const std::shared_ptr<ApduResponseApi> RESPONSE_OK_POSTPONED;
-
-    /**
      * Create an ApduRequestAdapter List from a AbstractCardCommand List.
      *
      * @param cardCommands a list of card commands.
-     * @return The ApduRequestAdapter list
+     * @return An empty list if there is no command.
      */
     const std::vector<std::shared_ptr<ApduRequestSpi>> getApduRequests(
         const std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands);
 
     /**
+     * (private)<br>
      * Process card commands in a Secure Session.
      *
      * <ul>
@@ -653,6 +666,29 @@ private:
     void processAtomicCardCommands(
         const std::vector<std::shared_ptr<AbstractCardCommand>> cardCommands,
         const ChannelControl channelControl);
+
+    /**
+     * (private)<br>
+     * Throws an exception if the multiple session is not enabled.
+     *
+     * @param command The command.
+     * @throw AtomicTransactionException If the multiple session is not allowed.
+     */
+    void checkMultipleSessionEnabled(std::shared_ptr<AbstractCardCommand> command) const;
+
+    /**
+     * (private)<br>
+     * Returns the cipher PIN data from the SAM (ciphered PIN transmission or PIN change).
+     *
+     * @param currentPin The current PIN.
+     * @param newPin The new PIN, or null in case of a PIN presentation.
+     * @return A not null array.
+     * @throw SamIOException If the communication with the SAM or the SAM reader failed (only for SV
+     *        operations).
+     * @throw SamAnomalyException If a SAM error occurs (only for SV operations).
+     */
+    const std::vector<uint8_t> getSamCipherPinData(const std::vector<uint8_t>& currentPin,
+                                                   const std::vector<uint8_t>& newPin);
 
     /**
      * Close the Secure Session.
@@ -696,27 +732,7 @@ private:
      * The method is marked as deprecated because the advanced variant defined below must be used at
      * the application level.
      *
-     * @param cardModificationCommands a list of commands that can modify the card memory content.
-     * @param cardAnticipatedResponses a list of anticipated card responses to the modification
-     *        commands.
-     * @param isRatificationMechanismEnabled true if the ratification is closed not ratified and a
-     *        ratification command must be sent.
-     * @param channelControl indicates if the card channel of the card reader must be closed after
-     *        the last command.
-     * @throw CardTransactionException if a functional error occurs (including card and SAM IO
-     *        errors)
-     */
-    void processAtomicClosing(
-        const std::vector<std::shared_ptr<AbstractCardCommand>>& cardModificationCommands,
-        const std::vector<std::shared_ptr<ApduResponseApi>>& cardAnticipatedResponses,
-        const bool isRatificationMechanismEnabled,
-        const ChannelControl channelControl);
-
-    /**
-     * Advanced variant of processAtomicClosing in which the list of expected responses is
-     * determined from previous reading operations.
-     *
-     * @param cardCommands a list of commands that can modify the card memory content.
+     * @param cardCommands The list of last card commands to transmit inside the secure session.
      * @param isRatificationMechanismEnabled true if the ratification is closed not ratified and a
      *        ratification command must be sent.
      * @param channelControl indicates if the card channel of the card reader must be closed after
@@ -755,7 +771,7 @@ private:
                                                           const std::vector<int>& counters);
 
     /**
-     * Create an anticipated response to an Increase/Decrease command
+     * Builds an anticipated response to an Increase/Decrease command
      *
      * @param isDecreaseCommand True if it is a "Decrease" command, false if it is an * "Increase"
      *        command.
@@ -763,11 +779,11 @@ private:
      * @param incDecValue The increment/decrement value.
      * @return An ApduResponseApi containing the expected bytes
      */
-    const std::shared_ptr<ApduResponseApi> createIncreaseDecreaseResponse(
+    const std::shared_ptr<ApduResponseApi> buildAnticipatedIncreaseDecreaseResponse(
         const bool isDecreaseCommand, const int currentCounterValue, const int incDecValue);
 
     /**
-     * Create an anticipated response to an Increase/Decrease Multiple command
+     * Builds an anticipated response to an Increase/Decrease Multiple command
      *
      * @param isDecreaseCommand True if it is a "Decrease Multiple" command, false if it is an
      *        "Increase Multiple" command.
@@ -775,21 +791,21 @@ private:
      * @param counterNumberToIncDecValueMap The values to be decremented/incremented.
      * @return An ApduResponseApi containing the expected bytes.
      */
-    const std::shared_ptr<ApduResponseApi> createIncreaseDecreaseMultipleResponse(
+    const std::shared_ptr<ApduResponseApi> buildAnticipatedIncreaseDecreaseMultipleResponse(
         const bool isDecreaseCommand,
         const std::map<const int, const int>& counterNumberToCurrentValueMap,
         const std::map<const int, const int>& counterNumberToIncDecValueMap);
 
     /**
-     * Get the anticipated response to the command sent in processClosing.<br>
-     * These commands are supposed to be "modifying commands" i.e.
-     * Increase/Decrease/UpdateRecord/WriteRecord ou AppendRecord.
+     * (private)<br>
+     * Builds the anticipated expected responses to the commands sent in processClosing.<br>
+     * These commands are supposed to be "modifying commands" only.
      *
      * @param cardCommands the list of card commands sent.
-     * @return The list of the anticipated responses.
+     * @return An empty list if there is no command.
      * @throw IllegalStateException if the anticipation process failed
      */
-    const std::vector<std::shared_ptr<ApduResponseApi>> getAnticipatedResponses(
+    const std::vector<std::shared_ptr<ApduResponseApi>> buildAnticipatedResponses(
         const std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands);
 
     /**
@@ -823,19 +839,31 @@ private:
      * @param channelControl The channel control.
      * @return The card response.
      * @throw CardIOException If the communication with the card or the card reader failed.
-     * @throw IllegalStateException If the card returned an unexpected response.
+     * @throw SamIOException If the communication with the SAM or the SAM reader failed (only for SV
+     *        operations).
+     * @throw SamAnomalyException If a SAM error occurs (only for SV operations).
      */
-    const std::shared_ptr<CardResponseApi> safeTransmit(
+    const std::shared_ptr<CardResponseApi> transmitCardRequest(
         const std::shared_ptr<CardRequestSpi> cardRequest, const ChannelControl channelControl);
 
     /**
      * Gets the terminal challenge from the SAM, and raises exceptions if necessary.
+     * (private)<br>
+     * Finalizes the last SV modifying command.
+     *
+     * @throw SamIOException If the communication with the SAM or the SAM reader failed.
+     * @throw SamAnomalyException If a SAM error occurs.
+     */
+    void finalizeSvCommand();
+
+    /**
+     * Gets the SAM challenge from the SAM, and raises exceptions if necessary.
      *
      * @return A not null reference.
      * @throw SamAnomalyException If SAM returned an unexpected response.
      * @throw SamIOException If the communication with the SAM or the SAM reader failed.
      */
-    const std::vector<uint8_t> getSessionTerminalChallenge();
+    const std::vector<uint8_t> getSamChallenge();
 
     /**
      * Gets the terminal signature from the SAM, and raises exceptions if necessary.
@@ -843,10 +871,12 @@ private:
      * @return A not null reference.
      * @throw SamAnomalyException If SAM returned an unexpected response.
      * @throw SamIOException If the communication with the SAM or the SAM reader failed.
+     * @throw DesynchronizedExchangesException if the APDU SAM exchanges are out of sync.
      */
     const std::vector<uint8_t> getSessionTerminalSignature();
 
     /**
+     * (private)<br>
      * Ask the SAM to verify the signature of the card, and raises exceptions if necessary.
      *
      * @param cardSignature The card signature.
@@ -875,53 +905,21 @@ private:
     void checkSessionOpen();
 
     /**
+     * (private)<br>
      * Checks if a Secure Session is not open, raises an exception if not
      *
      * @throw IllegalStateException if a session is open
      */
     void checkSessionNotOpen();
 
-    /**
-     * Checks if the number of responses matches the number of commands.<br>
-     * Throw a {@link DesynchronizedExchangesException} if not.
+    /** (private)<br>
+     * Computes the session buffer size of the provided command.<br>
+     * The size may be a number of bytes or 1 depending on the card specificities.
      *
-     * @param commandsNumber the number of commands.
-     * @param responsesNumber the number of responses.
-     * @throw DesynchronizedExchangesException if the test failed
+     * @param command The command.
+     * @return A positive value.
      */
-    void checkCommandsResponsesSynchronization(const size_t commandsNumber,
-                                               const size_t responsesNumber);
-
-     /**
-     * Checks the provided command from the session buffer overflow management perspective<br>
-     * A exception is raised if the session buffer is overflowed in ATOMIC modification mode.<br>
-     * Returns false if the command does not affect the session buffer.<br>
-     * Sets the overflow flag and the neededSessionBufferSpace value according to the characteristics
-     * of the command in other cases.
-     *
-     * @param command the command.
-     * @param overflow flag set to true if the command overflowed the buffer.
-     * @param neededSessionBufferSpace updated with the size of the buffer consumed by the command.
-     * @return True if the command modifies the content of the card, false if not
-     * @throw AtomicTransactionException if the command overflows the buffer in ATOMIC modification
-     *        mode
-     */
-    bool checkModifyingCommand(const std::shared_ptr<AbstractCardCommand> command,
-                               std::atomic<bool>& overflow,
-                               std::atomic<int>& neededSessionBufferSpace);
-
-    /**
-     * Checks whether the requirement for the modifications buffer of the command provided in argument
-     * is compatible with the current usage level of the buffer.
-     *
-     * <p>If it is compatible, the requirement is subtracted from the current level and the method
-     * returns false. If this is not the case, the method returns true and the current level is left
-     * unchanged.
-     *
-     * @param sessionBufferSizeConsumed session buffer requirement.
-     * @return True or false
-     */
-    bool isSessionBufferOverflowed(const int sessionBufferSizeConsumed);
+    int computeCommandSessionBufferSize(std::shared_ptr<AbstractCardCommand> command);
 
     /**
      * Initialized the modifications buffer counter to its maximum value for the current card
@@ -965,17 +963,24 @@ private:
         const std::map<const int, const int>& counterNumberToIncDecValueMap);
 
     /**
+     * (private)<br>
      * Open a single Secure Session.
      *
      * @param writeAccessLevel access level of the session (personalization, load or debit).
      * @param cardCommands the card commands inside session.
-     * @throw IllegalStateException if no CardTransactionManager is available
+     * @throw IllegalStateException if no CardSecuritySetting is available.
      * @throw CardTransactionException if a functional error occurs (including card and SAM IO
-     *        errors)
+     *        errors).
      */
     void processAtomicOpening(
         const WriteAccessLevel writeAccessLevel,
         std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands);
+
+    /**
+     * (private)<br>
+     * Aborts the secure session without raising any exception.
+     */
+    void abortSecureSessionSilently();
 
     /**
      * Prepares an SV Undebit (partially or totally cancels the last SV debit command).
@@ -995,21 +1000,18 @@ private:
 
     /**
      * (private)<br>
-     * Schedules the execution of a <b>SV Debit</b> command to decrease the current SV balance.
+     * Checks if only one modifying SV command is prepared inside the current secure session.
      *
-     * <p>It consists in decreasing the current balance of the SV by a certain amount.
-     *
-     * <p>Note: the key used is the debit key
-     *
-     * @param amount the amount to be subtracted, positive integer in the range 0..32767
-     * @param date 2-byte free value.
-     * @param time 2-byte free value.
-     * @param useExtendedMode True if the extended mode must be used.
+     * @throw IllegalStateException If more than SV command is prepared.
      */
-    void prepareInternalSvDebit(const int amount,
-                                const std::vector<uint8_t>& date,
-                                const std::vector<uint8_t>& time,
-                                const bool useExtendedMode);
+    void checkSvInsideSession();
+
+    /**
+     * (private)<br>
+     *
+     * @return True if the extended mode of the SV command is allowed.
+     */
+    bool isSvExtendedModeAllowed();
 
     /**
      *

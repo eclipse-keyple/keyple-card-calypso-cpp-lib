@@ -25,7 +25,9 @@ namespace calypso {
 using namespace keyple::core::util::cpp::exception;
 
 CardCommandManager::CardCommandManager()
-: mSvLastCommand(CalypsoCardCommand::NONE), mSvOperationComplete(false) {}
+: mSvLastCommandRef(CalypsoCardCommand::NONE),
+  mSvLastModifyingCommand(nullptr),
+  mSvOperationComplete(false) {}
 
 void CardCommandManager::addRegularCommand(const std::shared_ptr<AbstractCardCommand> command)
 {
@@ -51,7 +53,7 @@ void CardCommandManager::addStoredValueCommand(const std::shared_ptr<AbstractCar
                                         " in the list of prepared commands");
         }
 
-        if (mSvLastCommand != CalypsoCardCommand::SV_GET) {
+        if (mSvLastCommandRef != CalypsoCardCommand::SV_GET) {
             throw IllegalStateException("This SV command must follow an SV Get command");
         }
 
@@ -62,11 +64,13 @@ void CardCommandManager::addStoredValueCommand(const std::shared_ptr<AbstractCar
         }
 
         mSvOperationComplete = true;
+        mSvLastModifyingCommand = command;
+
     } else {
         throw IllegalStateException("An SV command is expected.");
     }
 
-    mSvLastCommand = command->getCommandRef();
+    mSvLastCommandRef = command->getCommandRef();
 
     mCardCommands.push_back(command);
 }
@@ -74,6 +78,7 @@ void CardCommandManager::addStoredValueCommand(const std::shared_ptr<AbstractCar
 void CardCommandManager::notifyCommandsProcessed()
 {
     mCardCommands.clear();
+    mSvLastModifyingCommand = nullptr;
 }
 
 const std::vector<std::shared_ptr<AbstractCardCommand>>& CardCommandManager::getCardCommands() const
@@ -92,6 +97,11 @@ bool CardCommandManager::isSvOperationCompleteOneTime()
     mSvOperationComplete = false;
 
     return flag;
+}
+
+std::shared_ptr<AbstractCardCommand> CardCommandManager::getSvLastModifyingCommand() const
+{
+    return mSvLastModifyingCommand;
 }
 
 }
