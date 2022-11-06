@@ -48,7 +48,7 @@ CmdCardSvReload::CmdCardSvReload(const CalypsoCardClass calypsoCardClass,
                                  const std::vector<uint8_t>& time,
                                  const std::vector<uint8_t>& free,
                                  const bool useExtendedMode)
-: AbstractCardCommand(mCommand),
+: AbstractCardCommand(mCommand, 0),
   /* Keeps a copy of these fields until the builder is finalized */
   mCalypsoCardClass(calypsoCardClass),
   mUseExtendedMode(useExtendedMode)

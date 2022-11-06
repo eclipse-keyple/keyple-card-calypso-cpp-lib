@@ -10,12 +10,10 @@
  * SPDX-License-Identifier: EPL-2.0                                                               *
  **************************************************************************************************/
 
-#include "CmdSamDigestUpdate.h"
+#include "CmdSamReadCeilings.h"
 
 /* Keyple Card Calypso */
-#include "CalypsoSamIllegalParameterException.h"
-#include "CalypsoSamAccessForbiddenException.h"
-#include "CalypsoSamIncorrectInputDataException.h"
+#include "CalypsoSamCounterOverflowException.h"
 #include "CalypsoSamIllegalParameterException.h"
 #include "SamUtilAdapter.h"
 
@@ -30,58 +28,76 @@ namespace calypso {
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp::exception;
 
-const CalypsoSamCommand CmdSamDigestUpdate::mCommand = CalypsoSamCommand::DIGEST_UPDATE;
+const CalypsoSamCommand CmdSamReadCeilings::mCommand = CalypsoSamCommand::READ_CEILINGS;
+const int CmdSamReadCeilings::MAX_CEILING_NUMB = 26;
+const int CmdSamReadCeilings::MAX_CEILING_REC_NUMB = 3;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
-    CmdSamDigestUpdate::STATUS_TABLE = initStatusTable();
+    CmdSamReadCeilings::STATUS_TABLE = initStatusTable();
 
-CmdSamDigestUpdate::CmdSamDigestUpdate(const CalypsoSam::ProductType productType,
-                                       const bool encryptedSession,
-                                       const std::vector<uint8_t>& digestData)
+CmdSamReadCeilings::CmdSamReadCeilings(const CalypsoSam::ProductType productType, 
+                                       const CeilingsOperationType operationType,
+                                       const int index)
 : AbstractSamCommand(mCommand, 0)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    const uint8_t p1 = 0x00;
-    const uint8_t p2 = encryptedSession ? 0x80 : 0x00;
+    
+    uint8_t p1;
+    uint8_t p2;
 
-    if (digestData.empty() || digestData.size() > 255) {
-        throw IllegalArgumentException("Digest data null or too long!");
+    if (operationType == CeilingsOperationType::CEILING_RECORD) {
+        if (index < 0 || index > MAX_CEILING_REC_NUMB) {
+            throw IllegalArgumentException("Record Number must be between 1 and " + 
+                                           std::to_string(MAX_CEILING_REC_NUMB) + 
+                                           ".");
+        }
+
+        p1 = 0x00;
+        p2 = 0xB0 + index;
+    
+    } else {
+        /* SINGLE_CEILING */
+        if (index < 0 || index > MAX_CEILING_NUMB) {
+            throw IllegalArgumentException("Counter Number must be between 0 and " + 
+                                           std::to_string(MAX_CEILING_NUMB) + 
+                                           ".");
+        }
+
+        p1 = static_cast<uint8_t>(index);
+        p2 = 0xB8;
     }
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, digestData)));
+            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, 0x00)));
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
-    CmdSamDigestUpdate::initStatusTable()
+    CmdSamReadCeilings::initStatusTable()
 {
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
         AbstractSamCommand::STATUS_TABLE;
 
-    m.insert({0x6700,
-              std::make_shared<StatusProperties>("Incorrect Lc.",
-                                                 typeid(CalypsoSamIllegalParameterException))});
-    m.insert({0x6985,
-              std::make_shared<StatusProperties>("Preconditions not satisfied.",
-                                                 typeid(CalypsoSamAccessForbiddenException))});
-    m.insert({0x6A80,
-              std::make_shared<StatusProperties>("Incorrect value in the incoming data: session " \
-                                                 "in Rev.3.2 mode with encryption/decryption " \
-                                                 "active and not enough data (less than 5 bytes " \
-                                                 "for and odd occurrence or less than 2 bytes " \
-                                                 "CalypsoSamIllegalParameterException for an even" \
-                                                 " occurrence).",
-                                                 typeid(CalypsoSamIncorrectInputDataException))});
-    m.insert({0x6B00,
+    m.insert({0x6900,
+              std::make_shared<StatusProperties>("An event counter cannot be incremented.",
+                                                 typeid(CalypsoSamCounterOverflowException))});
+    m.insert({0x6A00,
               std::make_shared<StatusProperties>("Incorrect P1 or P2.",
                                                  typeid(CalypsoSamIllegalParameterException))});
+    m.insert({0x6200,
+              std::make_shared<StatusProperties>("Correct execution with warning: data not signed.",
+                                                 typeid(nullptr))});
 
     return m;
 }
 
+const std::vector<uint8_t> CmdSamReadCeilings::getCeilingsData() const
+{
+    return isSuccessful() ? getApduResponse()->getDataOut() : std::vector<uint8_t>();
+}
+
 const std::map<const int, const std::shared_ptr<StatusProperties>>&
-    CmdSamDigestUpdate::getStatusTable() const
+    CmdSamReadCeilings::getStatusTable() const
 {
     return STATUS_TABLE;
 }

@@ -31,7 +31,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardGetDataTraceabilityInformation::CmdCardGetDataTraceabilityInformation(
     const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(

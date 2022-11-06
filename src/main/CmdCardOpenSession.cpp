@@ -108,7 +108,7 @@ CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calyps
                                        const std::vector<uint8_t>& samChallenge,
                                        const uint8_t sfi,
                                        const uint8_t recordNumber)
-: AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION),
+: AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION, 0),
   mCalypsoCard(calypsoCard)
 {
     switch (calypsoCard->getProductType()) {
@@ -158,8 +158,6 @@ void CmdCardOpenSession::createRev3(const uint8_t keyIndex,
      * Case 4: this command contains incoming and outgoing data. We define le = 0, the actual
      * length will be processed by the lower layers.
      */
-    const uint8_t le = 0;
-
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(CalypsoCardClass::ISO.getValue(),
@@ -167,7 +165,7 @@ void CmdCardOpenSession::createRev3(const uint8_t keyIndex,
                             p1,
                             p2,
                             dataIn,
-                            le)));
+                            0)));
 
     std::stringstream extraInfo;
     extraInfo << "KEYINDEX:" << keyIndex << ", "
@@ -223,8 +221,6 @@ void CmdCardOpenSession::buildLegacyApduRequest(const uint8_t keyIndex,
      * Case 4: this command contains incoming and outgoing data. We define le = 0, the actual
      * length will be processed by the lower layers.
      */
-    const uint8_t le = 0;
-
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(CalypsoCardClass::LEGACY.getValue(),
@@ -232,7 +228,7 @@ void CmdCardOpenSession::buildLegacyApduRequest(const uint8_t keyIndex,
                             p1,
                             p2,
                             samChallenge,
-                            le)));
+                            0)));
 
     std::stringstream extraInfo;
     extraInfo << "KEYINDEX:" << keyIndex << ", "

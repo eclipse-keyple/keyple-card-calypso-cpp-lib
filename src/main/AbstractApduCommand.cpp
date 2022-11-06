@@ -14,12 +14,14 @@
 
 #include <typeinfo>
 
-/* Keyple Card Calypso */
-#include "CardCommandUnknownStatusException.h"
+/* Keyple Core Util */
+#include "StringUtils.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
+
+using namespace keyple::core::util::cpp;
 
 using StatusProperties = AbstractApduCommand::StatusProperties;
 
@@ -56,8 +58,8 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     {0x9000, std::make_shared<StatusProperties>("Success")},
 };
 
-AbstractApduCommand::AbstractApduCommand(const CardCommand& commandRef)
-: mCommandRef(commandRef), mName(commandRef.getName()) {}
+AbstractApduCommand::AbstractApduCommand(const CardCommand& commandRef, const int le)
+: mCommandRef(commandRef), mLe(le), mName(commandRef.getName()) {}
 
 void AbstractApduCommand::addSubName(const std::string& subName)
 {
@@ -105,19 +107,6 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     return STATUS_TABLE;
 }
 
-const CalypsoApduCommandException AbstractApduCommand::buildCommandException(
-    const std::type_info& exceptionClass,
-    const std::string& message,
-    const CardCommand& commandRef,
-    const int statusWord) const
-{
-    (void)exceptionClass;
-
-    const auto sw = std::make_shared<int>(statusWord);
-
-    return CardCommandUnknownStatusException(message, commandRef, sw);
-}
-
 const std::shared_ptr<StatusProperties> AbstractApduCommand::getStatusWordProperties() const
 {
     const std::map<const int, const std::shared_ptr<StatusProperties>>& table = getStatusTable();
@@ -131,13 +120,26 @@ bool AbstractApduCommand::isSuccessful() const
 {
     const std::shared_ptr<StatusProperties> props = getStatusWordProperties();
 
-    return props != nullptr && props->isSuccessful();
+    return props != nullptr && 
+           props->isSuccessful() && 
+           /* CL-CSS-RESPLE.1 */
+           (mLe == 0 || static_cast<int>(mApduResponse->getDataOut().size()) == mLe);
 }
 
 void AbstractApduCommand::checkStatus()
 {
     const std::shared_ptr<StatusProperties> props = getStatusWordProperties();
     if (props != nullptr && props->isSuccessful()) {
+
+        /* SW is successful, then check the response length (CL-CSS-RESPLE.1) */
+        if (mLe != 0 && static_cast<int>(mApduResponse->getDataOut().size()) != mLe) {
+            throw buildUnexpectedResponseLengthException(
+                StringUtils::format("Incorrect APDU response length (expected: %d, actual: %d)",
+                                    mLe, 
+                                    mApduResponse->getDataOut().size()));
+        }
+      
+        /* SW and response length are correct */
         return;
     }
 
@@ -150,11 +152,8 @@ void AbstractApduCommand::checkStatus()
     /* Message */
     const std::string message = props != nullptr ? props->getInformation() : "Unknown status";
 
-    /* Status word */
-    const int statusWord = mApduResponse->getStatusWord();
-
     /* Throw the exception */
-    throw buildCommandException(exceptionClass, message, mCommandRef, statusWord);
+    throw buildCommandException(exceptionClass, message);
 }
 
 const std::string AbstractApduCommand::getStatusInformation() const

@@ -36,7 +36,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardChangePin::CmdCardChangePin(const CalypsoCardClass calypsoCardClass,
                                    const std::vector<uint8_t>& newPinData)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     if (newPinData.empty() || (newPinData.size() != 0x04 && newPinData.size() != 0x10)) {
         throw IllegalArgumentException("Bad PIN data length.");

@@ -38,7 +38,7 @@ CmdCardWriteRecord::CmdCardWriteRecord(const CalypsoCardClass calypsoCardClass,
                                        const uint8_t sfi,
                                        const uint8_t recordNumber,
                                        const std::vector<uint8_t>& newRecordData)
-: AbstractCardCommand(mCommand),
+: AbstractCardCommand(mCommand, 0),
   mSfi(sfi),
   mRecordNumber(recordNumber),
   mData(newRecordData)

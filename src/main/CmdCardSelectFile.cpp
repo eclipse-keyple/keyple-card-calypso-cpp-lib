@@ -38,7 +38,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardSelectFile::CmdCardSelectFile(const CalypsoCardClass calypsoCardClass,
                                      const SelectFileControl selectFileControl)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     const uint8_t cla = calypsoCardClass.getValue();
     uint8_t p1;
@@ -75,7 +75,7 @@ CmdCardSelectFile::CmdCardSelectFile(const CalypsoCardClass calypsoCardClass,
 CmdCardSelectFile::CmdCardSelectFile(const CalypsoCardClass calypsoCardClass,
                                      const CalypsoCard::ProductType productType,
                                      const uint16_t lid)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     /*
      * handle the REV1 case

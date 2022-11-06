@@ -13,7 +13,7 @@
 #pragma once
 
 /* Keyple Card Calypso */
-#include "CalypsoApduCommandException.h"
+#include "CalypsoSamCommandException.h"
 #include "CalypsoSamCommand.h"
 
 namespace keyple {
@@ -22,24 +22,26 @@ namespace calypso {
 
 /**
  * (package-private)<br>
- * Parent abstract class of all Keyple SAM APDU commands exceptions.
+ * This exception indicates that the length of the response is not equal to the value of the LE
+ * field in the request.
  *
- * @since 2.0.0
+ * @since 2.1.1
  */
-class CalypsoSamCommandException : public CalypsoApduCommandException {
+class CalypsoSamUnexpectedResponseLengthException : public CalypsoSamCommandException {
 public:
     /**
      * (package-private)<br>
-     * 
+     * Constructor allowing to set a message, the command and the status word.
+     *
      * @param message the message to identify the exception context.
-     * @param command the Calypso SAM command.
-     * @param statusWord the status word (optional).
-     * @since 2.0.0
+     * @param command the card command.
+     * @param statusWord the status word.
+     * @since 2.1.1
      */
-    CalypsoSamCommandException(const std::string& message,
-                               const CalypsoSamCommand& command,
-                               const std::shared_ptr<int> statusWord)
-    : CalypsoApduCommandException(message, command, statusWord) {}
+    CalypsoSamUnexpectedResponseLengthException(const std::string& message,
+                                                const CalypsoSamCommand& command,
+                                                const std::shared_ptr<int> statusWord)
+    : CalypsoSamCommandException(message, command, statusWord) {}
 };
 
 }

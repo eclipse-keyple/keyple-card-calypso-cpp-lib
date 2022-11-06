@@ -34,7 +34,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardGetDataFcp::STATUS_TABLE = initStatusTable();
 
 CmdCardGetDataFcp::CmdCardGetDataFcp(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(

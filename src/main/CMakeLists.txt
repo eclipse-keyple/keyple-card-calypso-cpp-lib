@@ -123,11 +123,15 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestUpdate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGetChallenge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGiveRandom.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadCeilings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadEventCounter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadKeyParameters.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSelectDiversifier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvCheck.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareDebitOrUndebit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareLoad.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamUnlock.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamWriteKey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DirectoryHeaderAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ElementaryFileAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FileDataAdapter.cpp

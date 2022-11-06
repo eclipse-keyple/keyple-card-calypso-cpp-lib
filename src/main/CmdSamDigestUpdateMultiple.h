@@ -12,34 +12,67 @@
 
 #pragma once
 
+#include <cstdint>
+#include <map>
+#include <vector>
+
+/* Calypsonet Terminal Calypso */
+#include "CalypsoSam.h"
+
 /* Keyple Card Calypso */
-#include "CalypsoApduCommandException.h"
+#include "AbstractSamCommand.h"
 #include "CalypsoSamCommand.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
+using namespace calypsonet::terminal::calypso::sam;
+
 /**
  * (package-private)<br>
- * Parent abstract class of all Keyple SAM APDU commands exceptions.
+ * Builds the SAM Digest Update Multiple APDU command.
  *
- * @since 2.0.0
+ * @since 2.0.1
  */
-class CalypsoSamCommandException : public CalypsoApduCommandException {
+class CmdSamDigestUpdateMultiple final : public AbstractSamCommand {
 public:
     /**
      * (package-private)<br>
-     * 
-     * @param message the message to identify the exception context.
-     * @param command the Calypso SAM command.
-     * @param statusWord the status word (optional).
-     * @since 2.0.0
+     * Instantiates a new CmdSamDigestUpdateMultiple.
+     *
+     * @param productType the product type.
+     * @param encryptedSession the encrypted session flag, true if encrypted.
+     * @param digestData the digest data.
+     * @since 2.0.1
      */
-    CalypsoSamCommandException(const std::string& message,
-                               const CalypsoSamCommand& command,
-                               const std::shared_ptr<int> statusWord)
-    : CalypsoApduCommandException(message, command, statusWord) {}
+    CmdSamDigestUpdateMultiple(const CalypsoSam::ProductType productType,
+                               const bool encryptedSession,
+                               const std::vector<uint8_t>& digestData);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.0.1
+     */
+    const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() const
+        override;
+
+private:
+    /**
+     * The command
+     */
+    static const CalypsoSamCommand mCommand;
+
+    /**
+     *
+     */
+    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
+
+    /**
+     *
+     */
+    static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
 };
 
 }

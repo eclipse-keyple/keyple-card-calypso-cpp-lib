@@ -39,7 +39,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardAppendRecord::CmdCardAppendRecord(const CalypsoCardClass calypsoCardClass,
                                          const uint8_t sfi,
                                          const std::vector<uint8_t>& newRecordData)
-: AbstractCardCommand(mCommand), mSfi(sfi), mData(newRecordData)
+: AbstractCardCommand(mCommand, 0), mSfi(sfi), mData(newRecordData)
 
 {
 

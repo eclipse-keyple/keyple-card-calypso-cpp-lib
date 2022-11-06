@@ -24,14 +24,15 @@
 #include "CardSecurityDataException.h"
 #include "CardSessionBufferOverflowException.h"
 #include "CardTerminatedException.h"
+#include "CardUnexpectedResponseLengthException.h"
 #include "CardUnknownStatusException.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
-AbstractCardCommand::AbstractCardCommand(const CalypsoCardCommand& commandRef)
-: AbstractApduCommand(commandRef) {}
+AbstractCardCommand::AbstractCardCommand(const CalypsoCardCommand& commandRef, const int le)
+: AbstractApduCommand(commandRef, le) {}
 
 const CalypsoCardCommand& AbstractCardCommand::getCommandRef() const
 {
@@ -39,38 +40,44 @@ const CalypsoCardCommand& AbstractCardCommand::getCommandRef() const
 }
 
 const CalypsoApduCommandException AbstractCardCommand::buildCommandException(
-    const std::type_info& exceptionClass,
-    const std::string& message,
-    const CardCommand& commandRef,
-    const int statusWord) const {
-
-    const auto& command = dynamic_cast<const CalypsoCardCommand&>(commandRef);
-    const auto sw = std::make_shared<int>(statusWord);
+    const std::type_info& exceptionClass, const std::string& message) const 
+{
+    const auto& command = getCommandRef();
+    const auto statusWord = std::make_shared<int>(getApduResponse()->getStatusWord());
 
     if (exceptionClass == typeid(CardAccessForbiddenException)) {
-        return CardAccessForbiddenException(message, command, sw);
+        return CardAccessForbiddenException(message, command, statusWord);
     } else if (exceptionClass == typeid(CardDataAccessException)) {
-        return CardDataAccessException(message, command, sw);
+        return CardDataAccessException(message, command, statusWord);
     } else if (exceptionClass == typeid(CardDataOutOfBoundsException)) {
-        return CardDataOutOfBoundsException(message, command, sw);
+        return CardDataOutOfBoundsException(message, command, statusWord);
     } else if (exceptionClass == typeid(CardIllegalArgumentException)) {
         return CardIllegalArgumentException(message, command);
     } else if (exceptionClass == typeid(CardIllegalParameterException)) {
-        return CardIllegalParameterException(message, command, sw);
+        return CardIllegalParameterException(message, command, statusWord);
     } else if (exceptionClass == typeid(CardPinException)) {
-        return CardPinException(message, command, sw);
+        return CardPinException(message, command, statusWord);
     } else if (exceptionClass == typeid(CardSecurityContextException)) {
-        return CardSecurityContextException(message, command, sw);
+        return CardSecurityContextException(message, command, statusWord);
     } else if (exceptionClass == typeid(CardSecurityDataException)) {
-        return CardSecurityDataException(message, command, sw);
+        return CardSecurityDataException(message, command, statusWord);
     } else if (exceptionClass == typeid(CardSessionBufferOverflowException)) {
-        return CardSessionBufferOverflowException(message, command, sw);
+        return CardSessionBufferOverflowException(message, command, statusWord);
     } else if (exceptionClass == typeid(CardTerminatedException)) {
-        return CardTerminatedException(message, command, sw);
+        return CardTerminatedException(message, command, statusWord);
     } else {
-        return CardUnknownStatusException(message, command, sw);
+        return CardUnknownStatusException(message, command, statusWord);
     }
 }
+
+const CalypsoApduCommandException AbstractCardCommand::buildUnexpectedResponseLengthException(
+    const std::string& message) const
+{
+    return CardUnexpectedResponseLengthException(
+               message, 
+               getCommandRef(), 
+               std::make_shared<int>(getApduResponse()->getStatusWord()));
+  }
 
 AbstractCardCommand& AbstractCardCommand::setApduResponse(
     const std::shared_ptr<ApduResponseApi> apduResponse)

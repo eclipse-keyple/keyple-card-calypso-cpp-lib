@@ -42,7 +42,8 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
   const uint8_t sfi,
   const std::map<const int, const int> counterNumberToIncDecValueMap)
 : AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE_MULTIPLE :
-                                          CalypsoCardCommand::INCREASE_MULTIPLE),
+                                          CalypsoCardCommand::INCREASE_MULTIPLE, 
+                      0),
   mSfi(sfi),
   mCounterNumberToIncDecValueMap(counterNumberToIncDecValueMap)
 {

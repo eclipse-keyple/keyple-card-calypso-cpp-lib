@@ -37,7 +37,7 @@ using namespace keyple::core::util::cpp;
 const CalypsoCardCommand CmdCardGetChallenge::mCommand = CalypsoCardCommand::GET_CHALLENGE;
 
 CmdCardGetChallenge::CmdCardGetChallenge(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0x08)
 {
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;

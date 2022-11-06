@@ -40,7 +40,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
   const CalypsoCardClass calypsoCardClass,
   const std::shared_ptr<SearchCommandDataAdapter> data)
-: AbstractCardCommand(CalypsoCardCommand::SEARCH_RECORD_MULTIPLE),
+: AbstractCardCommand(CalypsoCardCommand::SEARCH_RECORD_MULTIPLE, 0),
   mData(data)
 {
     const int searchDataLength = static_cast<int>(data->getSearchData().size());

@@ -36,7 +36,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardGetDataFci::STATUS_TABLE = initStatusTable();
 
 CmdCardGetDataFci::CmdCardGetDataFci(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand), mIsDfInvalidated(false), mIsValidCalypsoFCI(false)
+: AbstractCardCommand(mCommand, 0), mIsDfInvalidated(false), mIsValidCalypsoFCI(false)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
@@ -48,7 +48,7 @@ CmdCardGetDataFci::CmdCardGetDataFci(const CalypsoCardClass calypsoCardClass)
 }
 
 CmdCardGetDataFci::CmdCardGetDataFci()
-: AbstractCardCommand(mCommand), mIsDfInvalidated(false), mIsValidCalypsoFCI(false) {}
+: AbstractCardCommand(mCommand, 0), mIsDfInvalidated(false), mIsValidCalypsoFCI(false) {}
 
 bool CmdCardGetDataFci::isSessionBufferUsed() const
 {

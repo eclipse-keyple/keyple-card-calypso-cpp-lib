@@ -41,7 +41,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdSamSvCheck::CmdSamSvCheck(const CalypsoSam::ProductType productType,
                              const std::vector<uint8_t>& svCardSignature)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     if (!svCardSignature.empty() && svCardSignature.size() != 3 && svCardSignature.size() != 6) {
         throw IllegalArgumentException("Invalid svCardSignature.");

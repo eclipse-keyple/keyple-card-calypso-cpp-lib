@@ -46,7 +46,9 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
                                                  const std::vector<uint8_t>& date,
                                                  const std::vector<uint8_t>& time,
                                                  const bool useExtendedMode)
-: AbstractCardCommand(isDebitCommand ? CalypsoCardCommand::SV_DEBIT : CalypsoCardCommand::SV_UNDEBIT),
+: AbstractCardCommand(isDebitCommand ? CalypsoCardCommand::SV_DEBIT : 
+                                       CalypsoCardCommand::SV_UNDEBIT,
+                      0),
   /* Keeps a copy of these fields until the command is finalized */
   mCalypsoCardClass(calypsoCardClass),
   mUseExtendedMode(useExtendedMode)

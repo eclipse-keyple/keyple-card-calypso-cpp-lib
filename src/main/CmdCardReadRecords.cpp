@@ -40,7 +40,7 @@ CmdCardReadRecords::CmdCardReadRecords(const CalypsoCardClass calypsoCardClass,
                                        const uint8_t firstRecordNumber,
                                        const ReadMode readMode,
                                        const uint8_t expectedLength)
-: AbstractCardCommand(mCommand),
+: AbstractCardCommand(mCommand, expectedLength),
   mSfi(sfi),
   mFirstRecordNumber(firstRecordNumber),
   mReadMode(readMode)

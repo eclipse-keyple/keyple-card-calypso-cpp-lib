@@ -37,7 +37,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardChangeKey::CmdCardChangeKey(const CalypsoCardClass calypsoCardClass,
                                    const uint8_t keyIndex,
                                    const std::vector<uint8_t>& cryptogram)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     const uint8_t cla = calypsoCardClass.getValue();
     const uint8_t p1 = 0x00;

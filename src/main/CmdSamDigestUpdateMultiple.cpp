@@ -10,83 +10,52 @@
  * SPDX-License-Identifier: EPL-2.0                                                               *
  **************************************************************************************************/
 
-#include "CmdSamCardCipherPin.h"
+#include "CmdSamDigestUpdateMuliple.h"
 
 /* Keyple Card Calypso */
-#include "CalypsoSamCounterOverflowException.h"
+#include "CalypsoSamIllegalParameterException.h"
 #include "CalypsoSamAccessForbiddenException.h"
-#include "CalypsoSamDataAccessException.h"
+#include "CalypsoSamIncorrectInputDataException.h"
 #include "CalypsoSamIllegalParameterException.h"
 #include "SamUtilAdapter.h"
 
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "IllegalArgumentException.h"
-#include "System.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
 using namespace keyple::core::util;
-using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
-const CalypsoSamCommand CmdSamCardCipherPin::mCommand = CalypsoSamCommand::CARD_CIPHER_PIN;
+const CalypsoSamCommand CmdSamDigestUpdateMuliple::mCommand = 
+    CalypsoSamCommand::DIGEST_UPDATE_MULTIPLE;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
-    CmdSamCardCipherPin::STATUS_TABLE = initStatusTable();
+    CmdSamDigestUpdateMuliple::STATUS_TABLE = initStatusTable();
 
-CmdSamCardCipherPin::CmdSamCardCipherPin(const CalypsoSam::ProductType productType,
-                                         const uint8_t cipheringKif,
-                                         const uint8_t cipheringKvc,
-                                         const std::vector<uint8_t>& currentPin,
-                                         const std::vector<uint8_t>& newPin)
+CmdSamDigestUpdateMuliple::CmdSamDigestUpdateMuliple(const CalypsoSam::ProductType productType,
+                                                     const bool encryptedSession,
+                                                     const std::vector<uint8_t>& digestData)
 : AbstractSamCommand(mCommand, 0)
 {
-    if (currentPin.size() != 4) {
-        throw IllegalArgumentException("Bad current PIN value.");
-    }
-
-    if (!newPin.empty() && newPin.size() != 4) {
-        throw IllegalArgumentException("Bad new PIN value.");
-    }
-
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t p1 = 0x00;
+    const uint8_t p2 = encryptedSession ? 0x80 : 0x00;
 
-    uint8_t p1;
-    uint8_t p2;
-    std::vector<uint8_t> data;
-
-    if (newPin.empty()) {
-        /* No new PIN is provided, we consider it's a PIN verification */
-        p1 = 0x80;
-        data = std::vector<uint8_t>(6);
-    } else {
-        /* A new PIN is provided, we consider it's a PIN update */
-        p1 = 0x40;
-        data = std::vector<uint8_t>(10);
-        System::arraycopy(newPin, 0, data, 6, 4);
+    if (digestData.empty() || digestData.size() > 255) {
+        throw IllegalArgumentException("Digest data null or too long!");
     }
-    p2 = 0xFF; /* KIF and KVC in incoming data */
-
-    data[0] = cipheringKif;
-    data[1] = cipheringKvc;
-
-    System::arraycopy(currentPin, 0, data, 2, 4);
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, data)));
-}
-
-const std::vector<uint8_t> CmdSamCardCipherPin::getCipheredData() const
-{
-    return getApduResponse()->getDataOut();
+            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, digestData)));
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
-    CmdSamCardCipherPin::initStatusTable()
+    CmdSamDigestUpdate::initStatusTable()
 {
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
         AbstractSamCommand::STATUS_TABLE;
@@ -94,24 +63,22 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     m.insert({0x6700,
               std::make_shared<StatusProperties>("Incorrect Lc.",
                                                  typeid(CalypsoSamIllegalParameterException))});
-    m.insert({0x6900,
-              std::make_shared<StatusProperties>("An event counter cannot be incremented.",
-                                                 typeid(CalypsoSamCounterOverflowException))});
     m.insert({0x6985,
               std::make_shared<StatusProperties>("Preconditions not satisfied.",
                                                  typeid(CalypsoSamAccessForbiddenException))});
-    m.insert({0x6A00,
-              std::make_shared<StatusProperties>("Incorrect P1 or P2",
+    m.insert({0x6A80,
+              std::make_shared<StatusProperties>("Incorrect value in the incoming data: incorrect" \
+                                                 "structure.",
+                                                 typeid(CalypsoSamIncorrectInputDataException))});
+    m.insert({0x6B00,
+              std::make_shared<StatusProperties>("Incorrect P1.",
                                                  typeid(CalypsoSamIllegalParameterException))});
-    m.insert({0x6A83,
-              std::make_shared<StatusProperties>("Record not found: ciphering key not found",
-                                                 typeid(CalypsoSamDataAccessException))});
 
     return m;
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>&
-    CmdSamCardCipherPin::getStatusTable() const
+    CmdSamDigestUpdate::getStatusTable() const
 {
     return STATUS_TABLE;
 }

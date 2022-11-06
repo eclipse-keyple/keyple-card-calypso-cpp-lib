@@ -44,7 +44,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardSvGet::CmdCardSvGet(const CalypsoCardClass calypsoCardClass,
                            const SvOperation svOperation,
                            const bool useExtendedMode)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     const uint8_t cla = calypsoCardClass == CalypsoCardClass::LEGACY ?
                             CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :

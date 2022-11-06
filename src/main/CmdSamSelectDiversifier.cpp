@@ -35,7 +35,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdSamSelectDiversifier::CmdSamSelectDiversifier(const CalypsoSam::ProductType productType,
                                                  const std::vector<uint8_t>& diversifier)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     if (diversifier.empty() || (diversifier.size() != 4 && diversifier.size() != 8)) {
         throw IllegalArgumentException("Bad diversifier value!");

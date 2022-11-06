@@ -12,34 +12,66 @@
 
 #pragma once
 
+#include <cstdint>
 #include <map>
+#include <vector>
+
+/* Calypsonet Terminal Calypso */
+#include "CalypsoSam.h"
 
 /* Keyple Card Calypso */
-#include "AbstractApduCommand.h"
-#include "CalypsoSamCommand.h"
+#include "AbstractSamCommand.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
-
-using StatusProperties = AbstractApduCommand::StatusProperties;
+using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
- * Superclass for all SAM command.
+ * Builds the Read Event Counter APDU command.
  *
  * @since 2.0.1
  */
-class AbstractSamCommand : public AbstractApduCommand {
+class CmdSamReadEventCounter final : public AbstractSamCommand {
 public:
     /**
+     * Event counter operation type
+     */
+    enum SamEventCounterOperationType {
+        /**
+         * Counter record
+         */
+        COUNTER_RECORD,
+        
+        /**
+         * Single counter
+         */
+        SINGLE_COUNTER
+    };
+
+    /**
      * (package-private)<br>
-     * Default SAM product type.
+     * Instantiate a new CmdSamReadEventCounter
      *
+     * @param productType the SAM product type.
+     * @param operationType the counter operation type.
+     * @param index the counter index.
      * @since 2.0.1
      */
-    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
+    CmdSamReadEventCounter(const CalypsoSam::ProductType productType, 
+                           const SamEventCounterOperationType operationType,
+                           const int index);
+
+    /**
+   * (package-private)<br>
+   * Gets the key parameters.
+   *
+   * @return the counter data (Value or Record)
+   * @since 2.0.1
+   */
+    const std::vector<uint8_t> getCounterData() const;
 
     /**
      * {@inheritDoc}
@@ -49,55 +81,28 @@ public:
     const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() const
         override;
 
-    /**
-     * (package-private)<br>
-     * Constructor dedicated for the building of referenced Calypso commands
-     *
-     * @param commandRef a command reference from the Calypso command table.
-     * @param le The value of the LE field.
-     * @since 2.0.1
-     */
-    AbstractSamCommand(const CalypsoSamCommand& commandRef, const int le);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.0.1
-     */
-    const CalypsoSamCommand& getCommandRef() const override;
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.0.1
-     */
-    const CalypsoApduCommandException buildCommandException(const std::type_info& exceptionClass,
-                                                            const std::string& message) const final;
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.1.1
-     */
-    const CalypsoApduCommandException buildUnexpectedResponseLengthException(
-        const std::string& message) const final;
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.0.1
-     */
-    AbstractSamCommand& setApduResponse(
-        const std::shared_ptr<ApduResponseApi> apduResponse) override;
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.0.1
-     */
-    void checkStatus() override;
-
 private:
+    /**
+     * The command
+     */
+    static const CalypsoSamCommand mCommand;
+
+    /**
+     * 
+     */
+    static const int MAX_COUNTER_NUMB;
+
+    /**
+     * 
+     */
+
+    static const int MAX_COUNTER_REC_NUMB;
+
+    /**
+     *
+     */
+    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
+
     /**
      *
      */

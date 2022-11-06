@@ -33,7 +33,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdSamDigestClose::CmdSamDigestClose(const CalypsoSam::ProductType productType,
                                      const uint8_t expectedResponseLength)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, expectedResponseLength)
 {
     if (expectedResponseLength != 0x04 && expectedResponseLength != 0x08) {
         throw IllegalArgumentException("Bad digest length! Expected 4 or 8, got " +
