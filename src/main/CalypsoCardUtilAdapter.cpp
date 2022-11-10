@@ -219,6 +219,8 @@ void CalypsoCardUtilAdapter::updateCalypsoCardOpenSession(
 
     /* CL-CSS-INFORAT.1 */
     calypsoCard->setDfRatified(cmdCardOpenSession->wasRatified());
+    /* CL-CSS-INFOTCNT.1 */
+    calypsoCard->setTransactionCounter(cmdCardOpenSession->getTransactionCounterValue());
 
     const std::vector<uint8_t>& recordDataRead = cmdCardOpenSession->getRecordDataRead();
 

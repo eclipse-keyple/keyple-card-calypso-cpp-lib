@@ -269,6 +269,22 @@ public:
     bool isDfRatified() const override;
 
     /**
+     * {@inheritDoc}
+     *
+     * @since 2.1.1
+     */
+    int getTransactionCounter() const override;
+
+    /**
+     * (package-private)<br>
+     * Sets the transaction counter.
+     *
+     * @param transactionCounter The counter value.
+     * @since 2.1.1
+     */
+    void setTransactionCounter(const int transactionCounter);
+
+    /**
      * (package-private)<br>
      * Sets the Stored Value data from the SV Get command
      *
@@ -277,8 +293,8 @@ public:
      * @param svGetData A not empty array.
      * @param svBalance the current SV balance.
      * @param svLastTNum the last SV transaction number.
-     * @param svLoadLogRecord the SV load log record (may be null if not available).
-     * @param svDebitLogRecord the SV debit log record (may be null if not available).
+     * @param svLoadLogRecord the SV load log record (it may be null if not available).
+     * @param svDebitLogRecord the SV debit log record (it may be null if not available).
      * @since 2.0.0
      */
     void setSvData(const uint8_t svKvc,
@@ -770,6 +786,11 @@ private:
      *
      */
     std::shared_ptr<bool> mIsDfRatified;
+
+    /**
+     * 
+     */
+    std::shared_ptr<int> mTransactionCounter = nullptr;
 
     /**
      *

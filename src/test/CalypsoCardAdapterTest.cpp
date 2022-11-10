@@ -914,3 +914,21 @@ TEST(CalypsoCardAdapterTest, getSvBalance_whenNotSet_shouldThrowISE)
 
     tearDown();
 }
+
+TEST(CalypsoCardAdapterTest, isDfRatified_whenNoSessionWasOpened_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(calypsoCardAdapter->isDfRatified(), IllegalStateException);
+
+    tearDown();
+}
+
+TEST(CalypsoCardAdapterTest, getTransactionCounter_whenNoSessionWasOpened_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(calypsoCardAdapter->getTransactionCounter(), IllegalStateException);
+
+    tearDown();
+}

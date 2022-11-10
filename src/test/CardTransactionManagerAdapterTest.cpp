@@ -492,6 +492,8 @@ static void tearDown()
     samReader.reset();
     samCardSelectionResponse.reset();
     calypsoSam.reset();
+    cardTransactionManager.reset();
+    cardSecuritySetting.reset();
 }
 
 static std::shared_ptr<CardRequestSpi> createCardRequest(
@@ -579,6 +581,31 @@ TEST(CardTransactionManagerAdapterTest,
     //     .transmitCardRequest(
     //         argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
     // verifyNoMoreInteractions(samReader, cardReader);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     processOpening_whenSuccessful_shouldUpdateTransactionCounterAndRatificationStatus)
+{
+    setUp();
+
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse = 
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardRequestSpi> cardCardRequest = 
+        createCardRequest({CARD_OPEN_SECURE_SESSION_CMD});
+    std::shared_ptr<CardResponseApi> cardCardResponse = 
+        createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
+
+    ASSERT_TRUE(calypsoCard->isDfRatified());
+    ASSERT_EQ(calypsoCard->getTransactionCounter(), 0x030490);
 
     tearDown();
 }
