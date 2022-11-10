@@ -45,13 +45,13 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
                                                  const uint8_t kvc,
                                                  const std::vector<uint8_t>& date,
                                                  const std::vector<uint8_t>& time,
-                                                 const bool useExtendedMode)
+                                                 const bool isExtendedModeAllowed)
 : AbstractCardCommand(isDebitCommand ? CalypsoCardCommand::SV_DEBIT : 
                                        CalypsoCardCommand::SV_UNDEBIT,
                       0),
   /* Keeps a copy of these fields until the command is finalized */
   mCalypsoCardClass(calypsoCardClass),
-  mUseExtendedMode(useExtendedMode)
+  mIsExtendedModeAllowed(isExtendedModeAllowed)
 {
     /*
      * @see Calypso Layer ID 8.02 (200108)
@@ -74,7 +74,7 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
      * Handle the dataIn size with signatureHi length according to card product type (3.2 rev have a
      * 10-byte signature)
      */
-    mDataIn = std::vector<uint8_t>(15 + (useExtendedMode ? 10 : 5));
+    mDataIn = std::vector<uint8_t>(15 + (isExtendedModeAllowed ? 10 : 5));
 
     /* mDataIn[0] will be filled in at the finalization phase */
     const short amountShort =
@@ -92,8 +92,8 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
 void CmdCardSvDebitOrUndebit::finalizeCommand(
     const std::vector<uint8_t>& debitOrUndebitComplementaryData)
 {
-    if ((mUseExtendedMode && debitOrUndebitComplementaryData.size() != 20) ||
-        (!mUseExtendedMode && debitOrUndebitComplementaryData.size() != 15)) {
+    if ((mIsExtendedModeAllowed && debitOrUndebitComplementaryData.size() != 20) ||
+        (!mIsExtendedModeAllowed && debitOrUndebitComplementaryData.size() != 15)) {
         throw IllegalArgumentException("Bad SV prepare load data length.");
     }
 
@@ -132,7 +132,7 @@ const std::vector<uint8_t> CmdCardSvDebitOrUndebit::getSvDebitOrUndebitData() co
      * svDebitOrUndebitData[1,2] / P1P2 not set because ignored
      * Lc is 5 bytes longer in product type 3.2
      */
-    svDebitOrUndebitData[3] = mUseExtendedMode ? 0x19 : 0x14;
+    svDebitOrUndebitData[3] = mIsExtendedModeAllowed ? 0x19 : 0x14;
 
     /* Appends the fixed part of dataIn */
     System::arraycopy(mDataIn, 0, svDebitOrUndebitData, 4, 8);

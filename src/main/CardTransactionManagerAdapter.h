@@ -1007,11 +1007,13 @@ private:
     void checkSvInsideSession();
 
     /**
-     * (private)<br>
-     *
-     * @return True if the extended mode of the SV command is allowed.
+     * (private)<br> 
+     * CL-CSS-OSSMODE.1<br>
+     * CL-SV-CMDMODE.1
+     * 
+     * @return True if the card extended mode is allowed.
      */
-    bool isSvExtendedModeAllowed();
+    bool isExtendedModeAllowed() const;
 
     /**
      *

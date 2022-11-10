@@ -103,15 +103,17 @@ const std::vector<uint8_t>& CmdCardOpenSession::SecureSession::getSecureSessionD
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardOpenSession::STATUS_TABLE = initStatusTable();
 
-CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calypsoCard,
+CmdCardOpenSession::CmdCardOpenSession(const CalypsoCard::ProductType productType,
                                        const uint8_t keyIndex,
                                        const std::vector<uint8_t>& samChallenge,
                                        const uint8_t sfi,
-                                       const uint8_t recordNumber)
+                                       const uint8_t recordNumber,
+                                       const bool isExtendedModeAllowed)
 : AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION, 0),
-  mCalypsoCard(calypsoCard)
+  mProductType(productType),
+  mIsExtendedModeAllowed(isExtendedModeAllowed)
 {
-    switch (calypsoCard->getProductType()) {
+    switch (productType) {
     case CalypsoCard::ProductType::PRIME_REVISION_1:
         createRev10(keyIndex, samChallenge, sfi, recordNumber);
         break;
@@ -121,11 +123,11 @@ CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calyps
     case CalypsoCard::ProductType::PRIME_REVISION_3:
     case CalypsoCard::ProductType::LIGHT:
     case CalypsoCard::ProductType::BASIC:
-        createRev3(keyIndex, samChallenge, sfi, recordNumber, calypsoCard);
+        createRev3(keyIndex, samChallenge, sfi, recordNumber);
         break;
     default:
         std::stringstream ss;
-        ss << "Product type " << calypsoCard->getProductType() << " isn't supported";
+        ss << "Product type " << productType << " isn't supported";
         throw IllegalArgumentException(ss.str());
     }
 }
@@ -133,8 +135,7 @@ CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calyps
 void CmdCardOpenSession::createRev3(const uint8_t keyIndex,
                                     const std::vector<uint8_t>& samChallenge,
                                     const uint8_t sfi,
-                                    const uint8_t recordNumber,
-                                    const std::shared_ptr<CalypsoCard> calypsoCard)
+                                    const uint8_t recordNumber)
 {
     mSfi = sfi;
     mRecordNumber = recordNumber;
@@ -143,15 +144,13 @@ void CmdCardOpenSession::createRev3(const uint8_t keyIndex,
     uint8_t p2;
     std::vector<uint8_t> dataIn;
 
-    /* CL-CSS-OSSMODE.1 fulfilled only for SAM C1 */
-    if (!calypsoCard->isExtendedModeSupported()) {
-        p2 = static_cast<uint8_t>(sfi * 8 + 1);
-        dataIn = samChallenge;
-    } else {
+    if (mIsExtendedModeAllowed) {
         p2 = static_cast<uint8_t>(sfi * 8 + 2);
         dataIn = std::vector<uint8_t>(samChallenge.size() + 1);
-        dataIn[0] = 0x00;
         System::arraycopy(samChallenge, 0, dataIn, 1, samChallenge.size());
+    } else {
+        p2 = static_cast<uint8_t>(sfi * 8 + 1);
+        dataIn = samChallenge;
     }
 
     /*
@@ -260,7 +259,7 @@ CmdCardOpenSession& CmdCardOpenSession::setApduResponse(
 
     const std::vector<uint8_t> dataOut = getApduResponse()->getDataOut();
     if (dataOut.size() > 0) {
-        switch (mCalypsoCard->getProductType()) {
+        switch (mProductType) {
             case CalypsoCard::ProductType::PRIME_REVISION_1:
                 parseRev10(dataOut);
                 break;
@@ -282,14 +281,14 @@ void CmdCardOpenSession::parseRev3(const std::vector<uint8_t>& apduResponseData)
     int offset;
 
     /* CL-CSS-OSSRFU.1 */
-    if (!mCalypsoCard->isExtendedModeSupported()) {
-        offset = 0;
-        previousSessionRatified = apduResponseData[4] == 0x00;
-        manageSecureSessionAuthorized = false;
-    } else {
+    if (mIsExtendedModeAllowed) {
         offset = 4;
         previousSessionRatified = (apduResponseData[8] & 0x01) == 0x00;
         manageSecureSessionAuthorized = (apduResponseData[8] & 0x02) == 0x02;
+    } else {
+        offset = 0;
+        previousSessionRatified = apduResponseData[4] == 0x00;
+        manageSecureSessionAuthorized = false;
     }
 
     const auto kif = std::make_shared<uint8_t>(apduResponseData[5 + offset]);

@@ -192,12 +192,13 @@ void CardTransactionManagerAdapter::processAtomicOpening(
 
     /* Build the card Open Secure Session command */
     auto cmdCardOpenSession =
-        std::make_shared<CmdCardOpenSession>(mCalypsoCard,
-                                             static_cast<uint8_t>(
-                                                 static_cast<int>(writeAccessLevel) + 1),
-                                             samChallenge,
-                                             sfi,
-                                             recordNumber);
+        std::make_shared<CmdCardOpenSession>(
+            mCalypsoCard->getProductType(),
+            static_cast<uint8_t>(static_cast<int>(writeAccessLevel) + 1),
+            samChallenge,
+            sfi,
+            recordNumber,
+            isExtendedModeAllowed());
 
     /* Add the "Open Secure Session" card command in first position */
     cardCommands.insert(cardCommands.begin(), cmdCardOpenSession);
@@ -1987,7 +1988,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvReload(
                                                               date,
                                                               time,
                                                               free,
-                                                              isSvExtendedModeAllowed());
+                                                              isExtendedModeAllowed());
 
     /* Create and keep the CalypsoCardCommand */
     mCardCommandManager->addStoredValueCommand(svReloadCmdBuild, SvOperation::RELOAD);
@@ -2017,9 +2018,8 @@ void CardTransactionManagerAdapter::checkSvInsideSession()
     }
 }
 
-bool CardTransactionManagerAdapter::isSvExtendedModeAllowed() 
+bool CardTransactionManagerAdapter::isExtendedModeAllowed() const
 {
-    /* CL-SV-CMDMODE.1 */
     std::shared_ptr<CalypsoSam> calypsoSam = mCardSecuritySetting->getCalypsoSam();
     
     return mCalypsoCard->isExtendedModeSupported() && 
@@ -2046,7 +2046,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvDebit(
                                                              mCalypsoCard->getSvKvc(),
                                                              date,
                                                              time,
-                                                             isSvExtendedModeAllowed());
+                                                             isExtendedModeAllowed());
 
     /* Create and keep the CalypsoCardCommand */
     mCardCommandManager->addStoredValueCommand(command, SvOperation::DEBIT);
