@@ -96,7 +96,7 @@ CalypsoCardSelection& CalypsoCardSelectionAdapter::filterByDfName(const std::vec
 
 CalypsoCardSelection& CalypsoCardSelectionAdapter::filterByDfName(const std::string& aid)
 {
-    Assert::getInstance().isTrue(ByteArrayUtil::isValidHexString(aid), "aid format");
+    Assert::getInstance().isHexString(aid, "aid format");
 
     filterByDfName(ByteArrayUtil::fromHex(aid));
 

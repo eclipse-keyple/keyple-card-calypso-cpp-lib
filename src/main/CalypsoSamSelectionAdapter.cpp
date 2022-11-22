@@ -119,7 +119,8 @@ CalypsoSamSelection& CalypsoSamSelectionAdapter::filterBySerialNumber(
 
 CalypsoSamSelection& CalypsoSamSelectionAdapter::setUnlockData(const std::string& unlockData)
 {
-    Assert::getInstance().isTrue(unlockData.size() == 16 || unlockData.size() == 32, "length");
+    Assert::getInstance().isTrue(unlockData.size() == 16 || unlockData.size() == 32, "length")
+                         .isHexString(unlockData, "unlockData");
 
     if (!ByteArrayUtil::isValidHexString(unlockData)) {
         throw IllegalArgumentException("Invalid hexadecimal string.");
