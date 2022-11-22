@@ -179,9 +179,9 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
      */
     if (apduResponses.size() > commands.size()) {
         throw DesynchronizedExchangesException(
-                  "The number of commands/responses does not match: commands=" +
+                  "The number of commands/responses does not match: nb commands = " +
                   std::to_string(commands.size()) +
-                  ", responses=" +
+                  ", nb responses = " +
                   std::to_string(apduResponses.size()));
     }
 
@@ -203,9 +203,9 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
      */
     if (apduResponses.size() < commands.size()) {
         throw DesynchronizedExchangesException(
-                  "The number of commands/responses does not match: commands=" +
+                  "The number of commands/responses does not match: nb commands = " +
                   std::to_string(commands.size()) +
-                  ", responses=" +
+                  ", nb responses = " +
                   std::to_string(apduResponses.size()));
     }
 }

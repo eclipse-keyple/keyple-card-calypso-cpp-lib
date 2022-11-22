@@ -115,18 +115,18 @@ CardTransactionManagerAdapter::CardTransactionManagerAdapter(
   const std::shared_ptr<CalypsoCard> calypsoCard,
   const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting)
 : mCardReader(std::dynamic_pointer_cast<ProxyReaderApi>(cardReader)),
-  mCardSecuritySetting(cardSecuritySetting),
-  mSamCommandProcessor(cardSecuritySetting ?
-                       std::make_shared<SamCommandProcessor>(calypsoCard, cardSecuritySetting) :
-                       nullptr),
   mCalypsoCard(std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard)),
+  mCardSecuritySetting(cardSecuritySetting),
+  mSamCommandProcessor(cardSecuritySetting ? 
+                       std::make_shared<SamCommandProcessor>(calypsoCard, 
+                                                             cardSecuritySetting,
+                                                             mTransactionAuditData) : nullptr),
+  mChannelControl(ChannelControl::KEEP_OPEN),
   mSessionState(SessionState::SESSION_UNINITIALIZED),
-  mCurrentWriteAccessLevel(WriteAccessLevel::DEBIT), /* had to set a default value to please MSVC */
   mModificationsCounter(mCalypsoCard->getModificationsCounter()),
-  mCardCommandManager(std::make_shared<CardCommandManager>()),
-  mSvAction(SvAction::DO), /* had to set a default value to please MSVC */
-  mIsSvOperationInsideSession(false), /* CL-SV-1PCSS.1 */
-  mChannelControl(ChannelControl::KEEP_OPEN) {}
+  mCurrentWriteAccessLevel(WriteAccessLevel::DEBIT), /* Had to set a default value to please MSVC */
+  mSvAction(SvAction::DO), /* Had to set a default value to please MSVC */
+  mIsSvOperationInsideSession(false) /* CL-SV-1PCSS.1 */ {}
 
 CardTransactionManagerAdapter::CardTransactionManagerAdapter(
   const std::shared_ptr<CardReader> cardReader,
@@ -149,9 +149,10 @@ const std::shared_ptr<CardSecuritySetting> CardTransactionManagerAdapter::getCar
     return mCardSecuritySetting;
 }
 
-const std::string CardTransactionManagerAdapter::getTransactionAuditData() const
+const std::vector<std::vector<uint8_t>>&  CardTransactionManagerAdapter::getTransactionAuditData() const
 {
-    return "";
+    /* CL-CSS-INFODATA.1 */
+    return mTransactionAuditData;
 }
 
 void CardTransactionManagerAdapter::processAtomicOpening(
@@ -229,8 +230,11 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     } catch (const CardCommandException& e) {
         throw CardAnomalyException(std::string(CARD_COMMAND_ERROR) +
                                    "processing the response to open session: " +
-                                    e.getCommand().getName(),
+                                    e.getCommand().getName() +
+                                    getTransactionAuditDataAsString(),
                                     std::make_shared<CardCommandException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + getTransactionAuditDataAsString());
     }
 
     /* Build the "Digest Init" SAM command from card Open Session */
@@ -254,7 +258,10 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     if (!mCardSecuritySetting->isSessionKeyAuthorized(kif, kvc)) {
         const std::string logKif = kif != nullptr ? std::to_string(*kif) : "null";
         const std::string logKvc = kvc != nullptr ? std::to_string(*kvc) : "null";
-        throw UnauthorizedKeyException("Unauthorized key error: KIF=" + logKif + ", KVC=" + logKvc);
+        throw UnauthorizedKeyException("Unauthorized key error: " \
+                                       "KIF=" + logKif + ", " + 
+                                       "KVC=" + logKvc + " " + 
+                                       getTransactionAuditDataAsString());
     }
 
     /*
@@ -459,8 +466,12 @@ void CardTransactionManagerAdapter::processAtomicCardCommands(
     } catch (const CardCommandException& e) {
         throw CardAnomalyException(CARD_COMMAND_ERROR +
                                    "processing responses to card commands: " +
-                                   e.getCommand().getName(),
+                                   e.getCommand().getName() +
+                                   getTransactionAuditDataAsString(),
                                    std::make_shared<CardCommandException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
 }
 
@@ -563,9 +574,14 @@ void CardTransactionManagerAdapter::processAtomicClosing(
     } catch (const CardCommandException& e) {
         throw CardAnomalyException(CARD_COMMAND_ERROR +
                                    "processing of responses preceding the close of the session: " +
-                                   e.getCommand().getName(),
+                                   e.getCommand().getName() +
+                                   getTransactionAuditDataAsString(),
                                    std::make_shared<CardCommandException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
+
 
     mSessionState = SessionState::SESSION_CLOSED;
 
@@ -576,12 +592,14 @@ void CardTransactionManagerAdapter::processAtomicClosing(
                                                   closeSecureSessionApduResponse,
                                                   false);
     } catch (const CardSecurityDataException& e) {
-        throw CardCloseSecureSessionException("Invalid card session",
+        throw CardCloseSecureSessionException("Invalid card session" + 
+                                              getTransactionAuditDataAsString(),
                                               std::make_shared<CardSecurityDataException>(e));
     } catch (const CardCommandException& e) {
         throw CardAnomalyException(CARD_COMMAND_ERROR +
                                    "processing the response to close session: " +
-                                   e.getCommand().getName(),
+                                   e.getCommand().getName() +
+                                   getTransactionAuditDataAsString(),
                                    std::make_shared<CardCommandException>(e));
     }
 
@@ -797,7 +815,8 @@ void CardTransactionManagerAdapter::checkMultipleSessionEnabled(
     if (!mCardSecuritySetting->isMultipleSessionEnabled()) {
         throw AtomicTransactionException("ATOMIC mode error! This command would overflow the " \
                                          "card modifications buffer: " +
-                                         command->getName());
+                                         command->getName() +
+                                         getTransactionAuditDataAsString());
     }
 }
 
@@ -816,21 +835,29 @@ void CardTransactionManagerAdapter::processCardCommandsOutOfSession(
             mSamCommandProcessor->checkSvStatus(mCalypsoCard->getSvOperationSignature());
         } catch (const CalypsoSamSecurityDataException& e) {
             throw SvAuthenticationException("The checking of the SV operation by the SAM has " \
-                                            "failed.",
+                                            "failed." +
+                                            getTransactionAuditDataAsString(),
                                             std::make_shared<CalypsoSamSecurityDataException>(e));
         } catch (const CalypsoSamCommandException& e) {
             throw SamAnomalyException(SAM_COMMAND_ERROR +
                                       "checking the SV operation: " +
-                                      e.getCommand().getName(),
+                                      e.getCommand().getName() +
+                                      getTransactionAuditDataAsString(),
                                       std::make_shared<CalypsoSamCommandException>(e));
         } catch (const ReaderBrokenCommunicationException& e) {
-            throw SvAuthenticationException(
-                      SAM_READER_COMMUNICATION_ERROR + CHECKING_THE_SV_OPERATION,
+            throw SvAuthenticationException(SAM_READER_COMMUNICATION_ERROR + 
+                                            CHECKING_THE_SV_OPERATION +
+                                            getTransactionAuditDataAsString(),
                       std::make_shared<ReaderBrokenCommunicationException>(e));
         } catch (const CardBrokenCommunicationException& e) {
-            throw SvAuthenticationException(SAM_COMMUNICATION_ERROR + CHECKING_THE_SV_OPERATION,
+            throw SvAuthenticationException(SAM_COMMUNICATION_ERROR + 
+                                            CHECKING_THE_SV_OPERATION +
+                                            getTransactionAuditDataAsString(),
                                             std::make_shared<CardBrokenCommunicationException>(e));
-        }
+        } catch (const DesynchronizedExchangesException& e) {
+            throw DesynchronizedExchangesException(e.getMessage() + 
+                                                   getTransactionAuditDataAsString());
+      }
     }
 }
 
@@ -981,7 +1008,8 @@ CardTransactionManager& CardTransactionManagerAdapter::processCancel()
     } catch (const CardCommandException& e) {
         throw CardAnomalyException(CARD_COMMAND_ERROR +
                                    "processing the response to close session: " +
-                                    e.getCommand().getName(),
+                                    e.getCommand().getName() +
+                                    getTransactionAuditDataAsString(),
                                     std::make_shared<CardCommandException>(e));
     }
 
@@ -1063,16 +1091,22 @@ const std::vector<uint8_t> CardTransactionManagerAdapter::getSamCipherPinData(
     } catch (const CalypsoSamCommandException& e) {
         throw SamAnomalyException(SAM_COMMAND_ERROR +
                                   " generating of the PIN ciphered data: " +
-                                  e.getCommand().getName(),
+                                  e.getCommand().getName() +
+                                  getTransactionAuditDataAsString(),
                                   std::make_shared<CalypsoSamCommandException>(e));
     } catch (const ReaderBrokenCommunicationException& e) {
         throw SamIOException(SAM_READER_COMMUNICATION_ERROR +
-                             GENERATING_OF_THE_PIN_CIPHERED_DATA_ERROR,
+                             GENERATING_OF_THE_PIN_CIPHERED_DATA_ERROR +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<ReaderBrokenCommunicationException>(e));
     } catch (const CardBrokenCommunicationException& e) {
         throw SamIOException(SAM_COMMUNICATION_ERROR +
-                             GENERATING_OF_THE_PIN_CIPHERED_DATA_ERROR,
+                             GENERATING_OF_THE_PIN_CIPHERED_DATA_ERROR +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<CardBrokenCommunicationException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
 }
 
@@ -1171,15 +1205,22 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const ui
     } catch (const CalypsoSamCommandException& e) {
         throw SamAnomalyException(SAM_COMMAND_ERROR +
                                   "generating the encrypted key: " +
-                                  e.getCommand().getName(),
+                                  e.getCommand().getName() +
+                                  getTransactionAuditDataAsString(),
                                   std::make_shared<CalypsoSamCommandException>(e));
     } catch (const ReaderBrokenCommunicationException& e) {
         throw SamIOException(SAM_READER_COMMUNICATION_ERROR +
-                             GENERATING_OF_THE_KEY_CIPHERED_DATA_ERROR,
+                             GENERATING_OF_THE_KEY_CIPHERED_DATA_ERROR +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<ReaderBrokenCommunicationException>(e));
     } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(SAM_COMMUNICATION_ERROR + GENERATING_OF_THE_KEY_CIPHERED_DATA_ERROR,
+        throw SamIOException(SAM_COMMUNICATION_ERROR + 
+                             GENERATING_OF_THE_KEY_CIPHERED_DATA_ERROR +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<CardBrokenCommunicationException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
 
     /* Transmit and receive data with the card */
@@ -1205,17 +1246,63 @@ const std::shared_ptr<CardResponseApi> CardTransactionManagerAdapter::transmitCa
     try {
         cardResponse = mCardReader->transmitCardRequest(cardRequest, channelControl);
     } catch (const ReaderBrokenCommunicationException& e) {
-        throw CardIOException(CARD_READER_COMMUNICATION_ERROR + TRANSMITTING_COMMANDS,
+        throw CardIOException(CARD_READER_COMMUNICATION_ERROR + 
+                              TRANSMITTING_COMMANDS +
+                              getTransactionAuditDataAsString(),
                               std::make_shared<ReaderBrokenCommunicationException>(e));
     } catch (const CardBrokenCommunicationException& e) {
-        throw CardIOException(CARD_COMMUNICATION_ERROR + TRANSMITTING_COMMANDS,
+        storeTransactionAuditData(cardRequest, e.getCardResponse(), mTransactionAuditData);
+        throw CardIOException(CARD_COMMUNICATION_ERROR + 
+                              TRANSMITTING_COMMANDS +
+                              getTransactionAuditDataAsString(),
                               std::make_shared<CardBrokenCommunicationException>(e));
     } catch (const UnexpectedStatusWordException& e) {
         mLogger->debug("A card command has failed: %\n", e.getMessage());
         cardResponse = e.getCardResponse();
     }
 
+    storeTransactionAuditData(cardRequest, cardResponse, mTransactionAuditData);
+
     return cardResponse;
+}
+
+void CardTransactionManagerAdapter::storeTransactionAuditData(
+    std::shared_ptr<CardRequestSpi> cardRequest, 
+    std::shared_ptr<CardResponseApi> cardResponse, 
+    std::vector<std::vector<uint8_t>>& transactionAuditData)
+{
+    if (cardResponse != nullptr) {
+        const std::vector<std::shared_ptr<ApduRequestSpi>>& requests = 
+            cardRequest->getApduRequests();
+        const std::vector<std::shared_ptr<ApduResponseApi>>& responses = 
+            cardResponse->getApduResponses();
+
+        for (int i = 0; i < static_cast<int>(responses.size()); i++) {
+            transactionAuditData.push_back(requests[i]->getApdu());
+            transactionAuditData.push_back(responses[i]->getApdu());
+        }
+    }
+}
+
+const std::string CardTransactionManagerAdapter::getTransactionAuditDataAsString() const
+{
+    std::stringstream ss;
+
+    ss << "\nTransaction audit data:\n";
+
+    ss << "CARD: " << mCalypsoCard << "\n";
+    if (mCardSecuritySetting != nullptr && mCardSecuritySetting->getCalypsoSam() != nullptr) {
+        ss << "SAM: "<< mCardSecuritySetting->getCalypsoSam() << "\n";
+    }
+    
+    ss << "APDUs:\n[\n";
+    for (const auto& apdu : mTransactionAuditData) {
+        ss << ByteArrayUtil::toHex(apdu) << "\n";
+    }
+
+    ss << "]";
+
+    return ss.str();
 }
 
 void CardTransactionManagerAdapter::finalizeSvCommand()
@@ -1257,16 +1344,24 @@ void CardTransactionManagerAdapter::finalizeSvCommand()
     } catch (const CalypsoSamCommandException& e) {
         throw SamAnomalyException(SAM_COMMAND_ERROR +
                                   "preparing the SV command: " +
-                                  e.getCommand().getName(),
+                                  e.getCommand().getName() +
+                                  getTransactionAuditDataAsString(),
                                   std::make_shared<CalypsoSamCommandException>(e));
     } catch (const ReaderBrokenCommunicationException& e) {
         throw SamIOException(SAM_READER_COMMUNICATION_ERROR +
-                             "preparing the SV command.",
+                             "preparing the SV command." + 
+                             getTransactionAuditDataAsString(),
                              std::make_shared<ReaderBrokenCommunicationException>(e));
     } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(SAM_COMMUNICATION_ERROR + "preparing the SV command.",
+        throw SamIOException(SAM_COMMUNICATION_ERROR + 
+                             "preparing the SV command." +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<CardBrokenCommunicationException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
+
 }
 
 const std::vector<uint8_t> CardTransactionManagerAdapter::getSamChallenge()
@@ -1276,14 +1371,22 @@ const std::vector<uint8_t> CardTransactionManagerAdapter::getSamChallenge()
     } catch (const CalypsoSamCommandException& e) {
         throw SamAnomalyException(SAM_COMMAND_ERROR +
                                 "getting the SAM challenge: " +
-                                e.getCommand().getName(),
+                                e.getCommand().getName() +
+                                getTransactionAuditDataAsString(),
                                 std::make_shared<CalypsoSamCommandException>(e));
     } catch (const ReaderBrokenCommunicationException& e) {
-        throw SamIOException(SAM_READER_COMMUNICATION_ERROR + "getting the SAM challenge.",
+        throw SamIOException(SAM_READER_COMMUNICATION_ERROR + 
+                             "getting the SAM challenge." +
+                             getTransactionAuditDataAsString(),
                             std::make_shared<ReaderBrokenCommunicationException>(e));
     } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(SAM_COMMUNICATION_ERROR + "getting SAM challenge.",
+        throw SamIOException(SAM_COMMUNICATION_ERROR + 
+                             "getting SAM challenge." +
+                             getTransactionAuditDataAsString(),
                             std::make_shared<CardBrokenCommunicationException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
 }
 
@@ -1294,14 +1397,22 @@ const std::vector<uint8_t> CardTransactionManagerAdapter::getSessionTerminalSign
     } catch (const CalypsoSamCommandException& e) {
         throw SamAnomalyException(SAM_COMMAND_ERROR +
                                   "getting the terminal signature: " +
-                                  e.getCommand().getName(),
+                                  e.getCommand().getName() +
+                                  getTransactionAuditDataAsString(),
                                   std::make_shared<CalypsoSamCommandException>(e));
     } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(SAM_COMMUNICATION_ERROR + "getting the terminal signature.",
+        throw SamIOException(SAM_COMMUNICATION_ERROR + 
+                             "getting the terminal signature." +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<CardBrokenCommunicationException>(e));
     } catch (const ReaderBrokenCommunicationException& e) {
-        throw SamIOException(SAM_READER_COMMUNICATION_ERROR + "getting the terminal signature.",
+        throw SamIOException(SAM_READER_COMMUNICATION_ERROR + 
+                             "getting the terminal signature." +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<ReaderBrokenCommunicationException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
 }
 
@@ -1311,20 +1422,28 @@ void CardTransactionManagerAdapter::checkCardSignature(const std::vector<uint8_t
         mSamCommandProcessor->authenticateCardSignature(cardSignature);
     } catch (const CalypsoSamSecurityDataException& e) {
         throw SessionAuthenticationException("The authentication of the card by the SAM has " \
-                                             "failed.",
+                                             "failed." +
+                                             getTransactionAuditDataAsString(),
                                              std::make_shared<CalypsoSamSecurityDataException>(e));
     } catch (const CalypsoSamCommandException& e) {
         throw SamAnomalyException(SAM_COMMAND_ERROR +
                                   "authenticating the card signature: " +
-                                  e.getCommand().getName(),
+                                  e.getCommand().getName() +
+                                  getTransactionAuditDataAsString(),
                                   std::make_shared<CalypsoSamCommandException>(e));
     } catch (const ReaderBrokenCommunicationException& e) {
         throw SamIOException(SAM_READER_COMMUNICATION_ERROR +
-                             "authenticating the card signature.",
+                             "authenticating the card signature." +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<ReaderBrokenCommunicationException>(e));
     } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(SAM_COMMUNICATION_ERROR + "authenticating the card signature.",
+        throw SamIOException(SAM_COMMUNICATION_ERROR + 
+                             "authenticating the card signature." + 
+                             getTransactionAuditDataAsString(),
                              std::make_shared<CardBrokenCommunicationException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
 }
 
@@ -1334,19 +1453,28 @@ void CardTransactionManagerAdapter::checkSvOperationStatus(
     try {
         mSamCommandProcessor->checkSvStatus(cardPostponedData);
     } catch (const CalypsoSamSecurityDataException& e) {
-        throw SvAuthenticationException("The checking of the SV operation by the SAM has failed.",
+        throw SvAuthenticationException("The checking of the SV operation by the SAM has failed." +
+                                        getTransactionAuditDataAsString(),
                                         std::make_shared<CalypsoSamSecurityDataException>(e));
     } catch (const CalypsoSamCommandException& e) {
         throw SamAnomalyException(SAM_COMMAND_ERROR +
                                   "checking the SV operation: " +
-                                  e.getCommand().getName(),
+                                  e.getCommand().getName() +
+                                  getTransactionAuditDataAsString(),
                                   std::make_shared<CalypsoSamCommandException>(e));
     } catch (const ReaderBrokenCommunicationException& e) {
-        throw SamIOException(SAM_READER_COMMUNICATION_ERROR + CHECKING_THE_SV_OPERATION,
+        throw SamIOException(SAM_READER_COMMUNICATION_ERROR + 
+                             CHECKING_THE_SV_OPERATION + 
+                             getTransactionAuditDataAsString(),
                              std::make_shared<ReaderBrokenCommunicationException>(e));
     } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(SAM_COMMUNICATION_ERROR + CHECKING_THE_SV_OPERATION,
+        throw SamIOException(SAM_COMMUNICATION_ERROR + 
+                             CHECKING_THE_SV_OPERATION +
+                             getTransactionAuditDataAsString(),
                              std::make_shared<CardBrokenCommunicationException>(e));
+    } catch (const DesynchronizedExchangesException& e) {
+        throw DesynchronizedExchangesException(e.getMessage() + 
+                                               getTransactionAuditDataAsString());
     }
 }
 

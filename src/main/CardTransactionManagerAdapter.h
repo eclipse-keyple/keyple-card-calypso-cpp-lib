@@ -25,6 +25,8 @@
 
 /* Calypsonet Terminal Card */
 #include "ApduResponseApi.h"
+#include "CardRequestSpi.h"
+#include "CardResponseApi.h"
 #include "ChannelControl.h"
 #include "ProxyReaderApi.h"
 
@@ -44,6 +46,7 @@ namespace calypso {
 using namespace calypsonet::terminal::calypso;
 using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card;
+using namespace calypsonet::terminal::card::spi;
 using namespace keyple::core::util::cpp;
 
 /**
@@ -150,9 +153,9 @@ public:
     /**
      * {@inheritDoc}
      *
-     * @since 2.0.0
+     * @since 2.1.1
      */
-    const std::string getTransactionAuditData() const override;
+    const std::vector<std::vector<uint8_t>>& getTransactionAuditData() const override;
 
     /**
      * {@inheritDoc}
@@ -484,6 +487,20 @@ public:
     CardTransactionManager& prepareRehabilitate() final;
 
     /**
+     * (package-private)<br>
+     * Stores the provided exchanged APDU commands in the provided list of transaction audit data.
+     *
+     * @param cardRequest The card request.
+     * @param cardResponse The associated card response.
+     * @param transactionAuditData The list to complete.
+     * @since 2.1.1
+     */
+    static void storeTransactionAuditData(
+        std::shared_ptr<CardRequestSpi> cardRequest, 
+        std::shared_ptr<CardResponseApi> cardResponse, 
+        std::vector<std::vector<uint8_t>>& transactionAuditData);
+
+    /**
      *
      */
     friend std::ostream& operator<<(std::ostream& os, const SessionState ss);
@@ -559,6 +576,7 @@ private:
     static const std::string TRANSMITTING_COMMANDS;
     static const std::string CHECKING_THE_SV_OPERATION;
     static const std::string RECORD_NUMBER;
+    static const std::string OFFSET;
 
     /**
      * Commands that modify the content of the card in session have a cost on the session buffer
@@ -570,69 +588,28 @@ private:
     /**
      *
      */
-    static const std::string OFFSET;
-
-    /**
-     *
-     */
     static const std::shared_ptr<ApduResponseApi> RESPONSE_OK;
     static const std::shared_ptr<ApduResponseApi> RESPONSE_OK_POSTPONED;
 
     /**
-     * The reader for the card
+     * Final fields
      */
     const std::shared_ptr<ProxyReaderApi> mCardReader;
-
-    /**
-     * The card security settings used to manage the secure session
-     */
-    const std::shared_ptr<CardSecuritySettingAdapter> mCardSecuritySetting;
-
-    /**
-     * The SAM commands processor
-     */
-    std::shared_ptr<SamCommandProcessor> mSamCommandProcessor;
-
-    /**
-     * The current CalypsoCard
-     */
     const std::shared_ptr<CalypsoCardAdapter> mCalypsoCard;
+    const std::shared_ptr<CardCommandManager> mCardCommandManager;
+    const std::shared_ptr<CardSecuritySettingAdapter> mCardSecuritySetting;
+    const std::shared_ptr<SamCommandProcessor> mSamCommandProcessor;
+    std::vector<std::vector<uint8_t>> mTransactionAuditData;
 
     /**
-     * The type of the notified event
-     */
-    SessionState mSessionState;
-
-    /**
-     * The current secure session access level: PERSO, RELOAD, DEBIT
-     */
-    WriteAccessLevel mCurrentWriteAccessLevel;
-
-    /**
-     * Modifications counter management
-     */
-    int mModificationsCounter;
-
-    /**
-     * The object for managing card commands
-     */
-    std::shared_ptr<CardCommandManager> mCardCommandManager;
-
-    /**
-     * The current Store Value action
-     */
-    SvAction mSvAction;
-
-    /**
-     * Flag indicating if an SV operation has been performed during the current secure session.
-     */
-    bool mIsSvOperationInsideSession;
-
-
-    /**
-     * The ChannelControl action
+     * Dynamic fields
      */
     ChannelControl mChannelControl;
+    SessionState mSessionState;
+    int mModificationsCounter;
+    WriteAccessLevel mCurrentWriteAccessLevel;
+    SvAction mSvAction;
+    bool mIsSvOperationInsideSession;
 
     /**
      * Create an ApduRequestAdapter List from a AbstractCardCommand List.
@@ -845,6 +822,14 @@ private:
      */
     const std::shared_ptr<CardResponseApi> transmitCardRequest(
         const std::shared_ptr<CardRequestSpi> cardRequest, const ChannelControl channelControl);
+
+    /**
+     * (private)<br>
+     * Returns a string representation of the transaction audit data.
+     *
+     * @return A not empty string.
+     */
+    const std::string getTransactionAuditDataAsString() const;
 
     /**
      * Gets the terminal challenge from the SAM, and raises exceptions if necessary.

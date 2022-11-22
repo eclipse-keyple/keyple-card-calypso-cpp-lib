@@ -61,7 +61,11 @@ CmdSamSvCheck::CmdSamSvCheck(const CalypsoSam::ProductType productType,
     } else {
         setApduRequest(
             std::make_shared<ApduRequestAdapter>(
-                ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, 0x00)));
+                ApduUtil::build(cla, 
+                                mCommand.getInstructionByte(), 
+                                p1, 
+                                p2, 
+                                std::vector<uint8_t>{0x00})));
     }
 }
 

@@ -16,12 +16,15 @@
 #include "DesynchronizedExchangesException.h"
 
 /* Calypsonet Terminal Card */
+#include "CardBrokenCommunicationException.h"
 #include "CardSecuritySettingAdapter.h"
 #include "ChannelControl.h"
+#include "ReaderBrokenCommunicationException.h"
 #include "UnexpectedStatusWordException.h"
 
 /* Keyple Card Calypso */
 #include "ApduRequestSpi.h"
+#include "CardTransactionManagerAdapter.h"
 #include "CmdSamCardCipherPin.h"
 #include "CmdSamCardGenerateKey.h"
 #include "CmdSamDigestAuthenticate.h"
@@ -67,10 +70,12 @@ std::vector<std::vector<uint8_t>> SamCommandProcessor::mCardDigestDataCache;
 
 SamCommandProcessor::SamCommandProcessor(
   const std::shared_ptr<CalypsoCard> calypsoCard,
-  const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting)
+  const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting,
+  const std::vector<std::vector<uint8_t>>& transactionAuditData)
 : mCardSecuritySetting(cardSecuritySetting),
   mCalypsoCard(std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard)),
-  mIsDiversificationDone(false)
+  mIsDiversificationDone(false),
+  mTransactionAuditData(transactionAuditData)
 {
     Assert::getInstance().notNull(cardSecuritySetting, "securitySettings")
                          .notNull(cardSecuritySetting->getSamReader(), "samReader")
@@ -326,10 +331,20 @@ void SamCommandProcessor::transmitCommands(
 
     try {
         cardResponse = mSamReader->transmitCardRequest(cardRequest, ChannelControl::KEEP_OPEN);
+    } catch (const ReaderBrokenCommunicationException& e) {
+        cardResponse = e.getCardResponse();
+        throw e;
+    } catch (const CardBrokenCommunicationException& e) {
+        cardResponse = e.getCardResponse();
+        throw e;
     } catch (const UnexpectedStatusWordException& e) {
         mLogger->debug("A SAM card command has failed: %\n", e.getMessage());
         cardResponse = e.getCardResponse();
     }
+
+    CardTransactionManagerAdapter::storeTransactionAuditData(cardRequest, 
+                                                             cardResponse, 
+                                                             mTransactionAuditData);
 
     const std::vector<std::shared_ptr<ApduResponseApi>> apduResponses = 
         cardResponse->getApduResponses();
@@ -341,9 +356,9 @@ void SamCommandProcessor::transmitCommands(
      */
     if (apduResponses.size() > apduRequests.size()) {
         throw DesynchronizedExchangesException("The number of SAM commands/responses does not " \
-                                               "match: commands=" +
+                                               "match: nb commands = " +
                                                std::to_string(apduRequests.size()) + 
-                                               ", responses=" + 
+                                               ", nb responses = " + 
                                                std::to_string(apduResponses.size()));
     }
 
@@ -362,9 +377,9 @@ void SamCommandProcessor::transmitCommands(
      */
     if (apduResponses.size() < apduRequests.size()) {
         throw DesynchronizedExchangesException("The number of SAM commands/responses does not " \
-                                               "match: commands=" + 
+                                               "match: nb commands = " + 
                                                std::to_string(apduRequests.size()) +
-                                               ", responses=" + 
+                                               ", nb responses = " + 
                                                std::to_string(apduResponses.size()));
     }
 }

@@ -60,11 +60,13 @@ public:
      * Constructor
      *
      * @param calypsoCard The initial card data provided by the selection process.
-     * @param cardSecuritySetting the security settings from the application layer.
+     * @param cardSecuritySetting The security settings from the application layer.
+     * @param transactionAuditData The transaction audit data list to fill.
      * @since 2.0.0
      */
     SamCommandProcessor(const std::shared_ptr<CalypsoCard> calypsoCard,
-                        const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting);
+                        const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting,
+                        const std::vector<std::vector<uint8_t>>& transactionAuditData);
 
     /**
      * Gets the SAM challenge
@@ -371,6 +373,11 @@ private:
      *
      */
     bool mIsDigesterInitialized;
+
+    /**
+     * 
+     */
+    std::vector<std::vector<uint8_t>> mTransactionAuditData;
 
      /**
      * Appends a full card exchange (request and response) to the digest data cache.
