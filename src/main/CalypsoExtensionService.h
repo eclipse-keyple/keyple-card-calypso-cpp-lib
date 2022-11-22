@@ -60,15 +60,10 @@ public:
 
     // static {
     //     // Register additional JSON adapters.
-    //     JsonUtil.registerTypeAdapter(
-    //         DirectoryHeader.class, new DirectoryHeaderJsonDeserializerAdapter(), false);
-    //     JsonUtil.registerTypeAdapter(
-    //         ElementaryFile.class, new ElementaryFileJsonDeserializerAdapter(), false);
-    //     JsonUtil.registerTypeAdapter(FileHeader.class, new FileHeaderJsonDeserializerAdapter(), false);
-    //     JsonUtil.registerTypeAdapter(
-    //         SvLoadLogRecord.class, new SvLoadLogRecordJsonDeserializerAdapter(), false);
-    //     JsonUtil.registerTypeAdapter(
-    //         SvDebitLogRecord.class, new SvDebitLogRecordJsonDeserializerAdapter(), false);
+    //     JsonUtil.registerTypeAdapter(ElementaryFile.class, new ElementaryFileJsonAdapter(), false);
+    //     JsonUtil.registerTypeAdapter(FileHeader.class, new FileHeaderJsonAdapter(), false);
+    //     JsonUtil.registerTypeAdapter(SvLoadLogRecord.class, new SvLoadLogRecordJsonAdapter(), false);
+    //     JsonUtil.registerTypeAdapter(SvDebitLogRecord.class, new SvDebitLogRecordJsonAdapter(), false);
     // }
 
     /**

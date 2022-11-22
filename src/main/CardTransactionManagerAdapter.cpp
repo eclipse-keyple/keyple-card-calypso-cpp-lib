@@ -291,7 +291,8 @@ void CardTransactionManagerAdapter::abortSecureSessionSilently()
         try {
             processCancel();
         } catch (const RuntimeException& e) {
-            mLogger->error("An error occurred while aborting the current secure session.", e);
+            mLogger->warn("An error occurred while aborting the current secure session: %", 
+                          e.getMessage());
         }
 
         mSessionState = SessionState::SESSION_CLOSED;
@@ -1288,19 +1289,25 @@ const std::string CardTransactionManagerAdapter::getTransactionAuditDataAsString
 {
     std::stringstream ss;
 
-    ss << "\nTransaction audit data:\n";
+    ss << "\nTransaction audit JSON data: {";
 
-    ss << "CARD: " << mCalypsoCard << "\n";
+    ss << "\"card\":" << mCalypsoCard << "\n";
     if (mCardSecuritySetting != nullptr && mCardSecuritySetting->getCalypsoSam() != nullptr) {
-        ss << "SAM: "<< mCardSecuritySetting->getCalypsoSam() << "\n";
+        ss << ",\"sam\":"<< mCardSecuritySetting->getCalypsoSam() << "\n";
     }
     
-    ss << "APDUs:\n[\n";
+    ss << "\"apdus\":";
+    
+    ss << "[";
     for (const auto& apdu : mTransactionAuditData) {
-        ss << ByteArrayUtil::toHex(apdu) << "\n";
+        ss << "\"" << ByteArrayUtil::toHex(apdu) << "\"";
+        if (&apdu != &mTransactionAuditData.back()) {
+            ss << ",";
+        }
     }
-
     ss << "]";
+
+    ss << "}";
 
     return ss.str();
 }
