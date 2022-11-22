@@ -215,7 +215,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardOpenSession(
     std::shared_ptr<CmdCardOpenSession> cmdCardOpenSession,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardOpenSession->setApduResponse(apduResponse);
+    cmdCardOpenSession->setApduResponse(apduResponse).checkStatus();
 
     /* CL-CSS-INFORAT.1 */
     calypsoCard->setDfRatified(cmdCardOpenSession->wasRatified());

@@ -107,6 +107,7 @@ private:
      * @param calypsoCard the {@link CalypsoCardAdapter} object to update.
      * @param cmdCardOpenSession the command.
      * @param apduResponse the response received.
+     * @throw CardCommandException if a response from the card was unexpected
      */
     static void updateCalypsoCardOpenSession(
         std::shared_ptr<CalypsoCardAdapter> calypsoCard,
