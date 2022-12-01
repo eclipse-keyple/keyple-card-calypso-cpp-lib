@@ -21,9 +21,6 @@ SET(KEYPLE_COMMON_DIR       "../../../keyple-common-cpp-api")
 SET(KEYPLE_PLUGIN_DIR       "../../../keyple-plugin-cpp-api")
 SET(KEYPLE_SERVICE_DIR      "../../../keyple-service-cpp-lib")
 SET(KEYPLE_RESOURCE_DIR     "../../../keyple-service-resource-cpp-lib")
-SET(KEYPLE_UTIL_DIR         "../../../keyple-util-cpp-lib")
-
-SET(KEYPLE_UTIL_LIB         "keypleutilcpplib")
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -56,10 +53,6 @@ INCLUDE_DIRECTORIES(
     ${KEYPLE_RESOURCE_DIR}/src/main/spi
 
     ${KEYPLE_SERVICE_DIR}/src/main/cpp
-
-    ${KEYPLE_UTIL_DIR}/src/main
-    ${KEYPLE_UTIL_DIR}/src/main/cpp
-    ${KEYPLE_UTIL_DIR}/src/main/cpp/exception
 )
 
 ADD_LIBRARY(
@@ -141,6 +134,4 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/SvLoadLogRecordJsonDeserializerAdapter.cpp
 )
 
-IF(APPLE OR WIN32)
-    TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${KEYPLE_UTIL_LIB})
-ENDIF(APPLE OR WIN32)
+TARGET_LINK_LIBRARIES(${LIBRARY_NAME} Keyple::Util)
