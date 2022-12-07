@@ -14,7 +14,7 @@
 #include "gtest/gtest.h"
 
 /* Calypsonet Terminal Calypso */
-#include "DesynchronizedExchangesException.h"
+#include "InconsistentDataException.h"
 
 /* Calypsonet Terminal Card */
 #include "ParseException.h"
@@ -146,7 +146,7 @@ TEST(CalypsoSamSelectionAdapterTest, setUnlockData_whenUnlockData_shouldProduceU
 }
 
 TEST(CalypsoSamSelectionAdapterTest,
-     parse_whenCommandsResponsesMismatch_shouldThrowDesynchronizedExchangesException)
+     parse_whenCommandsResponsesMismatch_shouldThrowIDE)
 {
     setUp();
 
@@ -157,7 +157,7 @@ TEST(CalypsoSamSelectionAdapterTest,
     samSelection->setUnlockData("00112233445566778899AABBCCDDEEFF");
     samSelection->getCardSelectionRequest();
 
-    EXPECT_THROW(samSelection->parse(cardSelectionResponseApi), DesynchronizedExchangesException);
+    EXPECT_THROW(samSelection->parse(cardSelectionResponseApi), InconsistentDataException);
 
     tearDown();
 }

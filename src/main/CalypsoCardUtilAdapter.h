@@ -82,7 +82,7 @@ public:
      * @param apduResponses The APDU responses returned by the card to all commands.
      * @param isSessionOpen True when a secure session is open.
      * @throw CardCommandException If a response from the card was unexpected.
-     * @throw DesynchronizedExchangesException If the number of commands/responses does not match.
+     * @throw InconsistentDataException If the number of commands/responses does not match.
      * @since 2.0.0
      */
     static void updateCalypsoCard(

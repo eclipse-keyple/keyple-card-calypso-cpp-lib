@@ -41,6 +41,7 @@ INCLUDE_DIRECTORIES(
     ${CALYPSONET_CALYPSO_DIR}/src/main
     ${CALYPSONET_CALYPSO_DIR}/src/main/card
     ${CALYPSONET_CALYPSO_DIR}/src/main/sam
+    ${CALYPSONET_CALYPSO_DIR}/src/main/spi
     ${CALYPSONET_CALYPSO_DIR}/src/main/transaction
 
     ${KEYPLE_COMMON_DIR}/src/main
@@ -81,13 +82,16 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamCommand.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamResourceProfileExtensionAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamSecurityContextException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamSelectionAdapter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CardCommandManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardRequestAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardSecuritySettingAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardSelectionRequestAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardSelectorAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardTransactionManagerAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonTransactionManagerAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonSecuritySettingAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonTransactionManagerAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardAppendRecord.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardChangeKey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardChangePin.cpp
@@ -123,6 +127,8 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestUpdate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGetChallenge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGiveRandom.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamPsoComputeSignature.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamPsoVerifySignature.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadCeilings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadEventCounter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadKeyParameters.cpp
@@ -132,13 +138,18 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareLoad.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamUnlock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamWriteKey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonSamTransactionManagerAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CommonSecuritySettingAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DirectoryHeaderAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ElementaryFileAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FileDataAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FileHeaderAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SamCommandProcessor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SamTransactionManagerAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SamUtilAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SearchCommandDataAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SignatureComputationDataAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SignatureVerificationDataAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SvDebitLogRecordAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SvLoadLogRecordAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SvDebitLogRecordJsonDeserializerAdapter.cpp

@@ -59,13 +59,13 @@ public:
     /**
      * Constructor
      *
-     * @param calypsoCard The initial card data provided by the selection process.
-     * @param cardSecuritySetting The security settings from the application layer.
+     * @param card The initial card data provided by the selection process.
+     * @param securitySetting The security settings from the application layer.
      * @param transactionAuditData The transaction audit data list to fill.
      * @since 2.0.0
      */
-    SamCommandProcessor(const std::shared_ptr<CalypsoCard> calypsoCard,
-                        const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting,
+    SamCommandProcessor(const std::shared_ptr<CalypsoCardAdapter> card,
+                        const std::shared_ptr<CardSecuritySettingAdapter> securitySetting,
                         const std::vector<std::vector<uint8_t>>& transactionAuditData);
 
     /**
@@ -84,7 +84,7 @@ public:
      * @throw CalypsoSamCommandException if the SAM has responded with an error status
      * @throw ReaderBrokenCommunicationException if the communication with the SAM reader has failed.
      * @throw CardBrokenCommunicationException if the communication with the SAM has failed.
-     * @throw DesynchronizedExchangesException if the APDU SAM exchanges are out of sync
+     * @throw InconsistentDataException if the APDU SAM exchanges are out of sync
      * @since 2.0.0
      */
     const std::vector<uint8_t> getChallenge();
@@ -125,15 +125,15 @@ public:
      *
      * <p>Note: there is no communication with the SAM here.
      *
-     * @param sessionEncryption true if the session is encrypted.
-     * @param verificationMode true if the verification mode is active.
+     * @param isSessionEncrypted true if the session is encrypted.
+     * @param isVerificationMode true if the verification mode is active.
      * @param kif the KIF.
      * @param kvc the KVC.
      * @param digestData a first packet of data to digest.
      * @since 2.0.0
      */
-    void initializeDigester(const bool sessionEncryption,
-                            const bool verificationMode,
+    void initializeDigester(const bool isSessionEncrypted,
+                            const bool isVerificationMode,
                             const uint8_t kif,
                             const uint8_t kvc,
                             const std::vector<uint8_t>& digestData);
@@ -163,7 +163,7 @@ public:
      * @throws CalypsoSamCommandException if the SAM has responded with an error status
      * @throw ReaderBrokenCommunicationException if the communication with the SAM reader has failed.
      * @throw CardBrokenCommunicationException if the communication with the SAM has failed.
-     * @throw DesynchronizedExchangesException if the APDU SAM exchanges are out of sync.
+     * @throw InconsistentDataException if the APDU SAM exchanges are out of sync.
      * @since 2.0.0
      */
     const std::vector<uint8_t> getTerminalSignature();
@@ -176,7 +176,7 @@ public:
      * @throw ReaderBrokenCommunicationException If the communication with the SAM reader has failed.
      * @throw CardBrokenCommunicationException If the communication with the SAM has failed.
      * @throw CalypsoSamCommandException If the SAM has responded with an error status.
-     * @throw DesynchronizedExchangesException If the APDU SAM exchanges are out of sync.
+     * @throw InconsistentDataException If the APDU SAM exchanges are out of sync.
      */
     void transmitCommands(const std::vector<std::shared_ptr<AbstractSamCommand>>& samCommands);
 
@@ -189,7 +189,7 @@ public:
      * @throws CalypsoSamCommandException if the SAM has responded with an error status
      * @throws ReaderBrokenCommunicationException if the communication with the SAM reader has failed.
      * @throws CardBrokenCommunicationException if the communication with the SAM has failed.
-     * @throws DesynchronizedExchangesException if the APDU SAM exchanges are out of sync
+     * @throws InconsistentDataException if the APDU SAM exchanges are out of sync
      * @since 2.0.0
      */
     void authenticateCardSignature(const std::vector<uint8_t>& cardSignatureLo);
@@ -317,7 +317,7 @@ private:
     /**
      *
      */
-    const std::shared_ptr<CardSecuritySettingAdapter> mCardSecuritySetting;
+    const std::shared_ptr<CardSecuritySettingAdapter> mSecuritySetting;
 
     /**
      *
@@ -327,7 +327,7 @@ private:
     /**
      *
      */
-    const std::shared_ptr<CalypsoCardAdapter> mCalypsoCard;
+    const std::shared_ptr<CalypsoCardAdapter> mCard;
 
     /**
      *
@@ -342,12 +342,12 @@ private:
     /**
      *
      */
-    bool mSessionEncryption;
+    bool mIsSessionEncrypted;
 
     /**
      *
      */
-    bool mVerificationMode;
+    bool mIsVerificationMode;
 
     /**
      *

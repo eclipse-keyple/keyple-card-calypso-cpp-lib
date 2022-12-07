@@ -173,13 +173,13 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     m.insert({0x6B00,
               std::make_shared<StatusProperties>("P1 or P2 signatureLo not supported.",
                                                  typeid(CardIllegalParameterException))});
-    m.insert({0x6988,
-              std::make_shared<StatusProperties>("incorrect signatureLo.",
-                                                 typeid(CardSecurityDataException))});
     m.insert({0x6985,
               std::make_shared<StatusProperties>("No session was opened.",
                                                  typeid(CardAccessForbiddenException))});
-
+    m.insert({0x6988,
+              std::make_shared<StatusProperties>("incorrect signatureLo.",
+                                                 typeid(CardSecurityDataException))});
+    
     return m;
 }
 

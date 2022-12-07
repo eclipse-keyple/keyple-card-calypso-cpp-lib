@@ -27,26 +27,11 @@ using ProductType = CalypsoSam::ProductType;
 
 const std::string CardSecuritySettingAdapter::WRITE_ACCESS_LEVEL = "writeAccessLevel";
 
-CardSecuritySettingAdapter::CardSecuritySettingAdapter()
-: mIsMultipleSessionEnabled(false),
-  mIsRatificationMechanismEnabled(false),
-  mIsPinPlainTransmissionEnabled(false),
-  mIsTransactionAuditEnabled(false),
-  mIsSvLoadAndDebitLogEnabled(false),
-  mIsSvNegativeBalanceAuthorized(false) {}
-
 CardSecuritySetting& CardSecuritySettingAdapter::setSamResource(
     const std::shared_ptr<CardReader> samReader, const std::shared_ptr<CalypsoSam> calypsoSam)
 {
 
-    Assert::getInstance().notNull(samReader, "samReader")
-                         .notNull(calypsoSam, "calypsoSam")
-                         .isTrue(calypsoSam->getProductType() != ProductType::UNKNOWN, "productType");
-
-    mSamReader = samReader;
-    mCalypsoSam = calypsoSam;
-
-    return *this;
+    return setControlSamResource(samReader, calypsoSam);
 }
 
 CardSecuritySettingAdapter& CardSecuritySettingAdapter::enableMultipleSession()
@@ -66,13 +51,6 @@ CardSecuritySettingAdapter& CardSecuritySettingAdapter::enableRatificationMechan
 CardSecuritySettingAdapter& CardSecuritySettingAdapter::enablePinPlainTransmission()
 {
     mIsPinPlainTransmissionEnabled = true;
-
-    return *this;
-}
-
-CardSecuritySettingAdapter& CardSecuritySettingAdapter::enableTransactionAudit()
-{
-    mIsTransactionAuditEnabled = true;
 
     return *this;
 }
@@ -150,16 +128,6 @@ CardSecuritySettingAdapter& CardSecuritySettingAdapter::setPinModificationCipher
     return *this;
 }
 
-std::shared_ptr<CardReader> CardSecuritySettingAdapter::getSamReader() const
-{
-    return mSamReader;
-}
-
-std::shared_ptr<CalypsoSam> CardSecuritySettingAdapter::getCalypsoSam() const
-{
-    return mCalypsoSam;
-}
-
 bool CardSecuritySettingAdapter::isMultipleSessionEnabled() const
 {
     return mIsMultipleSessionEnabled;
@@ -173,11 +141,6 @@ bool CardSecuritySettingAdapter::isRatificationMechanismEnabled() const
 bool CardSecuritySettingAdapter::isPinPlainTransmissionEnabled() const
 {
     return mIsPinPlainTransmissionEnabled;
-}
-
-bool CardSecuritySettingAdapter::isTransactionAuditEnabled() const
-{
-    return mIsTransactionAuditEnabled;
 }
 
 bool CardSecuritySettingAdapter::isSvLoadAndDebitLogEnabled() const

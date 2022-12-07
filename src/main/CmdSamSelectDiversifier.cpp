@@ -20,34 +20,39 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "IllegalArgumentException.h"
+#include "System.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
 using namespace keyple::core::util;
+using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
-
-const CalypsoSamCommand CmdSamSelectDiversifier::mCommand = CalypsoSamCommand::SELECT_DIVERSIFIER;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamSelectDiversifier::STATUS_TABLE = initStatusTable();
 
 CmdSamSelectDiversifier::CmdSamSelectDiversifier(const CalypsoSam::ProductType productType,
-                                                 const std::vector<uint8_t>& diversifier)
-: AbstractSamCommand(mCommand, 0)
+                                                 std::vector<uint8_t>& diversifier)
+: AbstractSamCommand(CalypsoSamCommand::SELECT_DIVERSIFIER, 0)
 {
-    if (diversifier.empty() || (diversifier.size() != 4 && diversifier.size() != 8)) {
-        throw IllegalArgumentException("Bad diversifier value!");
+    /* Format the diversifier on 4 or 8 bytes if needed */
+    if (static_cast<int>(diversifier.size()) != 4 && 
+        static_cast<int>(diversifier.size()) != 8) {
+        const int newLength = static_cast<int>(diversifier.size()) < 4 ? 4 : 8;
+        std::vector<uint8_t> tmp(newLength);
+        System::arraycopy(diversifier, 0, tmp, newLength - diversifier.size(), diversifier.size());
+        diversifier = tmp;
     }
-
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    const uint8_t p1 = 0x00;
-    const uint8_t p2 = 0x00;
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, diversifier)));
+            ApduUtil::build(SamUtilAdapter::getClassByte(productType),
+                            getCommandRef().getInstructionByte(),
+                            0,
+                            0,
+                            diversifier)));
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

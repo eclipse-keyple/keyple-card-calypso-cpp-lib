@@ -75,6 +75,18 @@ std::shared_ptr<SearchCommandData> CalypsoExtensionService::createSearchCommandD
     return std::make_shared<SearchCommandDataAdapter>();
 }
 
+std::shared_ptr<SignatureComputationData> CalypsoExtensionService::createSignatureComputationData() 
+    const 
+{
+    return std::make_shared<SignatureComputationDataAdapter>();
+}
+
+std::shared_ptr<SignatureVerificationData> 
+    CalypsoExtensionService::createSignatureVerificationData() const 
+{
+    return std::make_shared<SignatureVerificationDataAdapter>();
+}
+
 std::shared_ptr<CalypsoCardSelection> CalypsoExtensionService::createCardSelection() const
 {
     return std::make_shared<CalypsoCardSelectionAdapter>();
@@ -100,13 +112,30 @@ std::shared_ptr<CardSecuritySetting> CalypsoExtensionService::createCardSecurity
 }
 
 std::shared_ptr<CardTransactionManager> CalypsoExtensionService::createCardTransaction(
-        std::shared_ptr<CardReader> reader,
+        std::shared_ptr<CardReader> cardReader,
         const std::shared_ptr<CalypsoCard> calypsoCard,
-        const std::shared_ptr<CardSecuritySetting> cardSecuritySetting)
+        const std::shared_ptr<CardSecuritySetting> cardSecuritySetting) const
 {
+    return createCardTransactionManagerAdapter(cardReader, calypsoCard, cardSecuritySetting, true);
+}
 
-    Assert::getInstance().notNull(reader, "reader")
-                         .notNull(calypsoCard, "calypsoCard")
+std::shared_ptr<CardTransactionManager> 
+    CalypsoExtensionService::createCardTransactionWithoutSecurity(
+        std::shared_ptr<CardReader> cardReader,
+        const std::shared_ptr<CalypsoCard> calypsoCard) const
+{
+    return createCardTransactionManagerAdapter(cardReader, calypsoCard, nullptr, false);
+}
+
+std::shared_ptr<CardTransactionManagerAdapter> 
+    CalypsoExtensionService::createCardTransactionManagerAdapter(
+        std::shared_ptr<CardReader> cardReader,
+        const std::shared_ptr<CalypsoCard> calypsoCard,
+        const std::shared_ptr<CardSecuritySetting> cardSecuritySetting,
+        const bool isSecureMode) const
+{
+    Assert::getInstance().notNull(cardReader, "card reader")
+                         .notNull(calypsoCard, "calypso card")
                          .notNull(cardSecuritySetting, "cardSecuritySetting");
 
     /*
@@ -114,15 +143,30 @@ std::shared_ptr<CardTransactionManager> CalypsoExtensionService::createCardTrans
      * respected by MSVC
      */
     Assert::getInstance().isTrue(calypsoCard->getProductType() != CalypsoCard::ProductType::UNKNOWN,
-                                 PRODUCT_TYPE);
+                                 "product type is known")
+                         .isTrue(!isSecureMode || cardSecuritySetting != nullptr, 
+                                 "security setting is not null");
 
-    const auto adapter = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
-    if (!adapter) {
-        throw IllegalArgumentException("The provided 'cardSecuritySetting' must be an instance of" \
-                                       " 'CardSecuritySettingAdapter' class.");
+    const auto proxy = std::dynamic_pointer_cast<ProxyReaderApi>(cardReader);
+    if (!proxy) {
+        throw IllegalArgumentException("The provided 'cardReader' must implement 'ProxyReaderApi'");
     }
 
-    return std::make_shared<CardTransactionManagerAdapter>(reader, calypsoCard, adapter);
+    const auto calypso = std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard);
+    if (!calypso) {
+        throw IllegalArgumentException("The provided 'calypsoCard' must be an instance of " \
+                                       "'CalypsoCardAdapter'");
+    }
+
+    const setting = std::dynamic_point_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
+    if (isSecureMode && !setting) {
+        throw IllegalArgumentException("The provided 'cardSecuritySetting' must be an instance of" \
+                                       " 'CardSecuritySettingAdapter'");
+    }
+
+    return std::make_shared<CardTransactionManagerAdapter>(cardReader, 
+                                                           calypsoCard, 
+                                                           cardSecuritySetting);
 }
 
 std::shared_ptr<CardTransactionManager>
@@ -142,6 +186,63 @@ std::shared_ptr<CardTransactionManager>
     return std::make_shared<CardTransactionManagerAdapter>(reader, calypsoCard);
 }
 
+std::shared_ptr<SamSecuritySetting> CalypsoExtensionService::createSamSecuritySetting() const 
+{
+    return std::make_shared<SamSecuritySettingAdapter>();
+}
+
+std::shared_ptr<SamTransactionManager> CalypsoExtensionService::createSamTransaction(
+    std::shared_ptr<CardReader> samReader, 
+    const std::shared_ptr<CalypsoSam> calypsoSam, 
+    const std::shared_ptr<SamSecuritySetting> samSecuritySetting) const 
+{
+    return createSamTransactionManagerAdapter(samReader, calypsoSam, samSecuritySetting, true);
+}
+
+std::shared_ptr<SamTransactionManager> CalypsoExtensionService::createSamTransactionWithoutSecurity(
+    std::shared_ptr<CardReader> samReader, 
+    const std::shared_ptr<CalypsoSam> calypsoSam) const 
+{
+    return createSamTransactionManagerAdapter(samReader, calypsoSam, nullptr, false);
+}
+
+std::shared_ptr<SamTransactionManagerAdapter> 
+    CalypsoExtensionService::createSamTransactionManagerAdapter(
+        std::shared_ptr<CardReader> samReader,
+        const std::shared_ptr<CalypsoSam> calypsoSam,
+        const std::shared_ptr<SamSecuritySetting> samSecuritySetting,
+        const bool isSecureMode) const 
+{
+    Assert.getInstance().notNull(samReader, "sam reader")
+                        .notNull(calypsoSam, "calypso SAM")
+                        .notNull(calypsoSam->getProductType(), "product type");
+    
+    Assert.getInstance().isTrue(calypsoSam->getProductType() != CalypsoSam::ProductType::UNKNOWN, 
+                                "product type is known")
+                        .isTrue(!isSecureMode || samSecuritySetting != nullptr, 
+                                "security setting is not null");
+
+    const auto proxy = std::dynamic_pointer_cast<ProxyReaderApi>(samReader);
+    if (!proxy) {
+        throw IllegalArgumentException("The provided 'samReader' must implement 'ProxyReaderApi'");
+    }
+
+    const auto sam = std::dynamic_pointer_cast<CalypsoSamAdapter>(calypsoSam);
+    if (!sam) {
+        throw IllegalArgumentException("The provided 'calypsoSam' must be an instance of " \
+                                       "'CalypsoSamAdapter'");
+    }
+
+    const auto setting = std::dynamic_pointer_cast<SamSecuritySettingAdapter>(samSecuritySetting);
+    if (isSecureMode && !setting) {
+        throw IllegalArgumentException("The provided 'samSecuritySetting' must be an instance of " \
+                                       "'SamSecuritySettingAdapter'");
+    }
+
+    return std::make_shared<SamTransactionManagerAdapter>(samReader, 
+                                                          calypsoSam, 
+                                                          samSecuritySetting);
+  }
 
 }
 }

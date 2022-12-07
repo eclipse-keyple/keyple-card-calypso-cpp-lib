@@ -12,61 +12,27 @@
 
 #pragma once
 
-#include <cstdint>
-#include <map>
-#include <vector>
-
 /* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
+#include "SamSecuritySetting.h"
 
 /* Keyple Card Calypso */
-#include "AbstractSamCommand.h"
+#include "CommonSecuritySettingAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
-using namespace calypsonet::terminal::calypso::sam;
+using namespace calypsonet::terminal::calypso::transaction;
 
 /**
  * (package-private)<br>
- * Builds the SAM Select Diversifier APDU command.
+ * Implementation of {@link SamSecuritySetting}.
  *
- * @since 2.0.1
+ * @since 2.2.0
  */
-class CmdSamSelectDiversifier final : public AbstractSamCommand {
-public:
-    /**
-     * (package-private)<br>
-     * Creates a new instance.
-     *
-     * @param productType The SAM product type.
-     * @param diversifier The key diversifier.
-     * @throws IllegalArgumentException If the diversifier is null or has a wrong length
-     * @since 2.0.1
-     */
-    CmdSamSelectDiversifier(const CalypsoSam::ProductType productType,
-                            std::vector<uint8_t>& diversifier);
-
-   /**
-     * {@inheritDoc}
-     *
-     * @since 2.0.1
-     */
-    const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() const
-        override;
-
-private:
-    /**
-     *
-     */
-    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
-
-    /**
-     *
-     */
-    static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
-};
+class SamSecuritySettingAdapter final
+: public CommonSecuritySettingAdapter<SamSecuritySetting>, 
+  public SamSecuritySetting {};
 
 }
 }

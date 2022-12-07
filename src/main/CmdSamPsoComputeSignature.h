@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -12,49 +12,49 @@
 
 #pragma once
 
-#include <cstdint>
 #include <map>
-#include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
-/* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "SignatureComputationDataAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
-using namespace calypsonet::terminal::calypso::sam;
-
 /**
  * (package-private)<br>
- * Builds the SAM Select Diversifier APDU command.
+ * Builds the "PSO Compute Signature" SAM command.
  *
- * @since 2.0.1
+ * @since 2.2.0
  */
-class CmdSamSelectDiversifier final : public AbstractSamCommand {
+class CmdSamPsoComputeSignature final : public AbstractSamCommand {
 public:
     /**
      * (package-private)<br>
-     * Creates a new instance.
+     * Builds a new instance based on the provided signature computation data.
      *
      * @param productType The SAM product type.
-     * @param diversifier The key diversifier.
-     * @throws IllegalArgumentException If the diversifier is null or has a wrong length
-     * @since 2.0.1
+     * @param data The signature computation data.
+     * @since 2.2.0
      */
-    CmdSamSelectDiversifier(const CalypsoSam::ProductType productType,
-                            std::vector<uint8_t>& diversifier);
+    CmdSamPsoComputeSignature(const CalypsoSam::ProductType productType, 
+                              const std::shared_ptr<SignatureComputationDataAdapter> data);
 
-   /**
+    /**
      * {@inheritDoc}
      *
-     * @since 2.0.1
+     * @since 2.2.0
      */
-    const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() const
+    const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.0
+     */
+    AbstractSamCommand& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) 
         override;
+
 
 private:
     /**
@@ -63,9 +63,9 @@ private:
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
 
     /**
-     *
+     * 
      */
-    static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
+    const std::shared_ptr<SignatureComputationDataAdapter> mData;
 };
 
 }

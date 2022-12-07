@@ -25,6 +25,7 @@
 #include "CardReader.h"
 
 /* Keyple Card Calypso */
+#include "CommonSecuritySettingAdapter.h"
 #include "KeypleCardCalypsoExport.h"
 
 namespace keyple {
@@ -42,18 +43,15 @@ using namespace calypsonet::terminal::reader;
  *
  * @since 2.0.0
  */
-class KEYPLECARDCALYPSO_API CardSecuritySettingAdapter final : public CardSecuritySetting {
+class KEYPLECARDCALYPSO_API CardSecuritySettingAdapter final
+: public CommonSecuritySettingAdapter<CardSecuritySetting>,
+  public CardSecuritySetting {
 public:
-    /**
-     * (package-private)<br>
-     * Constructor.
-     */
-    CardSecuritySettingAdapter() ;
-
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
+     * @deprecated Use setControlSamResource(CardReader, CalypsoSam) instead.
      */
     CardSecuritySetting& setSamResource(const std::shared_ptr<CardReader> samReader,
                                         const std::shared_ptr<CalypsoSam> calypsoSam) override;
@@ -78,13 +76,6 @@ public:
      * @since 2.0.0
      */
     CardSecuritySettingAdapter& enablePinPlainTransmission() override;
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.0.0
-     */
-    CardSecuritySettingAdapter& enableTransactionAudit() override;
 
     /**
      * {@inheritDoc}
@@ -158,25 +149,6 @@ public:
 
     /**
      * (package-private)<br>
-     * Gets the associated SAM reader to use for secured operations.
-     *
-     * @return Null if no SAM reader is set.
-     * @since 2.0.0
-     */
-    std::shared_ptr<CardReader> getSamReader() const;
-
-    /**
-     * (package-private)<br>
-     * Gets the SAM used for secured operations.
-     *
-     * @return Null if no SAM is set or a CalypsoSam having a CalypsoSam::ProductType
-     *         different from CalypsoSam::ProductType::UNKNOWN.
-     * @since 2.0.0
-     */
-    std::shared_ptr<CalypsoSam> getCalypsoSam() const;
-
-    /**
-     * (package-private)<br>
      * Indicates if the multiple session mode is enabled.
      *
      * @return True if the multiple session mode is enabled.
@@ -201,15 +173,6 @@ public:
      * @since 2.0.0
      */
     bool isPinPlainTransmissionEnabled() const;
-
-    /**
-     * (package-private)<br>
-     * Indicates if the transaction audit is enabled.
-     *
-     * @return True if the transaction audit is enabled.
-     * @since 2.0.0
-     */
-    bool isTransactionAuditEnabled() const;
 
     /**
      * (package-private)<br>
@@ -333,16 +296,6 @@ private:
     /**
      *
      */
-    std::shared_ptr<CardReader> mSamReader;
-
-    /**
-     *
-     */
-    std::shared_ptr<CalypsoSam> mCalypsoSam;
-
-    /**
-     *
-     */
     bool mIsMultipleSessionEnabled;
 
     /**
@@ -354,11 +307,6 @@ private:
      *
      */
     bool mIsPinPlainTransmissionEnabled;
-
-    /**
-     *
-     */
-    bool mIsTransactionAuditEnabled;
 
     /**
      *

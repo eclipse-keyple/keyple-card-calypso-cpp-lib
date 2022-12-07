@@ -12,60 +12,62 @@
 
 #pragma once
 
-#include <cstdint>
-#include <map>
-#include <vector>
-
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
+/* Keyple Core Util */
+#include "LoggerFactory.h"
 
 /* Keyple Card Calypso */
-#include "AbstractSamCommand.h"
+#include "CommonSamTransactionManagerAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
-using namespace calypsonet::terminal::calypso::sam;
+using namespace keyple::core::util::cpp;
 
 /**
  * (package-private)<br>
- * Builds the SAM Select Diversifier APDU command.
+ * Implementation of {@link SamTransactionManager}.
  *
- * @since 2.0.1
+ * @since 2.2.0
  */
-class CmdSamSelectDiversifier final : public AbstractSamCommand {
+class SamTransactionManagerAdapter final : public CommonSamTransactionManagerAdapter {
 public:
     /**
      * (package-private)<br>
      * Creates a new instance.
      *
-     * @param productType The SAM product type.
-     * @param diversifier The key diversifier.
-     * @throws IllegalArgumentException If the diversifier is null or has a wrong length
-     * @since 2.0.1
+     * @param samReader The reader through which the SAM communicates.
+     * @param sam The initial SAM data provided by the selection process.
+     * @param securitySetting The security settings (optional).
+     * @since 2.2.0
      */
-    CmdSamSelectDiversifier(const CalypsoSam::ProductType productType,
-                            std::vector<uint8_t>& diversifier);
+    SamTransactionManagerAdapter(const std::shared_ptr<ProxyReaderApi> samReader, 
+                                 const std::shared_ptr<CalypsoSamAdapter> sam, 
+                                 const std::shared_ptr<SamSecuritySettingAdapter> securitySetting);
 
-   /**
+    /**
      * {@inheritDoc}
      *
-     * @since 2.0.1
+     * @since 2.2.0
      */
-    const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() const
-        override;
+    const std::shared_ptr<SamSecuritySetting> getSecuritySetting() const override;
 
 private:
     /**
-     *
+     * 
      */
-    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
+    const std::unique_ptr<Logger> mLogger = 
+        LoggerFactory::getLogger(typeid(SamTransactionManagerAdapter));
 
     /**
      *
      */
-    static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
+    const std::shared_ptr<SamSecuritySettingAdapter> mSecuritySetting;
+
+    /**
+     * 
+     */
+    const std::shared_ptr<ControlSamTransactionManagerAdapter> mControlSamTransactionManager;
 };
 
 }

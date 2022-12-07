@@ -456,7 +456,6 @@ static std::shared_ptr<CardTransactionManager> cardTransactionManager;
 static std::shared_ptr<CalypsoCardAdapter> calypsoCard;
 static std::shared_ptr<ReaderMock> cardReader;
 static std::shared_ptr<ReaderMock> samReader;
-static std::shared_ptr<CardSelectionResponseApiMock> samCardSelectionResponse;
 static std::shared_ptr<CalypsoSamAdapter> calypsoSam;
 static std::shared_ptr<CardSecuritySetting> cardSecuritySetting;
 
@@ -471,14 +470,14 @@ static void setUp()
 
     samReader = std::make_shared<ReaderMock>();
 
-    samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
+    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
     EXPECT_CALL(*samCardSelectionResponse, getPowerOnData())
         .WillRepeatedly(ReturnRef(SAM_C1_POWER_ON_DATA));
 
     calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
 
     cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
-    cardSecuritySetting->setSamResource(samReader, calypsoSam);
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam);
 
     cardTransactionManager =
         CalypsoExtensionService::getInstance()
@@ -536,6 +535,15 @@ TEST(CardTransactionManagerAdapterTest, getCalypsoCard_shouldReturnCalypsoCard)
     setUp();
 
     ASSERT_EQ(cardTransactionManager->getCalypsoCard(), calypsoCard);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, getSecuritySetting_shouldReturnCardSecuritySetting)
+{
+    setUp();
+    
+    ASSERT_EQ(cardTransactionManager->getSecuritySetting(), cardSecuritySetting);
 
     tearDown();
 }
@@ -676,7 +684,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardSecuritySetting =
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
-//             .setSamResource(samReader, calypsoSam)
+//             .setControlSamResource(samReader, calypsoSam)
 //             .addAuthorizedSessionKey( 0x00,  0x00);
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
@@ -695,8 +703,28 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
 //   }
 
+//   public void processCommands_whenOutOfSession_shouldExchangeApduWithCardOnly() throws Exception {
+//     CardRequestSpi cardCardRequest =
+//         createCardRequest(
+//             CARD_READ_REC_SFI7_REC1_CMD, CARD_READ_REC_SFI8_REC1_CMD, CARD_READ_REC_SFI10_REC1_CMD);
+//     CardResponseApi cardCardResponse =
+//         createCardResponse(
+//             CARD_READ_REC_SFI7_REC1_RSP, CARD_READ_REC_SFI8_REC1_RSP, CARD_READ_REC_SFI10_REC1_RSP);
+//     when(cardReader.transmitCardRequest(
+//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
+//         .thenReturn(cardCardResponse);
+//     cardTransactionManager.prepareReadRecord(FILE7, 1);
+//     cardTransactionManager.prepareReadRecord(FILE8, 1);
+//     cardTransactionManager.prepareReadRecord(FILE10, 1);
+//     cardTransactionManager.processCommands();
+//     verify(cardReader)
+//         .transmitCardRequest(
+//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
+//     verifyNoMoreInteractions(samReader, cardReader);
+//   }
+
 //   @Test
-//   public void processCardCommands_whenOutOfSession_shouldExchangeApduWithCardOnly()
+//   public void processCommands_whenOutOfSession_shouldExchangeApduWithCardOnly()
 //       throws Exception {
 //     CardRequestSpi cardCardRequest =
 //         createCardRequest(
@@ -710,7 +738,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.prepareReadRecord(FILE7, 1);
 //     cardTransactionManager.prepareReadRecord(FILE8, 1);
 //     cardTransactionManager.prepareReadRecord(FILE10, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -802,8 +830,8 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 //   }
 
-//   @Test(expected = CardCloseSecureSessionException.class)
-//   public void processClosing_whenCloseSessionFails_shouldThrowCardCloseSecureSessionException()
+//   @Test(expected = UnexpectedCommandStatusException.class)
+//   public void processClosing_whenCloseSessionFails_shouldThrowUCSE()
 //       throws Exception {
 //     // open sesion
 //     CardRequestSpi samCardRequest =
@@ -846,8 +874,8 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.processClosing();
 //   }
 
-//   @Test(expected = SessionAuthenticationException.class)
-//   public void processClosing_whenCardAuthenticationFails_shouldThrowSessionAuthenticationException()
+//   @Test(expected = InvalidCardSignatureException.class)
+//   public void processClosing_whenCardAuthenticationFails_shouldThrowICSE()
 //       throws Exception {
 //     // open session
 //     CardRequestSpi samCardRequest =
@@ -971,7 +999,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardSecuritySetting =
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
-//             .setSamResource(samReader, calypsoSam)
+//             .setControlSamResource(samReader, calypsoSam)
 //             .enablePinPlainTransmission();
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
@@ -1000,7 +1028,7 @@ TEST(CardTransactionManagerAdapterTest,
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
 //             .enablePinPlainTransmission()
-//             .setSamResource(samReader, calypsoSam);
+//             .setControlSamResource(samReader, calypsoSam);
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
 //             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
@@ -1036,7 +1064,7 @@ TEST(CardTransactionManagerAdapterTest,
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
 //             .setPinModificationCipheringKey(PIN_CIPHERING_KEY_KIF, PIN_CIPHERING_KEY_KVC)
-//             .setSamResource(samReader, calypsoSam);
+//             .setControlSamResource(samReader, calypsoSam);
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
 //             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
@@ -1095,7 +1123,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardSecuritySetting =
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
-//             .setSamResource(samReader, calypsoSam)
+//             .setControlSamResource(samReader, calypsoSam)
 //             .enablePinPlainTransmission();
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
@@ -1150,34 +1178,40 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 //   }
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSelectFile_whenLidIsNull_shouldThrowIAE() {
-//     byte[] nullArray = null;
-//     cardTransactionManager.prepareSelectFile(nullArray);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFileDeprecated_whenLidIsLessThan2ByteLong_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSelectFile_whenLidIsLessThan2ByteLong_shouldThrowIAE() {
-//     cardTransactionManager.prepareSelectFile(new byte[1]);
-//   }
+    const std::vector<uint8_t> one(1);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSelectFile_whenLidIsMoreThan2ByteLong_shouldThrowIAE() {
-//     cardTransactionManager.prepareSelectFile(new byte[3]);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSelectFile(one), IllegalArgumentException;
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFileDeprecated_whenLidIsMoreThan2ByteLong_shouldThrowIAE)
+{
+    setUp();
+
+    const std::vector<uint8_t> three(3);
+
+    EXPECT_THROW(cardTransactionManager->prepareSelectFile(three), IllegalArgumentException);
+}
 
 //   @Test
 //   public void
 //       prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision3_shouldPrepareSelectFileApduWith1234()
 //           throws Exception {
-//     byte[] lid = new byte[] { 0x12,  0x34};
+//     short lid = 0x1234;
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_SELECT_FILE_1234_CMD);
 //     CardResponseApi cardCardResponse = createCardResponse(CARD_SELECT_FILE_1234_RSP);
 //     when(cardReader.transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(lid);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1188,7 +1222,7 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void
 //       prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision2_shouldPrepareSelectFileApduWith1234()
 //           throws Exception {
-//     byte[] lid = new byte[] { 0x12,  0x34};
+//     short lid = 0x1234;
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
 //             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
@@ -1198,7 +1232,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(lid);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1215,7 +1249,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(SelectFileControl.FIRST_EF);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1232,7 +1266,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(SelectFileControl.NEXT_EF);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1249,7 +1283,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(SelectFileControl.CURRENT_DF);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1270,7 +1304,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareGetData(GetDataTag.FCP_FOR_CURRENT_FILE);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1295,7 +1329,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     assertThat(calypsoCard.getFiles()).isEmpty();
 
 //     cardTransactionManager.prepareGetData(GetDataTag.EF_LIST);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1351,7 +1385,7 @@ TEST(CardTransactionManagerAdapterTest,
 
 //     assertThat(calypsoCard.getTraceabilityInformation()).isEmpty();
 
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1371,7 +1405,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareGetData(GetDataTag.FCI_FOR_CURRENT_DF);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1402,7 +1436,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareReadRecord(FILE7, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1448,7 +1482,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(7);
 
 //     cardTransactionManager.prepareReadRecords( 1, 1, 2, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1483,7 +1517,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(7);
 
 //     cardTransactionManager.prepareReadRecords( 1, 1, 5, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1730,7 +1764,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .createSearchCommandData()
 //             .setSearchData(new byte[] {0x12, 0x34});
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1763,7 +1797,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .setSearchData(new byte[] {0x12, 0x34})
 //             .fetchFirstMatchingResult();
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1792,7 +1826,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .createSearchCommandData()
 //             .setSearchData(new byte[] {0x12, 0x34});
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1820,7 +1854,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .setSearchData(new byte[] {0x12, 0x34})
 //             .setMask(new byte[] {0x56});
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1848,7 +1882,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .setSearchData(new byte[] {0x12, 0x34})
 //             .setMask(new byte[] {0x56, 0x77});
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1935,7 +1969,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(3);
 
 //     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 2, 3, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1970,7 +2004,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 5, 3, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2039,7 +2073,7 @@ TEST(CardTransactionManagerAdapterTest,
 //         .thenReturn(cardCardResponse);
 
 //     cardTransactionManager.prepareReadBinary( 1, 256, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2065,7 +2099,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareReadBinary( 1, 0, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2090,7 +2124,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareReadBinary( 1, 0, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2147,7 +2181,7 @@ TEST(CardTransactionManagerAdapterTest,
 //         .thenReturn(cardCardResponse);
 
 //     cardTransactionManager.prepareUpdateBinary( 1, 256, ByteArrayUtil::fromHex("66"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2168,7 +2202,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareUpdateBinary( 1, 4, ByteArrayUtil::fromHex("55"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2197,7 +2231,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareUpdateBinary( 1, 0, ByteArrayUtil::fromHex("1122334455"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2262,7 +2296,7 @@ TEST(CardTransactionManagerAdapterTest,
 //         .thenReturn(cardCardResponse);
 
 //     cardTransactionManager.prepareWriteBinary( 1, 256, ByteArrayUtil::fromHex("66"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2283,7 +2317,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareWriteBinary( 1, 4, ByteArrayUtil::fromHex("55"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2312,7 +2346,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareWriteBinary( 1, 0, ByteArrayUtil::fromHex("1122334455"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2355,7 +2389,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareIncreaseCounter( 1, 1, 100);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2398,7 +2432,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareDecreaseCounter( 1, 1, 100);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2462,7 +2496,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     counterNumberToIncValueMap.put(1, 1);
 //     counterNumberToIncValueMap.put(2, 2);
 //     cardTransactionManager.prepareIncreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2498,7 +2532,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     counterNumberToIncValueMap.put(2, 2);
 //     counterNumberToIncValueMap.put(3, 3);
 //     cardTransactionManager.prepareIncreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2566,7 +2600,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     counterNumberToIncValueMap.put(8, 0x88);
 //     counterNumberToIncValueMap.put(1, 0x11);
 //     cardTransactionManager.prepareDecreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2603,7 +2637,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareCheckPinStatus();
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2636,7 +2670,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSvGet(SvOperation.DEBIT, SvAction.DO);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2654,7 +2688,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSvGet(SvOperation.RELOAD, SvAction.DO);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2673,7 +2707,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSvGet(SvOperation.RELOAD, SvAction.DO);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2729,7 +2763,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareInvalidate();
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2752,7 +2786,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareRehabilitate();
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));

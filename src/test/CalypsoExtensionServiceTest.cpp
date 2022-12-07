@@ -45,23 +45,26 @@ using namespace keyple::core::common;
 using namespace keyple::core::util::cpp::exception;
 
 static const std::string POWER_ON_DATA = "3B8F8001805A0A010320031124B77FE7829000F7";
+static const std::string SAM_C1_POWER_ON_DATA = "3B3F9600805A4880C120501711223344829000";
 static std::shared_ptr<CalypsoExtensionService> service = CalypsoExtensionService::getInstance();
 static std::shared_ptr<CalypsoSamSelection> calypsoSamSelection;
 static std::shared_ptr<ReaderMock> reader;
 static std::shared_ptr<CalypsoCardAdapter> calypsoCard;
-static std::shared_ptr<CalypsoSamMock> calypsoSam;
 static std::shared_ptr<CardSecuritySetting> cardSecuritySetting;
+static std::shared_ptr<CalypsoSamAdapter> calypsoSam;
+static std::shared_ptr<SamSecuritySetting> samSecuritySetting;
 static const std::vector<uint8_t> serial = {1, 2, 3, 4, 5, 6};
 
 static void setUp()
 {
     reader = std::make_shared<ReaderMock>();
     calypsoCard = std::make_shared<CalypsoCardAdapter>();
-    calypsoSam = std::make_shared<CalypsoSamMock>();
-    EXPECT_CALL(*calypsoSam, getProductType()).WillRepeatedly(Return(CalypsoSam::ProductType::SAM_C1));
-    EXPECT_CALL(*calypsoSam, getSerialNumber()).WillRepeatedly(ReturnRef(serial));
-    calypsoSamSelection = std::make_shared<CalypsoSamSelectionMock>();
     cardSecuritySetting = std::make_shared<CardSecuritySettingAdapter>();
+    calypsoSamSelection = std::make_shared<CalypsoSamSelectionMock>();
+    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
+    EXPECT_CALL(*samCardSelectionResponse, getPowerOnData()).WillRepeatedly(ReturnRef(SAM_C1_POWER_ON_DATA));
+    calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
+    samSecuritySetting = std::make_shared<SamSecuritySettingAdapter>();
 }
 
 static void tearDown()
@@ -71,6 +74,7 @@ static void tearDown()
     calypsoSam.reset();
     calypsoSamSelection.reset();
     cardSecuritySetting.reset();
+    samSecuritySetting.reset();
 }
 
 TEST(CalypsoExtensionServiceTest, getInstance_whenIsInvokedTwice_shouldReturnSameInstance)
@@ -109,14 +113,50 @@ TEST(CalypsoExtensionServiceTest, getCommonApiVersion_shouldReturnExpectedVersio
     tearDown();
 }
 
+TEST(CalypsoExtensionServiceTest, createSearchCommandData_shouldReturnNewReference)
+{
+    setUp();
+
+    const auto data = service->createSearchCommandData();
+    
+    ASSERT_NE(data, nullptr);
+    ASSERT_NE(data, service->createSearchCommandData());
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, createSignatureComputationData_shouldReturnNewReference) 
+{
+    setUp();
+
+    const auto data = service->createSignatureComputationData();
+    
+    ASSERT_NE(data, nullptr);
+    ASSERT_NE(data, service->createSignatureComputationData());
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, createSignatureVerificationData_shouldReturnNewReference)
+{
+    setUp();
+
+    const auto data = service->createSignatureVerificationData();
+    
+    ASSERT_NE(data, nullptr);
+    ASSERT_NE(data, service->createSignatureVerificationData());
+
+    tearDown();
+}
+
 TEST(CalypsoExtensionServiceTest, createCardSelection_shouldReturnNewReference)
 {
     setUp();
 
-    const std::shared_ptr<CalypsoCardSelection> cardSelection = service->createCardSelection();
-
-    ASSERT_NE(cardSelection, nullptr);
-    ASSERT_NE(service->createCardSelection(), cardSelection);
+    const auto selection = service->createCardSelection();
+    
+    ASSERT_NE(selection, nullptr);
+    ASSERT_NE(selection, service->createCardSelection());
 
     tearDown();
 }
@@ -137,10 +177,10 @@ TEST(CalypsoExtensionServiceTest, createSamSelection_shouldReturnNewReference)
 {
     setUp();
 
-    const std::shared_ptr<CalypsoSamSelection> samSelection = service->createSamSelection();
-
-    ASSERT_NE(samSelection, nullptr);
-    ASSERT_NE(service->createSamSelection(), samSelection);
+    const auto selection = service->createSamSelection();
+    
+    ASSERT_NE(selection, nullptr);
+    ASSERT_NE(selection, service->createSamSelection());
 
     tearDown();
 }
@@ -150,6 +190,7 @@ TEST(CalypsoExtensionServiceTest, createSamSelection_shouldReturnInstanceOfInter
     setUp();
 
     const std::shared_ptr<CalypsoSamSelection> samSelection = service->createSamSelection();
+    
     ASSERT_NE(std::dynamic_pointer_cast<CardSelectionSpi>(samSelection), nullptr);
     ASSERT_NE(std::dynamic_pointer_cast<CalypsoSamSelectionAdapter>(samSelection), nullptr);
 
@@ -239,24 +280,6 @@ TEST(CalypsoExtensionServiceTest,
     tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, createCardTransaction_shouldReturnANewReference)
-{
-    setUp();
-
-    calypsoCard->initializeWithPowerOnData(POWER_ON_DATA);
-
-    auto adapter = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
-    adapter->setSamResource(reader, calypsoSam);
-
-    const std::shared_ptr<CardTransactionManager> cardTransaction =
-        service->createCardTransaction(reader, calypsoCard, cardSecuritySetting);
-
-    ASSERT_NE(service->createCardTransaction(reader, calypsoCard, cardSecuritySetting),
-              cardTransaction);
-
-    tearDown();
-}
-
 TEST(CalypsoExtensionServiceTest,
      createCardTransactionWithoutSecurity_whenInvokedWithNullReader_shouldThrowIAE)
 {
@@ -305,6 +328,125 @@ TEST(CalypsoExtensionServiceTest,
         service->createCardTransactionWithoutSecurity(reader, calypsoCard);
 
     ASSERT_NE(service->createCardTransactionWithoutSecurity(reader, calypsoCard), cardTransaction);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, createSamSecuritySetting_shouldReturnANewReference)
+{
+    setUp();
+
+    const auto samSecuritySetting = service->createSamSecuritySetting();
+    
+    ASSERT_NE(samSecuritySetting, nullptr);
+    ASSERT_NE(service->createSamSecuritySetting(), samSecuritySetting);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, 
+     createSamSecuritySetting_shouldReturnInstanceOfSamSecuritySettingAdapter)
+{
+    setUp();
+
+    const auto setting = service->createSamSecuritySetting();
+    const auto adapter = std::dynamic_pointer_cast<SamSecuritySettingAdapter>(setting);
+    
+    ASSERT_NE(adapter);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, createSamTransaction_whenInvokedWithNullReader_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(service->createSamTransaction(nullptr, calypsoSam, samSecuritySetting),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, 
+     createSamTransaction_whenInvokedWithNullCalypsoCard_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(service->createSamTransaction(reader, nullptr, samSecuritySetting),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest,
+     createSamTransaction_whenInvokedWithNullSamSecuritySetting_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(service->createSamTransaction(reader, calypsoSam, nullptr),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, 
+     createSamTransaction_whenInvokedWithUndefinedCalypsoSamProductType_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_CALL(*calypsoSam getProductType())
+        .WillRepeatedly(ReturnRef(CalypsoSam::ProductType.UNKNOWN));
+    
+    EXPECT_THROW(service->createSamTransaction(reader, calypsoSam, samSecuritySetting), 
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest,
+     createSamTransactionWithoutSecurity_whenInvokedWithNullReader_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(service->createSamTransactionWithoutSecurity(nullptr, calypsoSam),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest,
+     createSamTransactionWithoutSecurity_whenInvokedWithNullCalypsoSam_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(service->createSamTransactionWithoutSecurity(reader, nullptr),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest,
+     createSamTransactionWithoutSecurity_whenInvokedWithUndefinedCalypsoSamProductType_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_CALL(*calypsoSam, getProductType())
+        .WillRepeatedly(ReturnRef(CalypsoSam::ProductType::UNKNOWN));
+    
+    EXPECT_THROW(service->createSamTransactionWithoutSecurity(reader, calypsoSam),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest,
+     createSamTransactionWithoutSecurity_whenInvoked_shouldReturnANewReference)
+{
+    setUp();
+
+    const auto samTransaction = service->createSamTransactionWithoutSecurity(reader, calypsoSam);
+    
+    ASSERT_NE(service->createSamTransactionWithoutSecurity(reader, calypsoSam), samTransaction);
 
     tearDown();
 }

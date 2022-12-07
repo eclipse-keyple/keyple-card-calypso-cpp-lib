@@ -13,7 +13,7 @@
 #include "SamCommandProcessor.h"
 
 /* Calypsonet Terminal Calypso */
-#include "DesynchronizedExchangesException.h"
+#include "InconsistentDataException.h"
 
 /* Calypsonet Terminal Card */
 #include "CardBrokenCommunicationException.h"
@@ -69,22 +69,22 @@ const std::string SamCommandProcessor::UNEXPECTED_EXCEPTION = "An unexpected exc
 std::vector<std::vector<uint8_t>> SamCommandProcessor::mCardDigestDataCache;
 
 SamCommandProcessor::SamCommandProcessor(
-  const std::shared_ptr<CalypsoCard> calypsoCard,
-  const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting,
+  const std::shared_ptr<CalypsoCardAdapter> card,
+  const std::shared_ptr<CardSecuritySettingAdapter> securitySetting,
   const std::vector<std::vector<uint8_t>>& transactionAuditData)
-: mCardSecuritySetting(cardSecuritySetting),
-  mCalypsoCard(std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard)),
+: mSecuritySetting(securitySetting),
+  mCard(card),
   mIsDiversificationDone(false),
   mTransactionAuditData(transactionAuditData)
 {
-    Assert::getInstance().notNull(cardSecuritySetting, "securitySettings")
-                         .notNull(cardSecuritySetting->getSamReader(), "samReader")
-                         .notNull(cardSecuritySetting->getCalypsoSam(), "calypsoSam");
+    Assert::getInstance().notNull(securitySetting, "securitySettings")
+                         .notNull(securitySetting->getControlSamReader(), "controlSamReader")
+                         .notNull(securitySetting->getControlSam(), "controlSam");
 
-    const auto calypsoSam = cardSecuritySetting->getCalypsoSam();
-    mSamProductType = calypsoSam->getProductType();
-    mSamSerialNumber = calypsoSam->getSerialNumber();
-    mSamReader = std::dynamic_pointer_cast<ProxyReaderApi>(cardSecuritySetting->getSamReader());
+    const auto sam = securitySetting->getControlSam();
+    mSamProductType = sam->getProductType();
+    mSamSerialNumber = sam->getSerialNumber();
+    mSamReader = sam->getControlSamReader();
 }
 
 const std::vector<uint8_t> SamCommandProcessor::getChallenge()
@@ -99,14 +99,14 @@ const std::vector<uint8_t> SamCommandProcessor::getChallenge()
          */
         samCommands.push_back(
             std::make_shared<CmdSamSelectDiversifier>(mSamProductType,
-                                                      mCalypsoCard->getCalypsoSerialNumberFull()));
+                                                      mCard->getCalypsoSerialNumberFull()));
 
         /* Note that the diversification has been made */
         mIsDiversificationDone = true;
     }
 
     /* Build the "Get Challenge" SAM command */
-    const uint8_t challengeLength = mCalypsoCard->isExtendedModeSupported() ?
+    const uint8_t challengeLength = mCard->isExtendedModeSupported() ?
                                     CHALLENGE_LENGTH_REV32 : CHALLENGE_LENGTH_REV_INF_32;
     auto cmdSamGetChallenge = std::make_shared<CmdSamGetChallenge>(mSamProductType,challengeLength);
     samCommands.push_back(cmdSamGetChallenge);
@@ -128,7 +128,7 @@ const std::shared_ptr<uint8_t> SamCommandProcessor::computeKvc(
         return kvc;
     }
 
-    return mCardSecuritySetting->getDefaultKvc(writeAccessLevel);
+    return mSecuritySetting->getDefaultKvc(writeAccessLevel);
 }
 
 const std::shared_ptr<uint8_t> SamCommandProcessor::computeKif(
@@ -142,34 +142,34 @@ const std::shared_ptr<uint8_t> SamCommandProcessor::computeKif(
     }
 
     /* CL-KEY-KIFUNK.1 */
-    std::shared_ptr<uint8_t> result = mCardSecuritySetting->getKif(writeAccessLevel, *kvc.get());
+    std::shared_ptr<uint8_t> result = mSecuritySetting->getKif(writeAccessLevel, *kvc.get());
     if (result == nullptr) {
-        result = mCardSecuritySetting->getDefaultKif(writeAccessLevel);
+        result = mSecuritySetting->getDefaultKif(writeAccessLevel);
     }
 
     return result;
 }
 
-void SamCommandProcessor::initializeDigester(const bool sessionEncryption,
-                                             const bool verificationMode,
+void SamCommandProcessor::initializeDigester(const bool isSessionEncrypted,
+                                             const bool isVerificationMode,
                                              const uint8_t kif,
                                              const uint8_t kvc,
                                              const std::vector<uint8_t>& digestData)
 {
-    mSessionEncryption = sessionEncryption;
-    mVerificationMode = verificationMode;
+    mIsSessionEncryption = isSessionEncrypted;
+    mIsVerificationMode = isVerificationMode;
     mKif = kif;
     mKvc = kvc;
 
     mLogger->debug("initialize: CARDREVISION=%, SAMREVISION=%, SESSIONENCRYPTION=%, " \
                    "VERIFICATIONMODE=%\n",
-                   mCalypsoCard->getProductType(),
+                   mCard->getProductType(),
                    mSamProductType,
-                   sessionEncryption,
-                   verificationMode);
+                   isSessionEncryption,
+                   isVerificationMode);
     mLogger->debug("initialize: VERIFICATIONMODE=%, REV32MODE=%\n",
-                   verificationMode,
-                   mCalypsoCard->isExtendedModeSupported());
+                   isVerificationMode,
+                   mCard->isExtendedModeSupported());
     mLogger->debug("initialize: KIF=%, KVC=%, DIGESTDATA=%\n",
                    kif,
                    kvc,
@@ -249,8 +249,8 @@ const std::vector<std::shared_ptr<AbstractSamCommand>> SamCommandProcessor::getP
          */
         samCommands.push_back(
             std::make_shared<CmdSamDigestInit>(mSamProductType,
-                                               mVerificationMode,
-                                               mCalypsoCard->isExtendedModeSupported(),
+                                               mIsVerificationMode,
+                                               mCard->isExtendedModeSupported(),
                                                mKif,
                                                mKvc,
                                                mCardDigestDataCache[0]));
@@ -266,7 +266,7 @@ const std::vector<std::shared_ptr<AbstractSamCommand>> SamCommandProcessor::getP
      */
     for (const auto& bytes : mCardDigestDataCache) {
         samCommands.push_back(
-            std::make_shared<CmdSamDigestUpdate>(mSamProductType, mSessionEncryption, bytes));
+            std::make_shared<CmdSamDigestUpdate>(mSamProductType, mIsSessionEncrypted, bytes));
     }
 
     /* Clears cached commands once they have been processed */
@@ -279,7 +279,7 @@ const std::vector<std::shared_ptr<AbstractSamCommand>> SamCommandProcessor::getP
          */
         samCommands.push_back(
             std::make_shared<CmdSamDigestClose>(mSamProductType,
-                                                mCalypsoCard->isExtendedModeSupported() ?
+                                                mCard->isExtendedModeSupported() ?
                                                 SIGNATURE_LENGTH_REV32 :
                                                 SIGNATURE_LENGTH_REV_INF_32));
     }
@@ -342,9 +342,9 @@ void SamCommandProcessor::transmitCommands(
         cardResponse = e.getCardResponse();
     }
 
-    CardTransactionManagerAdapter::storeTransactionAuditData(cardRequest, 
-                                                             cardResponse, 
-                                                             mTransactionAuditData);
+    CardTransactionManagerAdapter::saveTransactionAuditData(cardRequest, 
+                                                            cardResponse, 
+                                                            mTransactionAuditData);
 
     const std::vector<std::shared_ptr<ApduResponseApi>> apduResponses = 
         cardResponse->getApduResponses();
@@ -355,11 +355,11 @@ void SamCommandProcessor::transmitCommands(
      * desynchronized exception.
      */
     if (apduResponses.size() > apduRequests.size()) {
-        throw DesynchronizedExchangesException("The number of SAM commands/responses does not " \
-                                               "match: nb commands = " +
-                                               std::to_string(apduRequests.size()) + 
-                                               ", nb responses = " + 
-                                               std::to_string(apduResponses.size()));
+        throw InconsistentDataException("The number of SAM commands/responses does not " \
+                                        "match: nb commands = " +
+                                        std::to_string(apduRequests.size()) + 
+                                        ", nb responses = " + 
+                                        std::to_string(apduResponses.size()));
     }
 
     /*
@@ -376,11 +376,11 @@ void SamCommandProcessor::transmitCommands(
      * throw a desynchronized exception.
      */
     if (apduResponses.size() < apduRequests.size()) {
-        throw DesynchronizedExchangesException("The number of SAM commands/responses does not " \
-                                               "match: nb commands = " + 
-                                               std::to_string(apduRequests.size()) +
-                                               ", nb responses = " + 
-                                               std::to_string(apduResponses.size()));
+        throw InconsistentDataException("The number of SAM commands/responses does not " \
+                                        "match: nb commands = " + 
+                                        std::to_string(apduRequests.size()) +
+                                        ", nb responses = " + 
+                                        std::to_string(apduResponses.size()));
     }
 }
 
@@ -409,7 +409,7 @@ const std::vector<uint8_t> SamCommandProcessor::getEncryptedKey(
          */
         samCommands.push_back(
             std::make_shared<CmdSamSelectDiversifier>(mSamProductType,
-                                                      mCalypsoCard->getCalypsoSerialNumberFull()));
+                                                      mCard->getCalypsoSerialNumberFull()));
         mIsDiversificationDone = true;
     }
 
@@ -447,24 +447,24 @@ const std::vector<uint8_t> SamCommandProcessor::getCipheredPinData(
         if (newPin.empty()) {
             /* PIN verification */
 
-            if (mCardSecuritySetting->getPinVerificationCipheringKif() == nullptr ||
-                mCardSecuritySetting->getPinVerificationCipheringKvc() == nullptr) {
+            if (mSecuritySetting->getPinVerificationCipheringKif() == nullptr ||
+                mSecuritySetting->getPinVerificationCipheringKvc() == nullptr) {
                 throw IllegalStateException("No KIF or KVC defined for the PIN verification " \
                                             "ciphering key");
             }
 
-            pinCipheringKif = *mCardSecuritySetting->getPinVerificationCipheringKif();
-            pinCipheringKvc = *mCardSecuritySetting->getPinVerificationCipheringKvc();
+            pinCipheringKif = *mSecuritySetting->getPinVerificationCipheringKif();
+            pinCipheringKvc = *mSecuritySetting->getPinVerificationCipheringKvc();
         } else {
             /* PIN modification */
-            if (mCardSecuritySetting->getPinModificationCipheringKif() == nullptr ||
-                mCardSecuritySetting->getPinModificationCipheringKvc() == nullptr) {
+            if (mSecuritySetting->getPinModificationCipheringKif() == nullptr ||
+                mSecuritySetting->getPinModificationCipheringKvc() == nullptr) {
                 throw IllegalStateException("No KIF or KVC defined for the PIN modification " \
                                             "ciphering key");
             }
 
-            pinCipheringKif = *mCardSecuritySetting->getPinModificationCipheringKif();
-            pinCipheringKvc = *mCardSecuritySetting->getPinModificationCipheringKvc();
+            pinCipheringKif = *mSecuritySetting->getPinModificationCipheringKif();
+            pinCipheringKvc = *mSecuritySetting->getPinModificationCipheringKvc();
         }
     }
 
@@ -475,7 +475,7 @@ const std::vector<uint8_t> SamCommandProcessor::getCipheredPinData(
          */
         samCommands.push_back(
             std::make_shared<CmdSamSelectDiversifier>(mSamProductType,
-                                                      mCalypsoCard->getCalypsoSerialNumberFull()));
+                                                      mCard->getCalypsoSerialNumberFull()));
         mIsDiversificationDone = true;
     }
 
@@ -513,7 +513,7 @@ const std::vector<uint8_t> SamCommandProcessor::getSvComplementaryData(
          */
         samCommands.push_back(
             std::make_shared<CmdSamSelectDiversifier>(mSamProductType,
-                                                      mCalypsoCard->getCalypsoSerialNumberFull()));
+                                                      mCard->getCalypsoSerialNumberFull()));
         mIsDiversificationDone = true;
     }
 

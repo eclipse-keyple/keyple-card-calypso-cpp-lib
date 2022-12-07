@@ -13,7 +13,7 @@
 #include "CalypsoSamSelectionAdapter.h"
 
 /* Calypsonet Terminal Calypso */
-#include "DesynchronizedExchangesException.h"
+#include "InconsistentDataException.h"
 
 /* Calypsonet Terminal Card */
 #include "ParseException.h"
@@ -74,7 +74,7 @@ const std::shared_ptr<SmartCardSpi> CalypsoSamSelectionAdapter::parse(
         /* An unlock command has been requested */
         if (cardSelectionResponse->getCardResponse() == nullptr ||
             cardSelectionResponse->getCardResponse()->getApduResponses().empty()) {
-            throw DesynchronizedExchangesException("Mismatch in the number of requests/responses");
+            throw InconsistentDataException("Mismatch in the number of requests/responses");
         }
 
         const std::shared_ptr<ApduResponseApi> apduResponse =

@@ -81,53 +81,24 @@ using namespace keyple::core::util::cpp;
  *
  * @since 2.0.0
  */
-class CardTransactionManagerAdapter final : public CardTransactionManager {
+class CardTransactionManagerAdapter final 
+: public CommonTransactionManagerAdapter<CardTransactionManager, CardSecuritySetting>
+  public CardTransactionManager {
 public:
     /**
-     *
-     */
-    enum class SessionState {
-        /**
-         * Initial state of a card transaction. The card must have been previously selected
-         */
-        SESSION_UNINITIALIZED,
-
-        /**
-         * The secure session is active
-         */
-        SESSION_OPEN,
-
-        /**
-         * The secure session is closed
-         */
-        SESSION_CLOSED
-    };
-
-    /**
      * (package-private)<br>
-     * Creates an instance of CardTransactionManager for secure operations.
-     *
-     * <p>Secure operations are enabled by the presence of CardSecuritySetting.
-     *
-     * @param cardReader The reader through which the card communicates.
-     * @param calypsoCard The initial card data provided by the selection process.
-     * @param cardSecuritySetting The security settings.
-     * @since 2.0.0
-     */
-    CardTransactionManagerAdapter(
-        const std::shared_ptr<CardReader> cardReader,
-        const std::shared_ptr<CalypsoCard> calypsoCard,
-        const std::shared_ptr<CardSecuritySettingAdapter> cardSecuritySetting);
-
-    /**
-     * Creates an instance of CardTransactionManager for non-secure operations.
+     * Creates an instance of CardTransactionManager.
+     * 
+     * <p>Secure operations are enabled by the presence of {@link CardSecuritySetting}.
      *
      * @param cardReader The reader through which the card communicates.
-     * @param calypsoCard The initial card data provided by the selection process.
+     * @param card The initial card data provided by the selection process.
+     * @param securitySetting The security settings.
      * @since 2.0.0
      */
-    CardTransactionManagerAdapter(const std::shared_ptr<CardReader> cardReader,
-                                  const std::shared_ptr<CalypsoCard> calypsoCard);
+    CardTransactionManagerAdapter(const std::shared_ptr<ProxyReaderApi> cardReader,
+                                  const std::shared_ptr<CalypsoCardAdapter> card,
+                                  const std::shared_ptr<CardSecuritySettingAdapter> securitySetting);
 
     /**
      * {@inheritDoc}
@@ -153,13 +124,6 @@ public:
     /**
      * {@inheritDoc}
      *
-     * @since 2.1.1
-     */
-    const std::vector<std::vector<uint8_t>>& getTransactionAuditData() const override;
-
-    /**
-     * {@inheritDoc}
-     *
      * @since 2.0.0
      */
     CardTransactionManager& processOpening(const WriteAccessLevel writeAccessLevel) final;
@@ -167,7 +131,38 @@ public:
     /**
      * {@inheritDoc}
      *
+     * @since 2.2.0
+     */
+    const std::shared_ptr<CardSecuritySetting> getSecuritySetting() const override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.0
+     */
+    CardTransactionManager& prepareComputeSignature(
+        const std::shared_ptr<SignatureComputationData> data) override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.0
+     */
+    CardTransactionManager& prepareVerifySignature(
+        const std::shared_ptr<SignatureVerificationData> data) override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.0
+     */
+    CardTransactionManager& processCommands() final;
+
+    /**
+     * {@inheritDoc}
+     *
      * @since 2.0.0
+     * @deprecated Use processCommands() instead.
      */
     CardTransactionManager& processCardCommands() final;
 
@@ -488,17 +483,47 @@ public:
 
     /**
      * (package-private)<br>
-     * Stores the provided exchanged APDU commands in the provided list of transaction audit data.
+     * Add a StoredValue command to the list.
      *
-     * @param cardRequest The card request.
-     * @param cardResponse The associated card response.
-     * @param transactionAuditData The list to complete.
-     * @since 2.1.1
+     * <p>Set up a mini state machine to manage the scheduling of Stored Value commands.
+     *
+     * <p>The {@link SvOperation} and {@link SvAction} are also used to check the consistency of the
+     * SV process.
+     *
+     * <p>The svOperationPending flag is set when an SV operation (Reload/Debit/Undebit) command is
+     * added.
+     *
+     * @param command the StoredValue command.
+     * @param svOperation the type of the current SV operation (Reload/Debit/Undebit).
+     * @throw IllegalStateException if the provided command is not an SV command or not properly
+     *        used.
+     * @since 2.0.0
      */
-    static void storeTransactionAuditData(
-        std::shared_ptr<CardRequestSpi> cardRequest, 
-        std::shared_ptr<CardResponseApi> cardResponse, 
-        std::vector<std::vector<uint8_t>>& transactionAuditData);
+    void addStoredValueCommand(const std::shared_ptr<AbstractCardCommand> command, 
+                               const SvOperation svOperation);
+
+    /**
+     * (package-private)<br>
+     * Informs that the commands have been processed.
+     *
+     * <p>Just record the information. The initialization of the list of commands will be done only
+     * the next time a command is added, this allows access to the commands contained in the list.
+     *
+     * @since 2.0.0
+     */
+    void notifyCommandsProcessed();
+
+    /**
+     * (package-private)<br>
+     * Indicates whether an SV Operation has been completed (Reload/Debit/Undebit requested) <br>
+     * This method is dedicated to triggering the signature verification after an SV transaction has
+     * been executed. It is a single-use method, as the flag is systematically reset to false after it
+     * is called.
+     *
+     * @return True if a "reload" or "debit" command has been requested
+     * @since 2.0.0
+     */
+    bool isSvOperationCompleteOneTime();
 
     /**
      *
@@ -564,17 +589,18 @@ private:
     /**
      * Prefix/suffix used to compose exception messages
      */
-    static const std::string CARD_READER_COMMUNICATION_ERROR;
-    static const std::string CARD_COMMUNICATION_ERROR;
-    static const std::string CARD_COMMAND_ERROR;
-    static const std::string SAM_READER_COMMUNICATION_ERROR ;
-    static const std::string SAM_COMMUNICATION_ERROR;
-    static const std::string SAM_COMMAND_ERROR;
-    static const std::string PIN_NOT_AVAILABLE_ERROR;
-    static const std::string GENERATING_OF_THE_PIN_CIPHERED_DATA_ERROR;
-    static const std::string GENERATING_OF_THE_KEY_CIPHERED_DATA_ERROR;
-    static const std::string TRANSMITTING_COMMANDS;
-    static const std::string CHECKING_THE_SV_OPERATION;
+    static const std::string MSG_CARD_READER_COMMUNICATION_ERROR;
+    static const std::string MSG_CARD_COMMUNICATION_ERROR;
+    static const std::string MSG_CARD_COMMAND_ERROR;
+
+    static const std::string MSG_WHILE_GENERATING_OF_THE_PIN_CIPHERED_DATA;
+    static const std::string MSG_WHILE_GENERATING_OF_THE_KEY_CIPHERED_DATA;
+    static const std::string MSG_WHILE_CHECKING_THE_SV_OPERATION;
+
+    static const std::string MSG_PIN_NOT_AVAILABLE;
+    static const std::string MSG_CARD_SIGNATURE_NOT_VERIFIABLE;
+    static const std::string MSG_CARD_SIGNATURE_NOT_VERIFIABLE_SV;
+
     static const std::string RECORD_NUMBER;
     static const std::string OFFSET;
 
@@ -595,30 +621,25 @@ private:
      * Final fields
      */
     const std::shared_ptr<ProxyReaderApi> mCardReader;
-    const std::shared_ptr<CalypsoCardAdapter> mCalypsoCard;
-    const std::shared_ptr<CardCommandManager> mCardCommandManager;
-    const std::shared_ptr<CardSecuritySettingAdapter> mCardSecuritySetting;
-    const std::shared_ptr<SamCommandProcessor> mSamCommandProcessor;
-    std::vector<std::vector<uint8_t>> mTransactionAuditData;
+    const std::shared_ptr<CalypsoCardAdapter> mCard;
+    const std::shared_ptr<CardSecuritySettingAdapter> mSecuritySetting;
+    std::shared_ptr<ControlSamTransactionManagerAdapter> mControlSamTransactionManager;
+    std::shared_ptr<SamCommandProcessor> mSamCommandProcessor;
+    std::vector<std::shared_ptr<AbstractCardCommand>> mCardCommands;
 
     /**
      * Dynamic fields
      */
-    ChannelControl mChannelControl;
-    SessionState mSessionState;
+    bool mIsSessionOpen;
+    WriteAccessLevel mWriteAccessLevel = WriteAccessLevel::DEBIT; /* MSVC: default value required */
+    ChannelControl mChannelControl = ChannelControl::KEEP_OPEN;
     int mModificationsCounter;
-    WriteAccessLevel mCurrentWriteAccessLevel;
-    SvAction mSvAction;
-    bool mIsSvOperationInsideSession;
-
-    /**
-     * Create an ApduRequestAdapter List from a AbstractCardCommand List.
-     *
-     * @param cardCommands a list of card commands.
-     * @return An empty list if there is no command.
-     */
-    const std::vector<std::shared_ptr<ApduRequestSpi>> getApduRequests(
-        const std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands);
+    SvOperation mSvOperation;
+    SvAction mSvAction = SvAction::DO; /* MSVC:default value required */
+    CalypsoCardCommand mSvLastCommandRef;
+    std::shared_ptr<AbstractCardCommand> mSvLastModifyingCommand;
+    bool mIsSvOperationInsideSession = false;
+    bool mIsSvOperationComplete = false;
 
     /**
      * (private)<br>
@@ -637,8 +658,6 @@ private:
      * @param cardCommands the card commands inside session.
      * @param channelControl indicated if the card channel of the card reader must be closed after
      *        the last command.
-     * @throw CardTransactionException if a functional error occurs (including card and SAM IO
-     *        errors)
      */
     void processAtomicCardCommands(
         const std::vector<std::shared_ptr<AbstractCardCommand>> cardCommands,
@@ -649,7 +668,7 @@ private:
      * Throws an exception if the multiple session is not enabled.
      *
      * @param command The command.
-     * @throw AtomicTransactionException If the multiple session is not allowed.
+     * @throw SessionBufferOverflowException If the multiple session is not allowed.
      */
     void checkMultipleSessionEnabled(std::shared_ptr<AbstractCardCommand> command) const;
 
@@ -660,9 +679,6 @@ private:
      * @param currentPin The current PIN.
      * @param newPin The new PIN, or null in case of a PIN presentation.
      * @return A not null array.
-     * @throw SamIOException If the communication with the SAM or the SAM reader failed (only for SV
-     *        operations).
-     * @throw SamAnomalyException If a SAM error occurs (only for SV operations).
      */
     const std::vector<uint8_t> getSamCipherPinData(const std::vector<uint8_t>& currentPin,
                                                    const std::vector<uint8_t>& newPin);
@@ -714,8 +730,6 @@ private:
      *        ratification command must be sent.
      * @param channelControl indicates if the card channel of the card reader must be closed after
      *        the last command.
-     * @throw CardTransactionException if a functional error occurs (including card and SAM IO
-     *        errors)
      */
     void processAtomicClosing(
         const std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands,
@@ -793,20 +807,16 @@ private:
      *
      * @param channelControl indicates if the card channel of the card reader must be closed after
      *        the last command.
-     * @throw CardTransactionException if a functional error occurs (including card and SAM IO
-     *        errors)
      */
-    void processCardCommandsOutOfSession(const ChannelControl channelControl);
+    void processCommandsOutsideSession(const ChannelControl channelControl);
 
     /**
+     * (private)<br>
      * Process all prepared card commands in a Secure Session.
      *
      * <p>The multiple session mode is handled according to the session settings.
-     *
-     * @throw CardTransactionException if a functional error occurs (including card and SAM IO
-     *        errors)
      */
-    void processCardCommandsInSession();
+    void processCommandsInsideSession();
 
     /**
      * (private)<br>
@@ -815,48 +825,30 @@ private:
      * @param cardRequest The card request to transmit.
      * @param channelControl The channel control.
      * @return The card response.
-     * @throw CardIOException If the communication with the card or the card reader failed.
-     * @throw SamIOException If the communication with the SAM or the SAM reader failed (only for SV
-     *        operations).
-     * @throw SamAnomalyException If a SAM error occurs (only for SV operations).
      */
     const std::shared_ptr<CardResponseApi> transmitCardRequest(
         const std::shared_ptr<CardRequestSpi> cardRequest, const ChannelControl channelControl);
 
     /**
-     * (private)<br>
-     * Returns a string representation of the transaction audit data.
-     *
-     * @return A not empty string.
-     */
-    const std::string getTransactionAuditDataAsString() const;
-
-    /**
      * Gets the terminal challenge from the SAM, and raises exceptions if necessary.
      * (private)<br>
      * Finalizes the last SV modifying command.
-     *
-     * @throw SamIOException If the communication with the SAM or the SAM reader failed.
-     * @throw SamAnomalyException If a SAM error occurs.
      */
     void finalizeSvCommand();
 
     /**
+     * (private)<br>
      * Gets the SAM challenge from the SAM, and raises exceptions if necessary.
      *
      * @return A not null reference.
-     * @throw SamAnomalyException If SAM returned an unexpected response.
-     * @throw SamIOException If the communication with the SAM or the SAM reader failed.
      */
     const std::vector<uint8_t> getSamChallenge();
 
     /**
+     * (private)<br>
      * Gets the terminal signature from the SAM, and raises exceptions if necessary.
      *
      * @return A not null reference.
-     * @throw SamAnomalyException If SAM returned an unexpected response.
-     * @throw SamIOException If the communication with the SAM or the SAM reader failed.
-     * @throw DesynchronizedExchangesException if the APDU SAM exchanges are out of sync.
      */
     const std::vector<uint8_t> getSessionTerminalSignature();
 
@@ -865,29 +857,25 @@ private:
      * Ask the SAM to verify the signature of the card, and raises exceptions if necessary.
      *
      * @param cardSignature The card signature.
-     * @throw SessionAuthenticationException If the card authentication failed.
-     * @throw SamAnomalyException If SAM returned an unexpected response.
-     * @throw SamIOException If the communication with the SAM or the SAM reader failed.
      */
     void checkCardSignature(const std::vector<uint8_t>& cardSignature);
 
     /**
+     * (private)<br>
      * Ask the SAM to verify the SV operation status from the card postponed data, raises exceptions
      * if needed.
      *
      * @param cardPostponedData The postponed data from the card.
-     * @throw SvAuthenticationException If the SV verification failed.
-     * @throw SamAnomalyException If SAM returned an unexpected response.
-     * @throw SamIOException If the communication with the SAM or the SAM reader failed.
      */
     void checkSvOperationStatus(const std::vector<uint8_t>& cardPostponedData);
 
     /**
+     * (private)<br>
      * Checks if a Secure Session is open, raises an exception if not
      *
      * @throw IllegalStateException if no session is open
      */
-    void checkSessionOpen();
+    void checkSession();
 
     /**
      * (private)<br>
@@ -895,7 +883,7 @@ private:
      *
      * @throw IllegalStateException if a session is open
      */
-    void checkSessionNotOpen();
+    void checkNoSession();
 
     /** (private)<br>
      * Computes the session buffer size of the provided command.<br>
@@ -938,28 +926,38 @@ private:
                                                              const int incDecValue);
 
     /**
-     * (private)
-     *
-     * <p>Factorisation of prepareDecreaseMultipleCounters and prepareIncreaseMultipleCounters.
+     * (private)<br>
+     * Factorisation of prepareDecreaseMultipleCounters and prepareIncreaseMultipleCounters.
      */
     CardTransactionManager& prepareIncreaseOrDecreaseCounters(
         const bool isDecreaseCommand,
         const uint8_t sfi,
         const std::map<const int, const int>& counterNumberToIncDecValueMap);
 
+
+
+    /**
+     * (private)<br>
+     * Checks if the control SAM is set.
+     * 
+     * @throw IllegalStateException If control SAM is not set.
+     */
+    void checkControlSam() const override;
+
+    /**
+     * (private)<br>
+     * Process the eventually prepared SAM commands if control SAM is set.
+     */
+    void processPreparedControlSamCommands();
+
     /**
      * (private)<br>
      * Open a single Secure Session.
      *
-     * @param writeAccessLevel access level of the session (personalization, load or debit).
      * @param cardCommands the card commands inside session.
      * @throw IllegalStateException if no CardSecuritySetting is available.
-     * @throw CardTransactionException if a functional error occurs (including card and SAM IO
-     *        errors).
      */
-    void processAtomicOpening(
-        const WriteAccessLevel writeAccessLevel,
-        std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands);
+    void processAtomicOpening(std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands);
 
     /**
      * (private)<br>

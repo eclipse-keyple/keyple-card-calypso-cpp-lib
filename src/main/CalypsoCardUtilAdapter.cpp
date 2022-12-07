@@ -13,7 +13,7 @@
 #include "CalypsoCardUtilAdapter.h"
 
 /* Calypsonet Terminal Calypso */
-#include "DesynchronizedExchangesException.h"
+#include "InconsistentDataException.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoCardCommand.h"
@@ -178,7 +178,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
      * desynchronized exception.
      */
     if (apduResponses.size() > commands.size()) {
-        throw DesynchronizedExchangesException(
+        throw InconsistentDataException(
                   "The number of commands/responses does not match: nb commands = " +
                   std::to_string(commands.size()) +
                   ", nb responses = " +
@@ -202,7 +202,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
      * throw a desynchronized exception.
      */
     if (apduResponses.size() < commands.size()) {
-        throw DesynchronizedExchangesException(
+        throw InconsistentDataException(
                   "The number of commands/responses does not match: nb commands = " +
                   std::to_string(commands.size()) +
                   ", nb responses = " +
