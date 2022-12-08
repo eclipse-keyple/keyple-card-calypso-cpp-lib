@@ -64,6 +64,9 @@ ADD_EXECUTABLE(
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoExtensionServiceTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamSelectionAdapterTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardTransactionManagerAdapterTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FileDataAdapterTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SvDebitLogRecordTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SvLoadLogRecordTest.cpp
 )
 
 # Add Google Test

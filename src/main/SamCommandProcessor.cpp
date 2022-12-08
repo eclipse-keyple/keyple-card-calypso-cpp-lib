@@ -44,7 +44,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "Arrays.h"
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalStateException.h"
 #include "KeypleAssert.h"
 #include "System.h"
@@ -116,7 +116,7 @@ const std::vector<uint8_t> SamCommandProcessor::getChallenge()
 
     /* Retrieve the SAM challenge */
     const std::vector<uint8_t> samChallenge = cmdSamGetChallenge->getChallenge();
-    mLogger->debug("identification: TERMINALCHALLENGE=%\n", ByteArrayUtil::toHex(samChallenge));
+    mLogger->debug("identification: TERMINALCHALLENGE=%\n", HexUtil::toHex(samChallenge));
 
     return samChallenge;
 }
@@ -173,7 +173,7 @@ void SamCommandProcessor::initializeDigester(const bool isSessionEncrypted,
     mLogger->debug("initialize: KIF=%, KVC=%, DIGESTDATA=%\n",
                    kif,
                    kvc,
-                   ByteArrayUtil::toHex(digestData));
+                   HexUtil::toHex(digestData));
 
     /* Clear data cache */
     mCardDigestDataCache.clear();
@@ -303,7 +303,7 @@ const std::vector<uint8_t> SamCommandProcessor::getTerminalSignature()
         std::dynamic_pointer_cast<CmdSamDigestClose>(samCommands[samCommands.size() - 1])
             ->getSignature();
 
-    mLogger->debug("SIGNATURE=%\n", ByteArrayUtil::toHex(terminalSignature));
+    mLogger->debug("SIGNATURE=%\n", HexUtil::toHex(terminalSignature));
 
     return terminalSignature;
 }
@@ -342,11 +342,11 @@ void SamCommandProcessor::transmitCommands(
         cardResponse = e.getCardResponse();
     }
 
-    CardTransactionManagerAdapter::saveTransactionAuditData(cardRequest, 
-                                                            cardResponse, 
+    CardTransactionManagerAdapter::saveTransactionAuditData(cardRequest,
+                                                            cardResponse,
                                                             mTransactionAuditData);
 
-    const std::vector<std::shared_ptr<ApduResponseApi>> apduResponses = 
+    const std::vector<std::shared_ptr<ApduResponseApi>> apduResponses =
         cardResponse->getApduResponses();
 
     /*
@@ -357,8 +357,8 @@ void SamCommandProcessor::transmitCommands(
     if (apduResponses.size() > apduRequests.size()) {
         throw InconsistentDataException("The number of SAM commands/responses does not " \
                                         "match: nb commands = " +
-                                        std::to_string(apduRequests.size()) + 
-                                        ", nb responses = " + 
+                                        std::to_string(apduRequests.size()) +
+                                        ", nb responses = " +
                                         std::to_string(apduResponses.size()));
     }
 
@@ -377,9 +377,9 @@ void SamCommandProcessor::transmitCommands(
      */
     if (apduResponses.size() < apduRequests.size()) {
         throw InconsistentDataException("The number of SAM commands/responses does not " \
-                                        "match: nb commands = " + 
+                                        "match: nb commands = " +
                                         std::to_string(apduRequests.size()) +
-                                        ", nb responses = " + 
+                                        ", nb responses = " +
                                         std::to_string(apduResponses.size()));
     }
 }
@@ -576,7 +576,7 @@ void SamCommandProcessor::checkSvStatus(const std::vector<uint8_t>& svOperationR
     std::vector<std::shared_ptr<AbstractSamCommand>> samCommands;
     samCommands.push_back(
         std::make_shared<CmdSamSvCheck>(mSamProductType, svOperationResponseData));
-    
+
     transmitCommands(samCommands);
 }
 

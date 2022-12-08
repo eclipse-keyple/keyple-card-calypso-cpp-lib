@@ -19,7 +19,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "BerTlvUtil.h"
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 
 namespace keyple {
 namespace card {
@@ -80,7 +80,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
          * CL-TLV-VAR.1
          * CL-TLV-ORDER.1
          */
-        const std::map<const int, const std::vector<uint8_t>> tags = 
+        const std::map<const int, const std::vector<uint8_t>> tags =
             BerTlvUtil::parseSimple(responseData, true);
 
         auto it = tags.find(TAG_DF_NAME);
@@ -97,7 +97,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
             return *this;
         }
 
-        mLogger->debug("DF name = %\n", ByteArrayUtil::toHex(mDfName));
+        mLogger->debug("DF name = %\n", HexUtil::toHex(mDfName));
 
         it = tags.find(TAG_APPLICATION_SERIAL_NUMBER);
         if (it == tags.end()) {
@@ -114,7 +114,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
             return *this;
         }
 
-        mLogger->debug("Application Serial Number = %\n", ByteArrayUtil::toHex(mApplicationSN));
+        mLogger->debug("Application Serial Number = %\n", HexUtil::toHex(mApplicationSN));
 
         it = tags.find(TAG_DISCRETIONARY_DATA);
         if (it == tags.end()) {
@@ -130,7 +130,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
             return *this;
         }
 
-        mLogger->debug("Discretionary Data = %\n", ByteArrayUtil::toHex(mDiscretionaryData));
+        mLogger->debug("Discretionary Data = %\n", HexUtil::toHex(mDiscretionaryData));
 
         /* All 3 main fields were retrieved */
         mIsValidCalypsoFCI = true;

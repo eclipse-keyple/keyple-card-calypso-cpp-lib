@@ -17,7 +17,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "Arrays.h"
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "System.h"
 
 /* Keyple Card Calypso */
@@ -96,8 +96,8 @@ CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
               << "OFFSET:" << data->getOffset() << ", "
               << "REPEATED_OFFSET:" << data->isEnableRepeatedOffset() << ", "
               << "FETCH_FIRST_RESULT:" << data->isFetchFirstMatchingResult() << ", "
-              << "SEARCH_DATA:" << ByteArrayUtil::toHex(data->getSearchData()) << "h, "
-              << "MASK:" << ByteArrayUtil::toHex(data->getMask()) << "h";
+              << "SEARCH_DATA:" << HexUtil::toHex(data->getSearchData()) << "h, "
+              << "MASK:" << HexUtil::toHex(data->getMask()) << "h";
 
     addSubName(extraInfo.str());
 }

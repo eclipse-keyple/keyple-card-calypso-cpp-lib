@@ -16,7 +16,7 @@
 #include "FileHeader.h"
 
 /* Keyple Core Util */
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalArgumentException.h"
 #include "IllegalStateException.h"
 #include "KeypleStd.h"
@@ -93,7 +93,7 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
      * FCI is not provided: we consider it is Calypso card rev 1, it's serial number is provided in
      * the ATR.
      */
-    const std::vector<uint8_t> atr = ByteArrayUtil::fromHex(powerOnData);
+    const std::vector<uint8_t> atr = HexUtil::toByteArray(powerOnData);
 
     /* Basic check: we expect to be here following a selection based on the ATR */
     if (atr.size() != CARD_REV1_ATR_LENGTH) {
@@ -104,7 +104,7 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
     mCalypsoSerialNumber = std::vector<uint8_t>(8);
 
     /*
-     * Old cards have their modification counter expressed in number of commands the array is 
+     * Old cards have their modification counter expressed in number of commands the array is
      * initialized with 0 (cf. default value for primitive types).
      */
     System::arraycopy(atr, 12, mCalypsoSerialNumber, 4, 4);
@@ -382,7 +382,7 @@ int CalypsoCardAdapter::getTransactionCounter() const
     return *mTransactionCounter.get();
 }
 
-void CalypsoCardAdapter::setTransactionCounter(const int transactionCounter) 
+void CalypsoCardAdapter::setTransactionCounter(const int transactionCounter)
 {
     mTransactionCounter = std::make_shared<int>(transactionCounter);
 }
@@ -468,7 +468,7 @@ const std::vector<std::shared_ptr<SvDebitLogRecord>> CalypsoCardAdapter::getSvDe
         return svDebitLogRecords;
     }
 
-    const std::map<const uint8_t, std::vector<uint8_t>>& logRecords = 
+    const std::map<const uint8_t, std::vector<uint8_t>>& logRecords =
         ef->getData()->getAllRecordsContent();
     for (const auto& entry : logRecords) {
         svDebitLogRecords.push_back(std::make_shared<SvDebitLogRecordAdapter>(entry.second, 0));

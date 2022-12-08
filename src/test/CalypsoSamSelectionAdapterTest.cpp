@@ -24,7 +24,7 @@
 #include "CalypsoSamSelectionAdapter.h"
 
 /* Keyple Core Utils */
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalArgumentException.h"
 #include "StringUtils.h"
 
@@ -140,7 +140,7 @@ TEST(CalypsoSamSelectionAdapterTest, setUnlockData_whenUnlockData_shouldProduceU
         samSelection->getCardSelectionRequest()->getCardRequest()->getApduRequests()[0]->getApdu();
 
     ASSERT_EQ(unlockDataApdu,
-              ByteArrayUtil::fromHex("802000001000112233445566778899AABBCCDDEEFF"));
+              HexUtil::toByteArray("802000001000112233445566778899AABBCCDDEEFF"));
 
     tearDown();
 }
@@ -173,7 +173,7 @@ TEST(CalypsoSamSelectionAdapterTest, parse_whenUnlockFailed_shouldThrowParseExce
     const std::vector<std::shared_ptr<ApduResponseApi>> apduResponseApis = {apduResponseApi};
     EXPECT_CALL(*cardSelectionResponseApi, getPowerOnData()).WillRepeatedly(ReturnRef(SAM_ATR));
     auto unlockApduResponse = std::make_shared<ApduResponseApiMock>();
-    EXPECT_CALL(*unlockApduResponse, getApdu()).WillRepeatedly(ReturnRefOfCopy(ByteArrayUtil::fromHex("6988")));
+    EXPECT_CALL(*unlockApduResponse, getApdu()).WillRepeatedly(ReturnRefOfCopy(HexUtil::toByteArray("6988")));
     EXPECT_CALL(*unlockApduResponse, getStatusWord()).WillRepeatedly(Return(0x6988));
     EXPECT_CALL(*cardSelectionResponseApi, getSelectApplicationResponse()).WillRepeatedly(Return(unlockApduResponse));
     EXPECT_CALL(*cardSelectionResponseApi, getCardResponse()).WillRepeatedly(Return(cardResponseApi));
@@ -196,7 +196,7 @@ TEST(CalypsoSamSelectionAdapterTest, parse_whenUnlockSucceed_shouldReturnCalypso
     EXPECT_CALL(*cardSelectionResponseApi, getPowerOnData()).WillRepeatedly(ReturnRef(SAM_ATR));
     auto unlockApduResponse = std::make_shared<ApduResponseApiMock>();
     const std::vector<std::shared_ptr<ApduResponseApi>> apduResponseApis = {unlockApduResponse};
-    EXPECT_CALL(*unlockApduResponse, getApdu()).WillRepeatedly(ReturnRefOfCopy(ByteArrayUtil::fromHex("9000")));
+    EXPECT_CALL(*unlockApduResponse, getApdu()).WillRepeatedly(ReturnRefOfCopy(HexUtil::toByteArray("9000")));
     EXPECT_CALL(*unlockApduResponse, getStatusWord()).WillRepeatedly(Return(0x9000));
     EXPECT_CALL(*cardSelectionResponseApi, getSelectApplicationResponse()).WillRepeatedly(Return(unlockApduResponse));
     EXPECT_CALL(*cardSelectionResponseApi, getCardResponse()).WillRepeatedly(Return(cardResponseApi));
@@ -211,7 +211,7 @@ TEST(CalypsoSamSelectionAdapterTest, parse_whenUnlockSucceed_shouldReturnCalypso
 
     ASSERT_NE(calypsoSam, nullptr);
     ASSERT_EQ(calypsoSam->getProductType(), CalypsoSam::ProductType::SAM_C1);
-    ASSERT_EQ(calypsoSam->getSerialNumber(), ByteArrayUtil::fromHex("11223344"));
+    ASSERT_EQ(calypsoSam->getSerialNumber(), HexUtil::toByteArray("11223344"));
     ASSERT_EQ(calypsoSam->getPlatform(), 0xAA);
     ASSERT_EQ(calypsoSam->getApplicationType(), 0xBB);
     ASSERT_EQ(calypsoSam->getApplicationSubType(), 0xC1);

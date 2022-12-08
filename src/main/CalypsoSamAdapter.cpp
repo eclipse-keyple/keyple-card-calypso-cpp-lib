@@ -15,7 +15,7 @@
 #include <sstream>
 
 /* Keyple Core Util */
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalStateException.h"
 #include "Pattern.h"
 #include "System.h"
@@ -49,7 +49,7 @@ CalypsoSamAdapter::CalypsoSamAdapter(
     /* To use */
     std::unique_ptr<Matcher> matcher = pattern->matcher(mPowerOnData);
     if (matcher->find(0)) {
-        const std::vector<uint8_t> atrSubElements = ByteArrayUtil::fromHex(matcher->group(2));
+        const std::vector<uint8_t> atrSubElements = HexUtil::toByteArray(matcher->group(2));
         mPlatform = atrSubElements[0];
         mApplicationType = atrSubElements[1];
         mApplicationSubType = atrSubElements[2];
@@ -86,7 +86,7 @@ CalypsoSamAdapter::CalypsoSamAdapter(
            << "SWVERSION = " << mSoftwareVersion << "h, "
            << "SWREVISION = " << mSoftwareRevision;
         mLogger->trace("%\n", ss.str());
-        mLogger->trace("SAM SERIALNUMBER = %\n", ByteArrayUtil::toHex(mSerialNumber));
+        mLogger->trace("SAM SERIALNUMBER = %\n", HexUtil::toHex(mSerialNumber));
 
     } else {
         mSamProductType = ProductType::UNKNOWN;
@@ -149,7 +149,7 @@ CalypsoSam::ProductType CalypsoSamAdapter::getProductType() const
 const std::string CalypsoSamAdapter::getProductInfo() const
 {
     std::stringstream ss;
-    ss << "Type: " << getProductType() << ", S/N: " << ByteArrayUtil::toHex(getSerialNumber());
+    ss << "Type: " << getProductType() << ", S/N: " << HexUtil::toHex(getSerialNumber());
 
     return ss.str();
 }

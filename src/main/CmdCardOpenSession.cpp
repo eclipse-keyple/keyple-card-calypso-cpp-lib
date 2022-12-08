@@ -397,7 +397,7 @@ const std::vector<uint8_t>& CmdCardOpenSession::getCardChallenge() const
 
 int CmdCardOpenSession::getTransactionCounterValue() const
 {
-    return ByteArrayUtil::threeBytesToInt(mSecureSession->getChallengeTransactionCounter(), 0);
+    return ByteArrayUtil::extractInt(mSecureSession->getChallengeTransactionCounter(), 0, 3, false);
 }
 
 bool CmdCardOpenSession::wasRatified() const

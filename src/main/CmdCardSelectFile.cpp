@@ -19,7 +19,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "BerTlvUtil.h"
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalStateException.h"
 #include "KeypleAssert.h"
 
@@ -105,7 +105,7 @@ CmdCardSelectFile::CmdCardSelectFile(const CalypsoCardClass calypsoCardClass,
                             dataIn,
                             0x00)));
 
-    addSubName("LID=" + ByteArrayUtil::toHex(dataIn));
+    addSubName("LID=" + HexUtil::toHex(dataIn));
 }
 
 bool CmdCardSelectFile::isSessionBufferUsed() const

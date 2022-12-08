@@ -22,7 +22,7 @@
 
 /* Keyple Core Util */
 #include "Arrays.h"
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalArgumentException.h"
 
 /* Mock */
@@ -175,7 +175,7 @@ TEST(CalypsoCardSelectionAdapterTest,
     const std::shared_ptr<ApduRequestSpi> commandApdu =
         cardSelectionRequest->getCardRequest()->getApduRequests()[0];
 
-    ASSERT_EQ(commandApdu->getApdu(), ByteArrayUtil::fromHex("00A4090002123400"));
+    ASSERT_EQ(commandApdu->getApdu(), HexUtil::toByteArray("00A4090002123400"));
 
     tearDown();
 }
@@ -193,7 +193,7 @@ TEST(CalypsoCardSelectionAdapterTest,
     const std::shared_ptr<ApduRequestSpi> commandApdu =
         cardSelectionRequest->getCardRequest()->getApduRequests()[0];
 
-    ASSERT_EQ(commandApdu->getApdu(), ByteArrayUtil::fromHex("00A4020202000000"));
+    ASSERT_EQ(commandApdu->getApdu(), HexUtil::toByteArray("00A4020202000000"));
 
     tearDown();
 }
@@ -211,7 +211,7 @@ TEST(CalypsoCardSelectionAdapterTest,
     const std::shared_ptr<ApduRequestSpi> commandApdu =
         cardSelectionRequest->getCardRequest()->getApduRequests()[0];
 
-    ASSERT_EQ(commandApdu->getApdu(), ByteArrayUtil::fromHex("00B2013C00"));
+    ASSERT_EQ(commandApdu->getApdu(), HexUtil::toByteArray("00B2013C00"));
 
     tearDown();
 }
@@ -280,7 +280,7 @@ TEST(CalypsoCardSelectionAdapterTest,
         cardSelection->getCardSelectionRequest();
     const std::shared_ptr<CardSelectorSpi> cardSelector = cardSelectionRequest->getCardSelector();
 
-    ASSERT_EQ(cardSelector->getAid(), ByteArrayUtil::fromHex("6677889900"));
+    ASSERT_EQ(cardSelector->getAid(), HexUtil::toByteArray("6677889900"));
 
     tearDown();
 }

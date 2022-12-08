@@ -17,7 +17,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "Arrays.h"
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalArgumentException.h"
 
 /* Keyple Card Calypso */
@@ -47,7 +47,7 @@ CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCard> caly
         terminalSessionSignature.size() != 4 &&
         terminalSessionSignature.size() != 8) {
         throw IllegalArgumentException("Invalid terminal sessionSignature: " +
-                                       ByteArrayUtil::toHex(terminalSessionSignature));
+                                       HexUtil::toHex(terminalSessionSignature));
     }
 
     const uint8_t p1 = ratificationAsked ? 0x80 : 0x00;
@@ -179,7 +179,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     m.insert({0x6988,
               std::make_shared<StatusProperties>("incorrect signatureLo.",
                                                  typeid(CardSecurityDataException))});
-    
+
     return m;
 }
 

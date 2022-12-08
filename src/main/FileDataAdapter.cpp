@@ -40,7 +40,7 @@ FileDataAdapter::FileDataAdapter(const std::shared_ptr<FileData> source)
     }
 }
 
-const std::map<const uint8_t, std::vector<uint8_t>>& FileDataAdapter::getAllRecordsContent() 
+const std::map<const uint8_t, std::vector<uint8_t>>& FileDataAdapter::getAllRecordsContent()
     const
 {
     return mRecords;
@@ -117,7 +117,7 @@ const std::shared_ptr<int> FileDataAdapter::getContentAsCounterValue(const int n
                                         std::to_string(rec1.size() / 3) + ").");
     }
 
-    return std::make_shared<int>(ByteArrayUtil::threeBytesToInt(rec1, counterIndex));
+    return std::make_shared<int>(ByteArrayUtil::extractInt(rec1, counterIndex, 3, false));
 }
 
 const std::map<const int, const int> FileDataAdapter::getAllCountersValue() const
@@ -134,7 +134,7 @@ const std::map<const int, const int> FileDataAdapter::getAllCountersValue() cons
     const std::vector<uint8_t> rec1 = it->second;
     const int length = static_cast<int>(rec1.size() - (rec1.size() % 3));
     for (int i = 0, c = 1; i < length; i += 3, c++) {
-        result.insert({c, ByteArrayUtil::threeBytesToInt(rec1, i)});
+        result.insert({c, ByteArrayUtil::extractInt(rec1, i, 3, false)});
     }
 
     return result;

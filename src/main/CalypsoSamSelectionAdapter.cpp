@@ -19,7 +19,7 @@
 #include "ParseException.h"
 
 /* Keyple Core Util */
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "KeypleAssert.h"
 #include "PatternSyntaxException.h"
 
@@ -50,7 +50,7 @@ const std::shared_ptr<CardSelectionRequestSpi> CalypsoSamSelectionAdapter::getCa
     /* Prepare the UNLOCK command if unlock data has been defined */
     if (!mUnlockData.empty()) {
         mSamCommands.push_back(
-            std::make_shared<CmdSamUnlock>(mProductType, ByteArrayUtil::fromHex(mUnlockData)));
+            std::make_shared<CmdSamUnlock>(mProductType, HexUtil::toByteArray(mUnlockData)));
         for (const auto& samCommand : mSamCommands) {
             cardSelectionApduRequests.push_back(samCommand->getApduRequest());
         }

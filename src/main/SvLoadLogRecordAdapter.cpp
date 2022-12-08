@@ -14,6 +14,7 @@
 
 /* Keyple Core Util */
 #include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "KeypleStd.h"
 #include "System.h"
 
@@ -35,12 +36,12 @@ const std::vector<uint8_t>& SvLoadLogRecordAdapter::getRawData() const
 
 int SvLoadLogRecordAdapter::getAmount() const
 {
-    return ByteArrayUtil::threeBytesSignedToInt(mCardResponse, mOffset + 8);
+    return ByteArrayUtil::extractInt(mCardResponse, mOffset + 8, 3, true);
 }
 
 int SvLoadLogRecordAdapter::getBalance() const
 {
-    return ByteArrayUtil::threeBytesSignedToInt(mCardResponse, mOffset + 5);
+    return ByteArrayUtil::extractInt(mCardResponse, mOffset + 5, 3, true);
 }
 
 const std::vector<uint8_t> SvLoadLogRecordAdapter::getLoadTime() const
@@ -89,7 +90,7 @@ int SvLoadLogRecordAdapter::getSvTNum() const
     tnNum[0] = mCardResponse[mOffset + 20];
     tnNum[1] = mCardResponse[mOffset + 21];
 
-    return ByteArrayUtil::twoBytesToInt(tnNum, 0);
+    return ByteArrayUtil::extractInt(tnNum, 0, 2, false);
 }
 
 int SvLoadLogRecordAdapter::getSamTNum() const
@@ -97,7 +98,7 @@ int SvLoadLogRecordAdapter::getSamTNum() const
     std::vector<uint8_t> samTNum(3);
     System::arraycopy(mCardResponse, mOffset + 17, samTNum, 0, 3);
 
-    return ByteArrayUtil::threeBytesToInt(samTNum, 0);
+    return ByteArrayUtil::extractInt(samTNum, 0, 3, false);
 }
 
 std::ostream& operator<<(std::ostream& os, const SvLoadLogRecordAdapter& ra)
@@ -133,14 +134,14 @@ const std::string SvLoadLogRecordAdapter::toJSONString() const
     return "{" \
                "\"amount\":" + std::to_string(getAmount()) + ", " \
                "\"balance\":" + std::to_string(getBalance()) + ", " \
-               "\"debitDate\":" + ByteArrayUtil::toHex(getLoadDate()) + ", " \
-               "\"loadTime\":" + ByteArrayUtil::toHex(getLoadDate())  + ", " \
-               "\"freeBytes\": \"" + ByteArrayUtil::toHex(getFreeData()) + "\", " \
+               "\"debitDate\":" + HexUtil::toHex(getLoadDate()) + ", " \
+               "\"loadTime\":" + HexUtil::toHex(getLoadDate())  + ", " \
+               "\"freeBytes\": \"" + HexUtil::toHex(getFreeData()) + "\", " \
                "\"kvc\":" + std::to_string(getKvc()) + ", " \
-               "\"samId\": \"" + ByteArrayUtil::toHex(getSamId()) + "\", " \
+               "\"samId\": \"" + HexUtil::toHex(getSamId()) + "\", " \
                "\"svTransactionNumber\":" + std::to_string(getSvTNum()) + ", " \
                "\"svSamTransactionNumber\":" + std::to_string(getSamTNum()) + "" \
-            "}";
+           "}";
 }
 
 }
