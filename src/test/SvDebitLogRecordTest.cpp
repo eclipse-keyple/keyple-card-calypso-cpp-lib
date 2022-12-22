@@ -153,6 +153,9 @@ TEST(SvDebitLogRecordTest, toString_shouldContainSamID)
     std::stringstream ss;
     ss << svDebitLogRecordAdapter;
 
+    std::cout << svDebitLogRecordAdapter << std::endl;
+    std::cout << ss.str() << std::endl;
+
     ASSERT_TRUE(StringUtils::contains(ss.str(), SAMID_STR));
 
     tearDown();

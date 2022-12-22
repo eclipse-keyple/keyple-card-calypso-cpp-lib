@@ -34,6 +34,7 @@
 
 /* Mock */
 #include "CalypsoSamMock.h"
+#include "CardSelectionResponseApiMock.h"
 #include "ReaderMock.h"
 
 using namespace testing;
@@ -46,6 +47,7 @@ using namespace keyple::core::util::cpp::exception;
 
 static const std::string POWER_ON_DATA = "3B8F8001805A0A010320031124B77FE7829000F7";
 static const std::string SAM_C1_POWER_ON_DATA = "3B3F9600805A4880C120501711223344829000";
+static const std::string SAM_F1_POWER_ON_DATA = "3B3F9600805A4880F120501711223344829000";
 static std::shared_ptr<CalypsoExtensionService> service = CalypsoExtensionService::getInstance();
 static std::shared_ptr<CalypsoSamSelection> calypsoSamSelection;
 static std::shared_ptr<ReaderMock> reader;
@@ -118,33 +120,57 @@ TEST(CalypsoExtensionServiceTest, createSearchCommandData_shouldReturnNewReferen
     setUp();
 
     const auto data = service->createSearchCommandData();
-    
+
     ASSERT_NE(data, nullptr);
     ASSERT_NE(data, service->createSearchCommandData());
 
     tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, createSignatureComputationData_shouldReturnNewReference) 
+TEST(CalypsoExtensionServiceTest, createBasicSignatureComputationData_shouldReturnNewReference)
 {
     setUp();
 
-    const auto data = service->createSignatureComputationData();
-    
+    const auto data = service->createBasicSignatureComputationData();
+
     ASSERT_NE(data, nullptr);
-    ASSERT_NE(data, service->createSignatureComputationData());
+    ASSERT_NE(data, service->createBasicSignatureComputationData());
 
     tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, createSignatureVerificationData_shouldReturnNewReference)
+TEST(CalypsoExtensionServiceTest, createTraceableSignatureComputationData_shouldReturnNewReference)
 {
     setUp();
 
-    const auto data = service->createSignatureVerificationData();
-    
+    const auto data = service->createTraceableSignatureComputationData();
+
     ASSERT_NE(data, nullptr);
-    ASSERT_NE(data, service->createSignatureVerificationData());
+    ASSERT_NE(data, service->createTraceableSignatureComputationData());
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, createBasicSignatureVerificationData_shouldReturnNewReference)
+{
+    setUp();
+
+    const auto data = service->createBasicSignatureVerificationData();
+
+    ASSERT_NE(data, nullptr);
+    ASSERT_NE(data, service->createBasicSignatureVerificationData());
+
+    tearDown();
+}
+
+TEST(CalypsoExtensionServiceTest, createTraceableSignatureVerificationData_shouldReturnNewReference)
+{
+    setUp();
+
+    const auto data = service->createTraceableSignatureVerificationData();
+
+    ASSERT_NE(data, nullptr);
+    ASSERT_NE(data, service->createTraceableSignatureVerificationData());
 
     tearDown();
 }
@@ -154,7 +180,7 @@ TEST(CalypsoExtensionServiceTest, createCardSelection_shouldReturnNewReference)
     setUp();
 
     const auto selection = service->createCardSelection();
-    
+
     ASSERT_NE(selection, nullptr);
     ASSERT_NE(selection, service->createCardSelection());
 
@@ -178,7 +204,7 @@ TEST(CalypsoExtensionServiceTest, createSamSelection_shouldReturnNewReference)
     setUp();
 
     const auto selection = service->createSamSelection();
-    
+
     ASSERT_NE(selection, nullptr);
     ASSERT_NE(selection, service->createSamSelection());
 
@@ -190,7 +216,7 @@ TEST(CalypsoExtensionServiceTest, createSamSelection_shouldReturnInstanceOfInter
     setUp();
 
     const std::shared_ptr<CalypsoSamSelection> samSelection = service->createSamSelection();
-    
+
     ASSERT_NE(std::dynamic_pointer_cast<CardSelectionSpi>(samSelection), nullptr);
     ASSERT_NE(std::dynamic_pointer_cast<CalypsoSamSelectionAdapter>(samSelection), nullptr);
 
@@ -337,22 +363,22 @@ TEST(CalypsoExtensionServiceTest, createSamSecuritySetting_shouldReturnANewRefer
     setUp();
 
     const auto samSecuritySetting = service->createSamSecuritySetting();
-    
+
     ASSERT_NE(samSecuritySetting, nullptr);
     ASSERT_NE(service->createSamSecuritySetting(), samSecuritySetting);
 
     tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, 
+TEST(CalypsoExtensionServiceTest,
      createSamSecuritySetting_shouldReturnInstanceOfSamSecuritySettingAdapter)
 {
     setUp();
 
     const auto setting = service->createSamSecuritySetting();
     const auto adapter = std::dynamic_pointer_cast<SamSecuritySettingAdapter>(setting);
-    
-    ASSERT_NE(adapter);
+
+    ASSERT_NE(adapter, nullptr);
 
     tearDown();
 }
@@ -367,7 +393,7 @@ TEST(CalypsoExtensionServiceTest, createSamTransaction_whenInvokedWithNullReader
     tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, 
+TEST(CalypsoExtensionServiceTest,
      createSamTransaction_whenInvokedWithNullCalypsoCard_shouldThrowIAE)
 {
     setUp();
@@ -389,15 +415,24 @@ TEST(CalypsoExtensionServiceTest,
     tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, 
+TEST(CalypsoExtensionServiceTest,
      createSamTransaction_whenInvokedWithUndefinedCalypsoSamProductType_shouldThrowIAE)
 {
     setUp();
 
-    EXPECT_CALL(*calypsoSam getProductType())
-        .WillRepeatedly(ReturnRef(CalypsoSam::ProductType.UNKNOWN));
-    
-    EXPECT_THROW(service->createSamTransaction(reader, calypsoSam, samSecuritySetting), 
+    /*
+     * C++: use specific power on data to make sure product type is unknow (we can't create a mock
+     * on a final function.
+     *
+     * EXPECT_CALL(*calypsoSam, getProductType())
+     *    .WillRepeatedly(Return(CalypsoSam::ProductType::UNKNOWN));
+     */
+    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
+    EXPECT_CALL(*samCardSelectionResponse, getPowerOnData())
+        .WillRepeatedly(ReturnRef(SAM_F1_POWER_ON_DATA));
+    calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
+
+    EXPECT_THROW(service->createSamTransaction(reader, calypsoSam, samSecuritySetting),
                  IllegalArgumentException);
 
     tearDown();
@@ -430,9 +465,18 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    EXPECT_CALL(*calypsoSam, getProductType())
-        .WillRepeatedly(ReturnRef(CalypsoSam::ProductType::UNKNOWN));
-    
+    /*
+     * C++: use specific power on data to make sure product type is unknow (we can't create a mock
+     * on a final function.
+     *
+     * EXPECT_CALL(*calypsoSam, getProductType())
+     *    .WillRepeatedly(Return(CalypsoSam::ProductType::UNKNOWN));
+     */
+    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
+    EXPECT_CALL(*samCardSelectionResponse, getPowerOnData())
+        .WillRepeatedly(ReturnRef(SAM_F1_POWER_ON_DATA));
+    calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
+
     EXPECT_THROW(service->createSamTransactionWithoutSecurity(reader, calypsoSam),
                  IllegalArgumentException);
 
@@ -445,7 +489,7 @@ TEST(CalypsoExtensionServiceTest,
     setUp();
 
     const auto samTransaction = service->createSamTransactionWithoutSecurity(reader, calypsoSam);
-    
+
     ASSERT_NE(service->createSamTransactionWithoutSecurity(reader, calypsoSam), samTransaction);
 
     tearDown();

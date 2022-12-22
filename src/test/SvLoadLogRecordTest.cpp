@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 
 /* Calypsonet Terminal Calypso */
-#include "svLoadLogRecordAdapter->h"
+#include "SvLoadLogRecordAdapter.h"
 
 /* Keyple Core Util */
 #include "HexUtil.h"
@@ -167,8 +167,7 @@ TEST(SvLoadLogRecordAdapterTest, toString_shouldContainSamID)
     std::stringstream ss;
     ss << svLoadLogRecordAdapter;
 
-    ASSERT_TRUE(StringUtils::contains(ss.str(), SAMID_STR);
+    ASSERT_TRUE(StringUtils::contains(ss.str(), SAMID_STR));
 
     tearDown();
 }
-

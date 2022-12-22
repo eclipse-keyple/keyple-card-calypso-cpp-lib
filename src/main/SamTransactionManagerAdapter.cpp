@@ -17,20 +17,19 @@ namespace card {
 namespace calypso {
 
 SamTransactionManagerAdapter::SamTransactionManagerAdapter(
-  const std::shared_ptr<ProxyReaderApi> samReader, 
-  const std::shared_ptr<CalypsoSamAdapter> sam, 
+  const std::shared_ptr<ProxyReaderApi> samReader,
+  const std::shared_ptr<CalypsoSamAdapter> sam,
   const std::shared_ptr<SamSecuritySettingAdapter> securitySetting)
 : CommonSamTransactionManagerAdapter(samReader, sam, securitySetting),
   mSecuritySetting(securitySetting),
-  mControlSamTransactionManager(securitySetting != nullptr && 
+  mControlSamTransactionManager(securitySetting != nullptr &&
                                 securitySetting->getControlSam() != nullptr ?
-                                std::make_shared<ControlSamTransactionManagerAdapter>(
-                                    sam, 
-                                    securitySetting, 
-                                    sam->getSerialNumber(), 
+                                std::make_shared<SamControlSamTransactionManagerAdapter>(
+                                    sam,
+                                    securitySetting,
                                     getTransactionAuditData()) : nullptr) {}
 
-const std::shared_ptr<SamSecuritySetting> SamTransactionManagerAdapter::getSecuritySetting() const 
+const std::shared_ptr<SamSecuritySetting> SamTransactionManagerAdapter::getSecuritySetting() const
 {
     return mSecuritySetting;
 }

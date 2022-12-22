@@ -12,28 +12,29 @@
 
 #pragma once
 
-/* Calypsonet Terminal Calypso */
-#include "SamSecuritySetting.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
-/* Keyple Card Calypso */
-#include "CommonSecuritySettingAdapter.h"
+/* Calypsonet Terminal Card */
+#include "ProxyReaderApi.h"
 
-namespace keyple {
-namespace card {
-namespace calypso {
+/* Calypsonet Terminal Reader */
+#include "CardReader.h"
 
-using namespace calypsonet::terminal::calypso::transaction;
+using namespace testing;
 
-/**
- * (package-private)<br>
- * Implementation of SamSecuritySetting.
- *
- * @since 2.2.0
- */
-class SamSecuritySettingAdapter final
-: public CommonSecuritySettingAdapter<SamSecuritySetting>,
-  public SamSecuritySetting {};
+using namespace calypsonet::terminal::card;
+using namespace calypsonet::terminal::reader;
 
-}
-}
-}
+class CardProxyReaderMock final : public CardReader, public ProxyReaderApi {
+public:
+    MOCK_METHOD((const std::string&), getName, (), (const, override, final));
+    MOCK_METHOD(bool, isContactless, (), (override, final));
+    MOCK_METHOD(bool, isCardPresent, (), (override, final));
+    MOCK_METHOD((const std::shared_ptr<CardResponseApi>),
+                transmitCardRequest,
+                (const std::shared_ptr<CardRequestSpi> cardRequest,
+                 const ChannelControl channelControl),
+                (override, final));
+    MOCK_METHOD(void, releaseChannel, (), (override));
+};

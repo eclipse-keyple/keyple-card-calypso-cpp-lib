@@ -19,8 +19,10 @@
 #include "ParseException.h"
 
 /* Keyple Core Util */
+#include "ByteArrayUtil.h"
 #include "HexUtil.h"
 #include "KeypleAssert.h"
+#include "Pattern.h"
 #include "PatternSyntaxException.h"
 
 /* Keyple Card Calypso */
@@ -37,6 +39,7 @@ namespace calypso {
 using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card::spi;
 using namespace keyple::core::util;
+using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
 CalypsoSamSelectionAdapter::CalypsoSamSelectionAdapter()

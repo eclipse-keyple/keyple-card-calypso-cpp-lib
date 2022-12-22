@@ -16,20 +16,28 @@
 #include <string>
 
 /* Calypsonet Terminal Calypso */
+#include "BasicSignatureComputationData.h"
+#include "BasicSignatureVerificationData.h"
 #include "CalypsoCard.h"
 #include "CalypsoCardSelection.h"
 #include "CalypsoSamSelection.h"
 #include "CardSecuritySetting.h"
 #include "CardTransactionManager.h"
+#include "CommonSignatureComputationData.h"
+#include "CommonSignatureVerificationData.h"
+#include "SamSecuritySetting.h"
+#include "SamTransactionManager.h"
 #include "SearchCommandData.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoCardSelectionAdapter.h"
 #include "CalypsoSamSelectionAdapter.h"
+#include "CardTransactionManagerAdapter.h"
 #include "KeypleCardCalypsoExport.h"
+#include "SamTransactionManagerAdapter.h"
 #include "SearchCommandDataAdapter.h"
-#include "SignatureComputationData.h"
-#include "SignatureVerificationData.h"
+#include "TraceableSignatureComputationData.h"
+#include "TraceableSignatureVerificationData.h"
 
 /* Keyple Core Common */
 #include "KeypleCardExtension.h"
@@ -102,26 +110,47 @@ public:
     std::shared_ptr<SearchCommandData> createSearchCommandData() const;
 
     /**
-     * Returns a new instance of SignatureComputationData to use to define the parameters of
-     * the CardTransactionManager::prepareComputeSignature(SignatureComputationData) and 
-     * SamTransactionManager::prepareComputeSignature(SignatureComputationData) methods.
+     * Returns a new instance of BasicSignatureComputationData to use to define the parameters
+     * of the CardTransactionManager#prepareComputeSignature(CommonSignatureComputationData)
+     * and SamTransactionManager#prepareComputeSignature(CommonSignatureComputationData)
+     * methods.
      *
      * @return A not null reference.
      * @since 2.2.0
      */
-    std::shared_ptr<SignatureComputationData> createSignatureComputationData() const;
+    std::shared_ptr<BasicSignatureComputationData> createBasicSignatureComputationData() const;
 
     /**
-     * Returns a new instance of SignatureVerificationData to use to define the parameters of
-     * the CardTransactionManager::prepareVerifySignature(SignatureVerificationData) and
-     * SamTransactionManager::prepareVerifySignature(SignatureVerificationData) methods.
+     * Returns a new instance of TraceableSignatureComputationData to use to define the parameters
+     * of the CardTransactionManager::prepareComputeSignature(CommonSignatureComputationData) and
+     * SamTransactionManager::prepareComputeSignature(CommonSignatureComputationData) methods.
      *
      * @return A not null reference.
      * @since 2.2.0
      */
-    std::shared_ptr<SignatureVerificationData> createSignatureVerificationData() const {
-        return new SignatureVerificationDataAdapter();
-    }
+    std::shared_ptr<TraceableSignatureComputationData> createTraceableSignatureComputationData()
+        const;
+
+    /**
+     * Returns a new instance of BasicSignatureVerificationData to use to define the parameters of
+     * the CardTransactionManager::prepareVerifySignature(CommonSignatureVerificationData) and
+     * SamTransactionManager::prepareVerifySignature(CommonSignatureVerificationData) methods.
+     *
+     * @return A not null reference.
+     * @since 2.2.0
+     */
+    std::shared_ptr<BasicSignatureVerificationData> createBasicSignatureVerificationData() const;
+
+    /**
+     * Returns a new instance of TraceableSignatureVerificationData to use to define the parameters
+     * of the CardTransactionManager::prepareVerifySignature(CommonSignatureVerificationData) and
+     * SamTransactionManager::prepareVerifySignature(CommonSignatureVerificationData) methods.
+     *
+     * @return A not null reference.
+     * @since 2.2.0
+     */
+    std::shared_ptr<TraceableSignatureVerificationData>
+        createTraceableSignatureVerificationData() const;
 
     /**
      * Creates an instance of CalypsoCardSelection that can be supplemented later with
@@ -198,18 +227,18 @@ public:
         const std::shared_ptr<CalypsoCard> calypsoCard) const;
 
     /**
-     * Returns a new instance of {@link SamSecuritySetting} to use for secure SAM operations.
-     * 
+     * Returns a new instance of SamSecuritySetting to use for secure SAM operations.
+     *
      * @return A not null reference.
      * @since 2.2.0
      */
     std::shared_ptr<SamSecuritySetting> createSamSecuritySetting() const;
-    
+
     /**
      * Returns a new SAM transaction manager to handle operations secured with a control SAM.
      *
      * <p>The reader and the SAM's initial data are those from the selection.<br>
-     * The provided {@link SamSecuritySetting} must match the specific needs of the SAM (SAM card
+     * The provided SamSecuritySetting must match the specific needs of the SAM (SAM card
      * resource profile and other optional settings).
      *
      * @param samReader The reader through which the SAM communicates.
@@ -221,8 +250,8 @@ public:
      * @since 2.2.0
      */
     std::shared_ptr<SamTransactionManager> createSamTransaction(
-        std::shared_ptr<CardReader> samReader, 
-        const std::shared_ptr<CalypsoSam> calypsoSam, 
+        std::shared_ptr<CardReader> samReader,
+        const std::shared_ptr<CalypsoSam> calypsoSam,
         const std::shared_ptr<SamSecuritySetting> samSecuritySetting) const;
 
     /**
@@ -231,12 +260,12 @@ public:
      * @param samReader The reader through which the SAM communicates.
      * @param calypsoSam The initial SAM data provided by the selection process.
      * @return A not null reference.
-     * @throw IllegalArgumentException If one of the provided argument is null or if "calypsoSam" 
+     * @throw IllegalArgumentException If one of the provided argument is null or if "calypsoSam"
      *        has a null or unknown product type.
      * @since 2.2.0
      */
     std::shared_ptr<SamTransactionManager> createSamTransactionWithoutSecurity(
-        std::shared_ptr<CardReader> samReader, 
+        std::shared_ptr<CardReader> samReader,
         const std::shared_ptr<CalypsoSam> calypsoSam) const;
 
 private:

@@ -29,6 +29,7 @@
 
 /* Keyple Core Util */
 #include "HexUtil.h"
+#include "IllegalArgumentException.h"
 
 /* Mock */
 #include "ApduResponseAdapterMock.h"
@@ -42,6 +43,7 @@ using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card;
 using namespace keyple::card::calypso;
 using namespace keyple::core::util;
+using namespace keyple::core::util::cpp::exception;
 
 
 class CardRequestMatcher : public CardRequestSpi /*: public ArgumentMatcher<CardRequestSpi> */{
@@ -489,7 +491,6 @@ static void tearDown()
     cardReader.reset();
     calypsoCard.reset();
     samReader.reset();
-    samCardSelectionResponse.reset();
     calypsoSam.reset();
     cardTransactionManager.reset();
     cardSecuritySetting.reset();
@@ -1185,7 +1186,7 @@ TEST(CardTransactionManagerAdapterTest,
 
     const std::vector<uint8_t> one(1);
 
-    EXPECT_THROW(cardTransactionManager->prepareSelectFile(one), IllegalArgumentException;
+    EXPECT_THROW(cardTransactionManager->prepareSelectFile(one), IllegalArgumentException);
 
     tearDown();
 }

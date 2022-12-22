@@ -10,30 +10,18 @@
  * SPDX-License-Identifier: EPL-2.0                                                               *
  **************************************************************************************************/
 
-#pragma once
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 /* Calypsonet Terminal Calypso */
-#include "SamSecuritySetting.h"
+#include "SamRevocationServiceSpi.h"
 
-/* Keyple Card Calypso */
-#include "CommonSecuritySettingAdapter.h"
+using namespace testing;
 
-namespace keyple {
-namespace card {
-namespace calypso {
+using namespace calypsonet::terminal::calypso::spi;
 
-using namespace calypsonet::terminal::calypso::transaction;
-
-/**
- * (package-private)<br>
- * Implementation of SamSecuritySetting.
- *
- * @since 2.2.0
- */
-class SamSecuritySettingAdapter final
-: public CommonSecuritySettingAdapter<SamSecuritySetting>,
-  public SamSecuritySetting {};
-
-}
-}
-}
+class SamRevocationServiceSpiMock final : public SamRevocationServiceSpi {
+public:
+    MOCK_METHOD(bool, isSamRevoked, (const std::vector<uint8_t>&), (const, override));
+    MOCK_METHOD(bool, isSamRevoked, (const std::vector<uint8_t>&, const int), (const, override));
+};

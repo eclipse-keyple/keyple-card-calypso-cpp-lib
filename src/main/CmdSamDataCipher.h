@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -12,15 +12,14 @@
 
 #pragma once
 
-#include <map>
-#include <memory>
-
 /* Calypsonet Terminal Calypso */
 #include "CalypsoSam.h"
 
 /* Keyple Card Calypso */
+#include "AbstractApduCommand.h"
 #include "AbstractSamCommand.h"
-#include "TraceableSignatureVerificationDataAdapter.h"
+#include "BasicSignatureComputationDataAdapter.h"
+#include "BasicSignatureVerificationDataAdapter.h"
 
 namespace keyple {
 namespace card {
@@ -28,24 +27,29 @@ namespace calypso {
 
 using namespace calypsonet::terminal::calypso::sam;
 
+using StatusProperties = AbstractApduCommand::StatusProperties;
+
 /**
  * (package-private)<br>
- * Builds the "PSO Verify Signature" SAM command.
+ * Builds the "Data Cipher" SAM command.
  *
  * @since 2.2.0
  */
-class CmdSamPsoVerifySignature final : public AbstractSamCommand {
+class CmdSamDataCipher final : public AbstractSamCommand {
 public:
     /**
      * (package-private)<br>
-     * Builds a new instance based on the provided signature verification data.
+     * Builds a new instance based on the provided data.
      *
      * @param productType The SAM product type.
-     * @param data The signature verification data.
+     * @param signatureComputationData The signature computation data (optional).
+     * @param signatureVerificationData The signature computation data (optional).
      * @since 2.2.0
      */
-    CmdSamPsoVerifySignature(const CalypsoSam::ProductType productType,
-                             const std::shared_ptr<TraceableSignatureVerificationDataAdapter> data);
+    CmdSamDataCipher(
+        const CalypsoSam::ProductType productType,
+        const std::shared_ptr<BasicSignatureComputationDataAdapter> signatureComputationData,
+        const std::shared_ptr<BasicSignatureVerificationDataAdapter> signatureVerificationData);
 
     /**
      * {@inheritDoc}
@@ -63,6 +67,12 @@ public:
     AbstractSamCommand& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
         override;
 
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.0
+     */
+    void checkStatus() override;
 
 private:
     /**
@@ -73,7 +83,12 @@ private:
     /**
      *
      */
-    const std::shared_ptr<TraceableSignatureVerificationDataAdapter> mData;
+    const std::shared_ptr<BasicSignatureComputationDataAdapter> mSignatureComputationData;
+
+    /**
+     *
+     */
+    const std::shared_ptr<BasicSignatureVerificationDataAdapter> mSignatureVerificationData;
 
     /**
      *

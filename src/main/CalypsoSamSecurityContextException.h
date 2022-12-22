@@ -35,10 +35,10 @@ public:
      * @param statusWord the status word.
      * @since 2.2.0
      */
-    CalypsoSamSecurityContextException(const std::string& message, 
-                                       const CalypsoSamCommand& command, 
+    CalypsoSamSecurityContextException(const std::string& message,
+                                       const CalypsoSamCommand& command,
                                        const std::shared_ptr<int> statusWord);
-}
+};
 
 }
 }

@@ -10,30 +10,29 @@
  * SPDX-License-Identifier: EPL-2.0                                                               *
  **************************************************************************************************/
 
-#pragma once
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
-/* Calypsonet Terminal Calypso */
-#include "SamSecuritySetting.h"
+/* Calypsonet Terminal Calypso  */
+#include "TraceableSignatureVerificationData.h"
 
-/* Keyple Card Calypso */
-#include "CommonSecuritySettingAdapter.h"
-
-namespace keyple {
-namespace card {
-namespace calypso {
+using namespace testing;
 
 using namespace calypsonet::terminal::calypso::transaction;
 
-/**
- * (package-private)<br>
- * Implementation of SamSecuritySetting.
- *
- * @since 2.2.0
- */
-class SamSecuritySettingAdapter final
-: public CommonSecuritySettingAdapter<SamSecuritySetting>,
-  public SamSecuritySetting {};
+class TraceableSignatureVerificationDataMock final : public TraceableSignatureVerificationData {
+public:
+    MOCK_METHOD(TraceableSignatureVerificationData&, withoutBusyMode, (), (override));
+    MOCK_METHOD(TraceableSignatureVerificationData&, withSamTraceabilityMode, (const int, const bool, const bool), (override));
 
-}
-}
-}
+    /* CommonSignatureVerificationData<TraceableSignatureVerificationData> */
+    MOCK_METHOD(TraceableSignatureVerificationData&, setKeyDiversifier, (const std::vector<uint8_t>&), (override));
+    MOCK_METHOD(bool, isSignatureValid, (), (const, override));
+    MOCK_METHOD(TraceableSignatureVerificationData&,
+                setData,
+                (const std::vector<uint8_t>&,
+                 const std::vector<uint8_t>&,
+                 const uint8_t,
+                 const uint8_t),
+                (override));
+};

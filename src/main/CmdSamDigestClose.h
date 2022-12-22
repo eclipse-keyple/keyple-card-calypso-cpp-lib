@@ -42,11 +42,10 @@ public:
      *
      * @param productType the SAM product type.
      * @param expectedResponseLength the expected response length.
-     * @throw IllegalArgumentException If the expected response length is wrong.
      * @since 2.0.1
      */
     CmdSamDigestClose(const CalypsoSam::ProductType productType,
-                      const uint8_t expectedResponseLength);
+                      const int expectedResponseLength);
 
     /**
      * (package-private)<br>

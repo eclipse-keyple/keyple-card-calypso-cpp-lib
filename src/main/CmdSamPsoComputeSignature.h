@@ -14,12 +14,18 @@
 
 #include <map>
 
+/* Calypsonet Terminal Calypso */
+#include "CalypsoSam.h"
+
+/* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
-#include "SignatureComputationDataAdapter.h"
+#include "TraceableSignatureComputationDataAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
+
+using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -37,22 +43,23 @@ public:
      * @param data The signature computation data.
      * @since 2.2.0
      */
-    CmdSamPsoComputeSignature(const CalypsoSam::ProductType productType, 
-                              const std::shared_ptr<SignatureComputationDataAdapter> data);
+    CmdSamPsoComputeSignature(const CalypsoSam::ProductType productType,
+                              const std::shared_ptr<TraceableSignatureComputationDataAdapter> data);
 
     /**
      * {@inheritDoc}
      *
      * @since 2.2.0
      */
-    const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() override;
+    const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() const
+        override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.2.0
      */
-    AbstractSamCommand& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) 
+    AbstractSamCommand& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
         override;
 
 
@@ -63,9 +70,14 @@ private:
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
 
     /**
-     * 
+     *
      */
-    const std::shared_ptr<SignatureComputationDataAdapter> mData;
+    const std::shared_ptr<TraceableSignatureComputationDataAdapter> mData;
+
+    /**
+     *
+     */
+    static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
 };
 
 }

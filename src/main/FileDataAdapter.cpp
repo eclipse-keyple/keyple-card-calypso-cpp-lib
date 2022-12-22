@@ -142,7 +142,7 @@ const std::map<const int, const int> FileDataAdapter::getAllCountersValue() cons
 
 void FileDataAdapter::setContent(const uint8_t numRecord, const std::vector<uint8_t>& content)
 {
-    mRecords.insert({numRecord, content});
+    mRecords[numRecord] = content;
 }
 
 void FileDataAdapter::setCounter(const uint8_t numCounter, const std::vector<uint8_t>& content)
@@ -174,7 +174,8 @@ void FileDataAdapter::setContent(const uint8_t numRecord,
     }
 
     System::arraycopy(content, 0, newContent, offset, content.size());
-    mRecords.insert({numRecord, newContent});
+
+    mRecords[numRecord] = newContent;
 }
 
 void FileDataAdapter::fillContent(const uint8_t numRecord,
@@ -190,7 +191,7 @@ void FileDataAdapter::fillContent(const uint8_t numRecord,
 
     const auto it = mRecords.find(numRecord);
     if (it == mRecords.end()) {
-        mRecords.insert({numRecord, contentLeftPadded});
+        mRecords[numRecord] = contentLeftPadded;
     } else {
         /* Make sure it's a non-const reference as it is updated in-place in the 'else' section */
         std::vector<uint8_t>& actualContent = it->second;
@@ -200,7 +201,7 @@ void FileDataAdapter::fillContent(const uint8_t numRecord,
                 contentLeftPadded[i] |= actualContent[i];
             }
 
-            mRecords.insert({numRecord, contentLeftPadded});
+            mRecords[numRecord] = contentLeftPadded;
         } else {
             for (int i = 0; i < static_cast<int>(contentLeftPadded.size()); i++) {
                 actualContent[i] |= contentLeftPadded[i];
@@ -218,10 +219,10 @@ void FileDataAdapter::addCyclicContent(const std::vector<uint8_t>& content)
     }
 
     for (const auto& i : descendingKeys) {
-        mRecords.insert({static_cast<uint8_t>(i + 1), mRecords[i]});
+        mRecords[static_cast<uint8_t>(i + 1)] = mRecords[i];
     }
 
-    mRecords.insert({static_cast<uint8_t>(1), content});
+    mRecords[static_cast<uint8_t>(1)] = content;
 }
 
 std::ostream& operator<<(std::ostream& os, const FileDataAdapter& fda)

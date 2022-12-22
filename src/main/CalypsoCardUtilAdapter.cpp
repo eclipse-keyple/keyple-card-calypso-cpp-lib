@@ -168,7 +168,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
 
 void CalypsoCardUtilAdapter::updateCalypsoCard(
     std::shared_ptr<CalypsoCardAdapter> calypsoCard,
-    const std::vector<std::shared_ptr<AbstractCardCommand>>& commands,
+    const std::vector<std::shared_ptr<AbstractApduCommand>>& commands,
     const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses,
     const bool isSessionOpen)
 {
@@ -190,10 +190,10 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
      * of an error that occurred in strict mode. In this case the last response will raise an
      * exception.
      */
-    std::vector<std::shared_ptr<AbstractCardCommand>>::const_iterator
+    std::vector<std::shared_ptr<AbstractApduCommand>>::const_iterator
         commandIterator = commands.begin();
     for (const auto& apduResponse : apduResponses) {
-        auto command = *commandIterator++;
+        auto command = std::dynamic_pointer_cast<AbstractCardCommand>(*commandIterator++);
         updateCalypsoCard(calypsoCard, command, apduResponse, isSessionOpen);
     }
 

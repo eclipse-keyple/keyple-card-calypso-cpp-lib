@@ -10,30 +10,25 @@
  * SPDX-License-Identifier: EPL-2.0                                                               *
  **************************************************************************************************/
 
-#pragma once
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
-/* Calypsonet Terminal Calypso */
-#include "SamSecuritySetting.h"
+/* Calypsonet Terminal Calypso  */
+#include "TraceableSignatureComputationData.h"
 
-/* Keyple Card Calypso */
-#include "CommonSecuritySettingAdapter.h"
-
-namespace keyple {
-namespace card {
-namespace calypso {
+using namespace testing;
 
 using namespace calypsonet::terminal::calypso::transaction;
 
-/**
- * (package-private)<br>
- * Implementation of SamSecuritySetting.
- *
- * @since 2.2.0
- */
-class SamSecuritySettingAdapter final
-: public CommonSecuritySettingAdapter<SamSecuritySetting>,
-  public SamSecuritySetting {};
+class TraceableSignatureComputationDataMock final : public TraceableSignatureComputationData {
+public:
+    MOCK_METHOD(TraceableSignatureComputationData&, withoutBusyMode, (), (override));
+    MOCK_METHOD((const std::vector<uint8_t>&),  getSignedData, (), (const, override));
+    MOCK_METHOD(TraceableSignatureComputationData&, withSamTraceabilityMode, (const int, const bool), (override));
 
-}
-}
-}
+    /* CommonSignatureComputationData<TraceableSignatureComputationData> */
+    MOCK_METHOD(TraceableSignatureComputationData&, setData, (const std::vector<uint8_t>&, const uint8_t, const uint8_t), (override));
+    MOCK_METHOD(TraceableSignatureComputationData&, setSignatureSize, (const int), (override));
+    MOCK_METHOD(TraceableSignatureComputationData&, setKeyDiversifier, (const std::vector<uint8_t>&), (override));
+    MOCK_METHOD(const std::vector<uint8_t>&, getSignature, (), (const, override));
+};

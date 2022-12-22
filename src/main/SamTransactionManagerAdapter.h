@@ -16,7 +16,7 @@
 #include "LoggerFactory.h"
 
 /* Keyple Card Calypso */
-#include "CommonSamTransactionManagerAdapter.h"
+#include "SamControlSamTransactionManagerAdapter.h"
 
 namespace keyple {
 namespace card {
@@ -26,11 +26,12 @@ using namespace keyple::core::util::cpp;
 
 /**
  * (package-private)<br>
- * Implementation of {@link SamTransactionManager}.
+ * Implementation of SamTransactionManager.
  *
  * @since 2.2.0
  */
-class SamTransactionManagerAdapter final : public CommonSamTransactionManagerAdapter {
+class SamTransactionManagerAdapter final
+: public CommonSamTransactionManagerAdapter<SamSecuritySettingAdapter> {
 public:
     /**
      * (package-private)<br>
@@ -41,8 +42,8 @@ public:
      * @param securitySetting The security settings (optional).
      * @since 2.2.0
      */
-    SamTransactionManagerAdapter(const std::shared_ptr<ProxyReaderApi> samReader, 
-                                 const std::shared_ptr<CalypsoSamAdapter> sam, 
+    SamTransactionManagerAdapter(const std::shared_ptr<ProxyReaderApi> samReader,
+                                 const std::shared_ptr<CalypsoSamAdapter> sam,
                                  const std::shared_ptr<SamSecuritySettingAdapter> securitySetting);
 
     /**
@@ -54,9 +55,9 @@ public:
 
 private:
     /**
-     * 
+     *
      */
-    const std::unique_ptr<Logger> mLogger = 
+    const std::unique_ptr<Logger> mLogger =
         LoggerFactory::getLogger(typeid(SamTransactionManagerAdapter));
 
     /**
@@ -65,9 +66,9 @@ private:
     const std::shared_ptr<SamSecuritySettingAdapter> mSecuritySetting;
 
     /**
-     * 
+     *
      */
-    const std::shared_ptr<ControlSamTransactionManagerAdapter> mControlSamTransactionManager;
+    const std::shared_ptr<SamControlSamTransactionManagerAdapter> mControlSamTransactionManager;
 };
 
 }

@@ -49,6 +49,7 @@ public:
     static const CalypsoSamCommand SV_PREPARE_DEBIT;
     static const CalypsoSamCommand SV_PREPARE_LOAD;
     static const CalypsoSamCommand SV_PREPARE_UNDEBIT;
+    static const CalypsoSamCommand DATA_CIPHER;
     static const CalypsoSamCommand PSO_COMPUTE_SIGNATURE;
     static const CalypsoSamCommand PSO_VERIFY_SIGNATURE;
 
@@ -67,6 +68,11 @@ public:
      * @since 2.0.0
      */
     uint8_t getInstructionByte() const override;
+
+    /**
+     *
+     */
+    bool operator==(const CalypsoSamCommand& csc) const;
 
 private:
     /**

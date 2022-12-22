@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -23,6 +23,7 @@
 #include "CalypsoSamDataAccessException.h"
 #include "CalypsoSamIllegalParameterException.h"
 #include "CalypsoSamIncorrectInputDataException.h"
+#include "SamUtilAdapter.h"
 
 namespace keyple {
 namespace card {
@@ -35,8 +36,8 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamPsoComputeSignature::STATUS_TABLE = initStatusTable();
 
 CmdSamPsoComputeSignature::CmdSamPsoComputeSignature(
-  const CalypsoSam::ProductType productType, 
-  const std::shared_ptr<SignatureComputationDataAdapter> data) 
+  const CalypsoSam::ProductType productType,
+  const std::shared_ptr<TraceableSignatureComputationDataAdapter> data)
 : AbstractSamCommand(CalypsoSamCommand::PSO_COMPUTE_SIGNATURE, 0),
   mData(data)
 {
@@ -47,7 +48,7 @@ CmdSamPsoComputeSignature::CmdSamPsoComputeSignature(
 
     /* DataIn */
     const int messageOffset = data->isSamTraceabilityMode() ? 6 : 4;
-    const int messageSize = data->getData().length;
+    const int messageSize = data->getData().size();
     std::vector<uint8_t> dataIn(messageOffset + messageSize);
 
     /* SignKeyNum: Selection of the key by KIF and KVC given in the incoming data */
@@ -100,10 +101,10 @@ AbstractSamCommand& CmdSamPsoComputeSignature::setApduResponse(
         const std::shared_ptr<ApduResponseApi> apduResponse)
 {
     AbstractSamCommand::setApduResponse(apduResponse);
-    
+
     if (static_cast<int>(apduResponse->getDataOut().size()) > 0) {
         if (mData->isSamTraceabilityMode()) {
-            mData->setSignedData(Arrays::copyOf(apduResponse->getDataOut(), 
+            mData->setSignedData(Arrays::copyOf(apduResponse->getDataOut(),
                                                 mData->getData().size()));
         } else {
             mData->setSignedData(mData->getData());
@@ -112,8 +113,8 @@ AbstractSamCommand& CmdSamPsoComputeSignature::setApduResponse(
         mData->setSignature(
             Arrays::copyOfRange(
                 apduResponse->getDataOut(),
-                apduResponse->getDataOut().size()) - mData->getSignatureSize(),
-                apduResponse->getDataOut().size());
+                apduResponse->getDataOut().size() - mData->getSignatureSize(),
+                apduResponse->getDataOut().size()));
     }
 
     return *this;

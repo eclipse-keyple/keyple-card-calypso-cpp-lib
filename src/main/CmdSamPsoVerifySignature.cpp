@@ -23,6 +23,7 @@
 #include "CalypsoSamIncorrectInputDataException.h"
 #include "CalypsoSamSecurityDataException.h"
 #include "CalypsoSamSecurityContextException.h"
+#include "SamUtilAdapter.h"
 
 namespace keyple {
 namespace card {
@@ -35,8 +36,8 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamPsoVerifySignature::STATUS_TABLE = initStatusTable();
 
 CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
-  const CalypsoSam::ProductType productType, 
-  const std::shred_ptr<SignatureVerificationDataAdapter> data)
+  const CalypsoSam::ProductType productType,
+  const std::shared_ptr<TraceableSignatureVerificationDataAdapter> data)
 : AbstractSamCommand(CalypsoSamCommand::PSO_VERIFY_SIGNATURE, 0),
   mData(data)
 {
@@ -47,8 +48,8 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
 
     /* DataIn */
     const int messageOffset = data->isSamTraceabilityMode() ? 6 : 4;
-    const int messageSize = data->getData().length;
-    const int signatureSize = data->getSignature().length;
+    const int messageSize = data->getData().size();
+    const int signatureSize = data->getSignature().size();
     std::vector<uint8_t> dataIn(messageOffset + messageSize + signatureSize);
 
     /* SignKeyNum: Selection of the key by KIF and KVC given in the incoming data */
@@ -89,10 +90,10 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
     System::arraycopy(data->getData(), 0, dataIn, messageOffset, messageSize);
 
     /* Signature */
-    System::arraycopy(data-<getSignature(), 
-                      0, 
-                      dataIn, 
-                      dataIn.size() - signatureSize, 
+    System::arraycopy(data->getSignature(),
+                      0,
+                      dataIn,
+                      dataIn.size() - signatureSize,
                       signatureSize);
 
     setApduRequest(std::make_shared<ApduRequestAdapter>(ApduUtil::build(cla, ins, p1, p2, dataIn)));
@@ -102,11 +103,11 @@ AbstractSamCommand& CmdSamPsoVerifySignature::setApduResponse(
         const std::shared_ptr<ApduResponseApi> apduResponse)
 {
     AbstractSamCommand::setApduResponse(apduResponse);
-    
+
     if (isSuccessful()) {
-        data->setSignatureValid(true);
-    } else if (apduResponse-<getStatusWord() == 0x6988) {
-        data->setSignatureValid(false);
+        mData->setSignatureValid(true);
+    } else if (apduResponse->getStatusWord() == 0x6988) {
+        mData->setSignatureValid(false);
     }
 
     return *this;

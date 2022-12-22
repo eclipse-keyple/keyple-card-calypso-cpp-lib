@@ -13,10 +13,10 @@
 #pragma once
 
 /* Calypsonet Terminal Calypso */
-#include "SamSecuritySetting.h"
+#include "BasicSignatureVerificationData.h"
 
 /* Keyple Card Calypso */
-#include "CommonSecuritySettingAdapter.h"
+#include "CommonSignatureVerificationDataAdapter.h"
 
 namespace keyple {
 namespace card {
@@ -26,13 +26,13 @@ using namespace calypsonet::terminal::calypso::transaction;
 
 /**
  * (package-private)<br>
- * Implementation of SamSecuritySetting.
+ * Implementation of BasicSignatureVerificationData.
  *
  * @since 2.2.0
  */
-class SamSecuritySettingAdapter final
-: public CommonSecuritySettingAdapter<SamSecuritySetting>,
-  public SamSecuritySetting {};
+class BasicSignatureVerificationDataAdapter final
+: public CommonSignatureVerificationDataAdapter<BasicSignatureVerificationData>,
+  public BasicSignatureVerificationData {};
 
 }
 }

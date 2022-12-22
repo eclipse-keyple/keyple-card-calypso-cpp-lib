@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,17 +16,15 @@
 #include <sstream>
 
 /* Calypsonet Terminal Calypso */
-#include "AtomicTransactionException.h"
-#include "CardAnomalyException.h"
-#include "CardCloseSecureSessionException.h"
 #include "CardIOException.h"
+#include "CardSignatureNotVerifiableException.h"
 #include "InconsistentDataException.h"
-#include "SamAnomalyException.h"
-#include "SamAnomalyException.h"
+#include "ReaderIOException.h"
 #include "SamIOException.h"
-#include "SessionAuthenticationException.h"
-#include "SvAuthenticationException.h"
+#include "SessionBufferOverflowException.h"
 #include "UnauthorizedKeyException.h"
+#include "UnexpectedCommandStatusException.h"
+#include "UnexpectedStatusWordException.h"
 
 /* Calypsonet Terminal Card */
 #include "ApduResponseApi.h"
@@ -34,7 +32,6 @@
 #include "CardBrokenCommunicationException.h"
 #include "CardResponseApi.h"
 #include "ReaderBrokenCommunicationException.h"
-#include "UnexpectedStatusWordException.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoCardConstant.h"
@@ -55,13 +52,15 @@
 /* Keyple Core Util */
 #include "Arrays.h"
 #include "ByteArrayUtil.h"
+#include "CmdCardRatificationBuilder.h"
 #include "HexUtil.h"
 #include "IllegalStateException.h"
 #include "KeypleAssert.h"
 #include "KeypleStd.h"
 #include "MapUtils.h"
+#include "System.h"
 #include "UnsupportedOperationException.h"
-#include "CmdCardRatificationBuilder.h"
+
 
 namespace keyple {
 namespace card {
@@ -84,13 +83,6 @@ const std::string CardTransactionManagerAdapter::MSG_CARD_COMMUNICATION_ERROR =
 const std::string CardTransactionManagerAdapter::MSG_CARD_COMMAND_ERROR =
     "A card command error occurred ";
 
-const std::string CardTransactionManagerAdapter::MSG_WHILE_GENERATING_OF_THE_PIN_CIPHERED_DATA =
-    "while generating of the PIN ciphered data.";
-const std::string CardTransactionManagerAdapter::MSG_WHILE_GENERATING_OF_THE_KEY_CIPHERED_DATA =
-    "while generating of the key ciphered data.";
-const std::string CardTransactionManagerAdapter::MSG_WHILE_CHECKING_THE_SV_OPERATION =
-    "while checking the SV operation.";
-
 const std::string CardTransactionManagerAdapter::MSG_PIN_NOT_AVAILABLE =
     "PIN is not available for this card.";
 const std::string CardTransactionManagerAdapter::MSG_CARD_SIGNATURE_NOT_VERIFIABLE =
@@ -98,7 +90,7 @@ const std::string CardTransactionManagerAdapter::MSG_CARD_SIGNATURE_NOT_VERIFIAB
 const std::string CardTransactionManagerAdapter::MSG_CARD_SIGNATURE_NOT_VERIFIABLE_SV =
       "Unable to verify the card signature associated to the SV operation.";
 
-const std::string CardTransactionManagerAdapter::RECORD_NUMBER = "recordNumber";
+const std::string CardTransactionManagerAdapter::RECORD_NUMBER = "record number";
 const std::string CardTransactionManagerAdapter::OFFSET = "offset";
 
 const int CardTransactionManagerAdapter::SESSION_BUFFER_CMD_ADDITIONAL_COST = 6;
@@ -114,34 +106,27 @@ CardTransactionManagerAdapter::CardTransactionManagerAdapter(
   const std::shared_ptr<ProxyReaderApi> cardReader,
   const std::shared_ptr<CalypsoCardAdapter> card,
   const std::shared_ptr<CardSecuritySettingAdapter> securitySetting)
-: CommonTransactionManagerAdapter(card, securitySetting, nullptr),
+: CommonTransactionManagerAdapter(
+    card,
+    std::dynamic_pointer_cast<CommonSecuritySettingAdapter<CardSecuritySettingAdapter>>(securitySetting),
+    std::vector<std::vector<uint8_t>>()),
   mCardReader(cardReader),
-  mCalypsoCard(calypsoCard),
-  mSecuritySetting(cardSecuritySetting),
+  mCard(card),
+  mSecuritySetting(securitySetting),
   mModificationsCounter(card->getModificationsCounter())
 {
     if (securitySetting != nullptr && securitySetting->getControlSam() != nullptr) {
         /* Secure operations mode */
         mControlSamTransactionManager =
-            std::make_shared<ControlSamTransactionManagerAdapter>(
-                card,
-                securitySetting,
-                card->getCalypsoSerialNumberFull(),
-                card->getTransactionAuditData());
-        mSamCommandProcessor =
-            std::make_shared<SamCommandProcessor>(card, securitySetting, getTransactionAuditData());
+            std::make_shared<CardControlSamTransactionManagerAdapter>(card,
+                                                                      securitySetting,
+                                                                      getTransactionAuditData());
 
     } else {
         /* Non-secure operations mode */
         mControlSamTransactionManager = nullptr;
-        mSamCommandProcessor = nullptr;
     }
 }
-
-CardTransactionManagerAdapter::CardTransactionManagerAdapter(
-  const std::shared_ptr<CardReader> cardReader,
-  const std::shared_ptr<CalypsoCard> calypsoCard)
-: CardTransactionManagerAdapter(cardReader, calypsoCard, nullptr) {}
 
 const std::shared_ptr<CardReader> CardTransactionManagerAdapter::getCardReader() const
 {
@@ -156,23 +141,17 @@ const std::shared_ptr<CalypsoCard> CardTransactionManagerAdapter::getCalypsoCard
 const std::shared_ptr<CardSecuritySetting> CardTransactionManagerAdapter::getCardSecuritySetting()
     const
 {
-    return mSecuritySetting;
+    return getSecuritySetting();
 }
 
-const std::vector<std::vector<uint8_t>>&  CardTransactionManagerAdapter::getTransactionAuditData() const
-{
-    /* CL-CSS-INFODATA.1 */
-    return mTransactionAuditData;
-}
-
-void CardTransactionManagerAdapter::checkControlSam()
+void CardTransactionManagerAdapter::checkControlSam() const
 {
     if (mControlSamTransactionManager == nullptr) {
         throw IllegalStateException("Control SAM is not set.");
     }
 }
 
-void CardTransactionManagerAdapter::processPreparedControlSamCommands()
+void CardTransactionManagerAdapter::processSamPreparedCommands()
 {
     if (mControlSamTransactionManager != nullptr) {
         mControlSamTransactionManager->processCommands();
@@ -180,7 +159,7 @@ void CardTransactionManagerAdapter::processPreparedControlSamCommands()
 }
 
 void CardTransactionManagerAdapter::processAtomicOpening(
-    std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands)
+    std::vector<std::shared_ptr<AbstractApduCommand>>& cardCommands)
 {
     if (mSecuritySetting == nullptr) {
         throw IllegalStateException("No security settings are available.");
@@ -200,7 +179,7 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     uint8_t recordNumber = 0;
 
     if (!cardCommands.empty()) {
-        const std::shared_ptr<AbstractCardCommand> cardCommand = cardCommands[0];
+        const auto cardCommand = std::dynamic_pointer_cast<AbstractCardCommand>(cardCommands[0]);
         if (cardCommand->getCommandRef() == CalypsoCardCommand::READ_RECORDS &&
             std::dynamic_pointer_cast<CmdCardReadRecords>(cardCommand)->getReadMode() ==
                 CmdCardReadRecords::ReadMode::ONE_RECORD) {
@@ -211,14 +190,14 @@ void CardTransactionManagerAdapter::processAtomicOpening(
         }
     }
 
-    /* Compute the SAM challenge */
-    const std::vector<uint8_t> samChallenge = getSamChallenge();
+    /* Compute the SAM challenge and process all pending SAM commands */
+    const std::vector<uint8_t> samChallenge = processSamGetChallenge();
 
     /* Build the card Open Secure Session command */
     auto cmdCardOpenSession =
         std::make_shared<CmdCardOpenSession>(
             mCard->getProductType(),
-            static_cast<uint8_t>(static_cast<int>(writeAccessLevel) + 1),
+            static_cast<uint8_t>(static_cast<int>(mWriteAccessLevel) + 1),
             samChallenge,
             sfi,
             recordNumber,
@@ -268,15 +247,15 @@ void CardTransactionManagerAdapter::processAtomicOpening(
 
     const std::string logCardKif = cardKif != nullptr ? std::to_string(*cardKif) : "null";
     const std::string logCardKvc = cardKvc != nullptr ? std::to_string(*cardKvc) : "null";
-    mLogger->debug("processAtomicOpening => opening: CARDCHALLENGE=%, CARDKIF=%, CARDKVC=%\n",
+    mLogger->debug("processAtomicOpening => opening: CARD_CHALLENGE=%, CARD_KIF=%, CARD_KVC=%\n",
                    HexUtil::toHex(cmdCardOpenSession->getCardChallenge()),
                    logCardKif,
                    logCardKvc);
 
     const std::shared_ptr<uint8_t> kvc =
-        mSamCommandProcessor->computeKvc(writeAccessLevel, cardKvc);
+        mControlSamTransactionManager->computeKvc(mWriteAccessLevel, cardKvc);
     const std::shared_ptr<uint8_t> kif =
-        mSamCommandProcessor->computeKif(writeAccessLevel, cardKif, kvc);
+        mControlSamTransactionManager->computeKif(mWriteAccessLevel, cardKif, kvc);
 
     if (!mSecuritySetting->isSessionKeyAuthorized(kif, kvc)) {
         const std::string logKif = kif != nullptr ? std::to_string(*kif) : "null";
@@ -287,24 +266,19 @@ void CardTransactionManagerAdapter::processAtomicOpening(
                                        getTransactionAuditDataAsString());
     }
 
-    /*
-     * Initialize the digest processor. It will store all digest operations (Digest Init, Digest
-     * Update) until the session closing. At this moment, all SAM Apdu will be processed at
-     * once.
-     */
-    mSamCommandProcessor->initializeDigester(false,
-                                             false,
-                                             *kif,
-                                             *kvc,
-                                             apduResponses[0]->getDataOut());
+    /* Initialize a new SAM session. */
+    mControlSamTransactionManager->initializeSession(apduResponses[0]->getDataOut(),
+                                                     *kif,
+                                                     *kvc,
+                                                     false,
+                                                     false);
 
     /*
      * Add all commands data to the digest computation. The first command in the list is the
      * open secure session command. This command is not included in the digest computation, so
      * we skip it and start the loop at index 1.
-     * Add requests and responses to the digest processor
      */
-    mSamCommandProcessor->pushCardExchangedData(apduRequests, apduResponses, 1);
+    mControlSamTransactionManager->updateSession(apduRequests, apduResponses, 1);
 }
 
 void CardTransactionManagerAdapter::abortSecureSessionSilently()
@@ -441,22 +415,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
     return *this;
 }
 
-const std::vector<std::shared_ptr<ApduRequestSpi>> CardTransactionManagerAdapter::getApduRequests(
-    const std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands)
-{
-    std::vector<std::shared_ptr<ApduRequestSpi>> apduRequests;
-
-    if (!cardCommands.empty()) {
-        for (const auto& command : cardCommands) {
-            apduRequests.push_back(command->getApduRequest());
-        }
-    }
-
-    return apduRequests;
-}
-
 void CardTransactionManagerAdapter::processAtomicCardCommands(
-    const std::vector<std::shared_ptr<AbstractCardCommand>> cardCommands,
+    const std::vector<std::shared_ptr<AbstractApduCommand>> cardCommands,
     const ChannelControl channelControl)
 {
     /* Get the list of C-APDU to transmit */
@@ -479,7 +439,7 @@ void CardTransactionManagerAdapter::processAtomicCardCommands(
      * computation.
      */
     if (mIsSessionOpen) {
-        mSamCommandProcessor->pushCardExchangedData(apduRequests, apduResponses, 0);
+        mControlSamTransactionManager->updateSession(apduRequests, apduResponses, 0);
     }
 
     try {
@@ -499,7 +459,7 @@ void CardTransactionManagerAdapter::processAtomicCardCommands(
 }
 
 void CardTransactionManagerAdapter::processAtomicClosing(
-    const std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands,
+    const std::vector<std::shared_ptr<AbstractApduCommand>>& cardCommands,
     const bool isRatificationMechanismEnabled,
     const ChannelControl channelControl)
 {
@@ -510,14 +470,14 @@ void CardTransactionManagerAdapter::processAtomicClosing(
     const std::vector<std::shared_ptr<ApduResponseApi>> expectedApduResponses =
         buildAnticipatedResponses(cardCommands);
 
-    /* Add all commands data to the digest computation: commands and expected responses */
-    mSamCommandProcessor->pushCardExchangedData(apduRequests, expectedApduResponses, 0);
+    /* Add all commands data to the digest computation. */
+    mControlSamTransactionManager->updateSession(apduRequests, expectedApduResponses, 0);
 
     /*
      * All SAM digest operations will now run at once.
      * Get Terminal Signature from the latest response.
      */
-    const std::vector<uint8_t> sessionTerminalSignature = getSessionTerminalSignature();
+    const std::vector<uint8_t> sessionTerminalSignature = processSamSessionClosing();
 
     /* Build the last "Close Secure Session" card command */
     auto cmdCardCloseSession =
@@ -552,8 +512,7 @@ void CardTransactionManagerAdapter::processAtomicClosing(
     try {
         cardResponse = transmitCardRequest(cardRequest, channelControl);
     } catch (const CardIOException& e) {
-        const std::shared_ptr<AbstractApduException> cause =
-            std::dynamic_pointer_cast<AbstractApduException>(e.getCause());
+        const auto cause = std::dynamic_pointer_cast<AbstractApduException>(e.getCause());
         cardResponse = cause->getCardResponse();
 
         /*
@@ -630,14 +589,14 @@ void CardTransactionManagerAdapter::processAtomicClosing(
      * Check the card signature
      * CL-CSS-MACVERIF.1
      */
-    checkCardSignature(cmdCardCloseSession->getSignatureLo());
+    processSamDigestAuthenticate(cmdCardCloseSession->getSignatureLo());
 
     /*
      * If necessary, we check the status of the SV after the session has been successfully closed.
      * CL-SV-POSTPON.1
      */
     if (isSvOperationCompleteOneTime()) {
-        checkSvOperationStatus(cmdCardCloseSession->getPostponedData());
+        processSamSvCheck(cmdCardCloseSession->getPostponedData());
     }
 }
 
@@ -730,14 +689,16 @@ const std::shared_ptr<ApduResponseApi>
 
 const std::vector<std::shared_ptr<ApduResponseApi>>
     CardTransactionManagerAdapter::buildAnticipatedResponses(
-        const std::vector<std::shared_ptr<AbstractCardCommand>>& cardCommands)
+        const std::vector<std::shared_ptr<AbstractApduCommand>>& cardCommands)
 {
     std::vector<std::shared_ptr<ApduResponseApi>> apduResponses;
 
     if (!cardCommands.empty()) {
         for (const auto& command : cardCommands) {
-            if (command->getCommandRef() == CalypsoCardCommand::INCREASE ||
-                command->getCommandRef() == CalypsoCardCommand::DECREASE) {
+
+            auto& commandRef = dynamic_cast<const CalypsoCardCommand&>(command->getCommandRef());
+            if (commandRef == CalypsoCardCommand::INCREASE ||
+                commandRef == CalypsoCardCommand::DECREASE) {
 
                 auto cmdA = std::dynamic_pointer_cast<CmdCardIncreaseOrDecrease>(command);
                 apduResponses.push_back(
@@ -746,8 +707,8 @@ const std::vector<std::shared_ptr<ApduResponseApi>>
                         getCounterValue(cmdA->getSfi(), cmdA->getCounterNumber()),
                         cmdA->getIncDecValue()));
 
-            } else if (command->getCommandRef() == CalypsoCardCommand::INCREASE_MULTIPLE ||
-                       command->getCommandRef() == CalypsoCardCommand::DECREASE_MULTIPLE) {
+            } else if (commandRef == CalypsoCardCommand::INCREASE_MULTIPLE ||
+                       commandRef == CalypsoCardCommand::DECREASE_MULTIPLE) {
 
                 auto cmdB = std::dynamic_pointer_cast<CmdCardIncreaseOrDecreaseMultiple>(command);
                 const std::map<const int, const int>& counterNumberToIncDecValueMap =
@@ -759,9 +720,9 @@ const std::vector<std::shared_ptr<ApduResponseApi>>
                                          MapUtils::getKeySet(counterNumberToIncDecValueMap)),
                         counterNumberToIncDecValueMap));
 
-            } else if (command->getCommandRef() == CalypsoCardCommand::SV_RELOAD ||
-                       command->getCommandRef() == CalypsoCardCommand::SV_DEBIT ||
-                       command->getCommandRef() == CalypsoCardCommand::SV_UNDEBIT) {
+            } else if (commandRef == CalypsoCardCommand::SV_RELOAD ||
+                       commandRef == CalypsoCardCommand::SV_DEBIT ||
+                       commandRef == CalypsoCardCommand::SV_UNDEBIT) {
                 apduResponses.push_back(RESPONSE_OK_POSTPONED);
 
             } else {
@@ -780,16 +741,15 @@ CardTransactionManager& CardTransactionManagerAdapter::processOpening(
     try {
         checkNoSession();
 
-        processPreparedControlSamCommands();
-
         /* CL-KEY-INDEXPO.1 */
         mWriteAccessLevel = writeAccessLevel;
 
         /* Create a sublist of AbstractCardCommand to be sent atomically */
-        std::vector<std::shared_ptr<AbstractCardCommand>> cardAtomicCommands;
+        std::vector<std::shared_ptr<AbstractApduCommand>> cardAtomicCommands;
 
-        for (const auto& command : mCardCommands) {
+        for (const auto& apduCommand : mCardCommands) {
 
+            const auto& command = std::dynamic_pointer_cast<AbstractCardCommand>(apduCommand);
             /* Check if the command is a modifying command */
             if (command->isSessionBufferUsed()) {
                 mModificationsCounter -= computeCommandSessionBufferSize(command);
@@ -798,7 +758,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processOpening(
 
                     /* Process and intermedisate secure session with the current commands */
                     processAtomicOpening(cardAtomicCommands);
-                    std::vector<std::shared_ptr<AbstractCardCommand>> empty;
+                    std::vector<std::shared_ptr<AbstractApduCommand>> empty;
                     processAtomicClosing(empty, false, ChannelControl::KEEP_OPEN);
 
                     /* Reset and update the buffer counter */
@@ -856,34 +816,11 @@ void CardTransactionManagerAdapter::processCommandsOutsideSession(
 
     /* If an SV transaction was performed, we check the signature returned by the card here  */
     if (isSvOperationCompleteOneTime()) {
-        try {
-            mSamCommandProcessor->checkSvStatus(mCard->getSvOperationSignature());
-        } catch (const CalypsoSamSecurityDataException& e) {
-            throw InvalidCardSignatureException(
-                      "The checking of the SV operation by the SAM has failed." +
-                      getTransactionAuditDataAsString(),
-                      std::make_shared<CalypsoSamSecurityDataException>(e));
-        } catch (const CalypsoSamCommandException& e) {
-            throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                                   "while checking the SV operation: " +
-                                                   e.getCommand().getName() +
-                                                   getTransactionAuditDataAsString(),
-                                                   std::make_shared<CalypsoSamCommandException>(e));
-        } catch (const ReaderBrokenCommunicationException& e) {
-            throw CardSignatureNotVerifiableException(
-                      MSG_CARD_SIGNATURE_NOT_VERIFIABLE_SV + getTransactionAuditDataAsString(),
-                      std::make_shared<ReaderIOException>(MSG_SAM_READER_COMMUNICATION_ERROR +
-                                                          MSG_WHILE_CHECKING_THE_SV_OPERATION,
-                                                          e));
-        } catch (const CardBrokenCommunicationException& e) {
-            throw CardSignatureNotVerifiableException(
-                      MSG_CARD_SIGNATURE_NOT_VERIFIABLE_SV + getTransactionAuditDataAsString(),
-                      std::make_shared<SamIOException>(MSG_SAM_COMMUNICATION_ERROR +
-                                                       MSG_WHILE_CHECKING_THE_SV_OPERATION,
-                                                       e));
-        } catch (const InconsistentDataException& e) {
-            throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
-        }
+        /* Execute all prepared SAM commands and check SV status. */
+        processSamSvCheck(mCard->getSvOperationSignature());
+    } else {
+        /* Execute all prepared SAM commands. */
+        processSamPreparedCommands();
     }
 }
 
@@ -891,10 +828,12 @@ void CardTransactionManagerAdapter::processCommandsInsideSession()
 {
     try {
         /* A session is open, we have to care about the card modifications buffer */
-        std::vector<std::shared_ptr<AbstractCardCommand>> cardAtomicCommands;
+        std::vector<std::shared_ptr<AbstractApduCommand>> cardAtomicCommands;
         bool isAtLeastOneReadCommand = false;
 
-        for (const auto& command : mCardCommands) {
+        for (const auto& apduCommand : mCardCommands) {
+
+            const auto& command = std::dynamic_pointer_cast<AbstractCardCommand>(apduCommand);
 
             /* Check if the command is a modifying command */
             if (command->isSessionBufferUsed()) {
@@ -911,7 +850,7 @@ void CardTransactionManagerAdapter::processCommandsInsideSession()
                     }
 
                     processAtomicClosing(cardAtomicCommands, false, ChannelControl::KEEP_OPEN);
-                    std::vector<std::shared_ptr<AbstractCardCommand>> empty;
+                    std::vector<std::shared_ptr<AbstractApduCommand>> empty;
                     processAtomicOpening(empty);
 
                     /* Reset and update the buffer counter */
@@ -927,8 +866,12 @@ void CardTransactionManagerAdapter::processCommandsInsideSession()
             }
         }
 
+        processAtomicCardCommands(cardAtomicCommands, ChannelControl::KEEP_OPEN);
+
         /* Sets the flag indicating that the commands have been executed */
         notifyCommandsProcessed();
+
+        processSamPreparedCommands();
 
     } catch (const RuntimeException& e) {
         abortSecureSessionSilently();
@@ -941,8 +884,9 @@ const std::shared_ptr<CardSecuritySetting> CardTransactionManagerAdapter::getSec
     return mSecuritySetting;
 }
 
+template <typename T>
 CardTransactionManager& CardTransactionManagerAdapter::prepareComputeSignature(
-    const std::shared_ptr<SignatureComputationData> data)
+    const std::shared_ptr<CommonSignatureComputationData<T>> data)
 {
     checkControlSam();
 
@@ -951,8 +895,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareComputeSignature(
     return *this;
 }
 
+template <typename T>
 CardTransactionManager& CardTransactionManagerAdapter::prepareVerifySignature(
-    const std::shared_ptr<SignatureVerificationData> data)
+    const std::shared_ptr<CommonSignatureVerificationData<T>> data)
 {
 
     checkControlSam();
@@ -964,8 +909,6 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareVerifySignature(
 
 CardTransactionManager& CardTransactionManagerAdapter::processCommands()
 {
-    processPreparedControlSamCommands();
-
     if (mIsSessionOpen) {
         processCommandsInsideSession();
     } else {
@@ -985,12 +928,12 @@ CardTransactionManager& CardTransactionManagerAdapter::processClosing()
     try {
         checkSession();
 
-        processPreparedControlSamCommands();
-
-        std::vector<std::shared_ptr<AbstractCardCommand>> cardAtomicCommands;
+        std::vector<std::shared_ptr<AbstractApduCommand>> cardAtomicCommands;
         bool isAtLeastOneReadCommand = false;
 
-        for (const auto& command : mCardCommands) {
+        for (const auto& apduCommand : mCardCommands) {
+
+            const auto& command = std::dynamic_pointer_cast<AbstractCardCommand>(apduCommand);
 
             /* Check if the command is a modifying command */
             if (command->isSessionBufferUsed()) {
@@ -1008,7 +951,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processClosing()
                     }
 
                     processAtomicClosing(cardAtomicCommands, false, ChannelControl::KEEP_OPEN);
-                    std::vector<std::shared_ptr<AbstractCardCommand>> empty;
+                    std::vector<std::shared_ptr<AbstractApduCommand>> empty;
                     processAtomicOpening(empty);
 
                    /* Reset and update the buffer counter */
@@ -1101,8 +1044,6 @@ CardTransactionManager& CardTransactionManagerAdapter::processVerifyPin(
                                         "submission.");
         }
 
-        processPreparedControlSamCommands();
-
         /* CL-PIN-PENCRYPT.1 */
         if (mSecuritySetting != nullptr && !mSecuritySetting->isPinPlainTransmissionEnabled()) {
 
@@ -1116,7 +1057,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processVerifyPin(
             notifyCommandsProcessed();
 
             /* Get the encrypted PIN with the help of the SAM */
-            std::vector<uint8_t> cipheredPin = getSamCipherPinData(pin, std::vector<uint8_t>());
+            std::vector<uint8_t> cipheredPin = processSamCardCipherPin(pin, std::vector<uint8_t>());
 
             mCardCommands.push_back(
                 std::make_shared<CmdCardVerifyPin>(mCard->getCardClass(), true, cipheredPin));
@@ -1131,6 +1072,8 @@ CardTransactionManager& CardTransactionManagerAdapter::processVerifyPin(
         /* Sets the flag indicating that the commands have been executed */
         notifyCommandsProcessed();
 
+        processSamPreparedCommands();
+
         return *this;
 
     } catch (const RuntimeException& e) {
@@ -1139,32 +1082,15 @@ CardTransactionManager& CardTransactionManagerAdapter::processVerifyPin(
     }
 }
 
-const std::vector<uint8_t> CardTransactionManagerAdapter::getSamCipherPinData(
+const std::vector<uint8_t> CardTransactionManagerAdapter::processSamCardCipherPin(
     const std::vector<uint8_t>& currentPin, const std::vector<uint8_t>& newPin)
 {
-    try {
-        return mSamCommandProcessor->getCipheredPinData(mCard->getCardChallenge(),
-                                                        currentPin,
-                                                        newPin);
-    } catch (const CalypsoSamCommandException& e) {
-        throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                               "while generating of the PIN ciphered data: " +
-                                               e.getCommand().getName() +
-                                               getTransactionAuditDataAsString(),
-                                               std::make_shared<CalypsoSamCommandException>(e));
-    } catch (const ReaderBrokenCommunicationException& e) {
-        throw ReaderIOException(MSG_SAM_READER_COMMUNICATION_ERROR +
-                                MSG_WHILE_GENERATING_OF_THE_PIN_CIPHERED_DATA +
-                                getTransactionAuditDataAsString(),
-                                std::make_shared<ReaderBrokenCommunicationException>(e));
-    } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(MSG_SAM_COMMUNICATION_ERROR +
-                             GENERATING_OF_THE_PIN_CIPHERED_DATA_ERROR +
-                             getTransactionAuditDataAsString(),
-                             std::make_shared<CardBrokenCommunicationException>(e));
-    } catch (const InconsistentDataException& e) {
-        throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
-    }
+    mControlSamTransactionManager->prepareGiveRandom();
+    const std::shared_ptr<CmdSamCardCipherPin> cmdSamCardCipherPin =
+        mControlSamTransactionManager->prepareCardCipherPin(currentPin, newPin);
+    mControlSamTransactionManager->processCommands();
+
+    return cmdSamCardCipherPin->getCipheredData();
 }
 
 CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
@@ -1180,8 +1106,6 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
         if (mIsSessionOpen) {
             throw IllegalStateException("'Change PIN' not allowed when a secure session is open.");
         }
-
-        processPreparedControlSamCommands();
 
         /* CL-PIN-MENCRYPT.1 */
         if (mSecuritySetting->isPinPlainTransmissionEnabled()) {
@@ -1204,7 +1128,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
 
             /* Get the encrypted PIN with the help of the SAM */
             std::vector<uint8_t> currentPin(4); /* All zeros as required */
-            std::vector<uint8_t> newPinData = getSamCipherPinData(currentPin, newPin);
+            std::vector<uint8_t> newPinData = processSamCardCipherPin(currentPin, newPin);
 
             mCardCommands.push_back(
                 std::make_shared<CmdCardChangePin>(mCard->getCardClass(), newPinData));
@@ -1215,6 +1139,8 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
 
         /* Sets the flag indicating that the commands have been executed */
         notifyCommandsProcessed();
+
+        processSamPreparedCommands();
 
         return *this;
 
@@ -1241,48 +1167,24 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const ui
 
     Assert::getInstance().isInRange(keyIndex, 1, 3, "keyIndex");
 
-    processPreparedControlSamCommands();
-
     /* CL-KEY-CHANGE.1 */
     mCardCommands.push_back(std::make_shared<CmdCardGetChallenge>(mCard->getCardClass()));
 
     /* Transmit and receive data with the card */
-    processAtomicCardCommands(mCardCommand, ChannelControl::KEEP_OPEN);
+    processAtomicCardCommands(mCardCommands, ChannelControl::KEEP_OPEN);
 
     /* Sets the flag indicating that the commands have been executed */
     notifyCommandsProcessed();
 
     /* Get the encrypted key with the help of the SAM */
-    try {
-        const std::vector<uint8_t> encryptedKey =
-            mSamCommandProcessor->getEncryptedKey(mCard->getCardChallenge(),
-                                                  issuerKif,
-                                                  issuerKvc,
-                                                  newKif,
-                                                  newKvc);
-        mCardCommands.push_back(
-            std::make_shared<CmdCardChangeKey>(mCard->getCardClass(),
-                                               keyIndex,
-                                               encryptedKey));
-    } catch (const CalypsoSamCommandException& e) {
-        throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                               "while generating the encrypted key: " +
-                                               e.getCommand().getName() +
-                                               getTransactionAuditDataAsString(),
-                                               std::make_shared<CalypsoSamCommandException>(e));
-    } catch (const ReaderBrokenCommunicationException& e) {
-        throw ReaderIOException(MSG_SAM_READER_COMMUNICATION_ERROR +
-                                MSG_WHILE_GENERATING_OF_THE_KEY_CIPHERED_DATA +
-                                getTransactionAuditDataAsString(),
-                                std::make_shared<ReaderBrokenCommunicationException>(e));
-    } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(MSG_SAM_COMMUNICATION_ERROR +
-                             MSG_WHILE_GENERATING_OF_THE_KEY_CIPHERED_DATA +
-                             getTransactionAuditDataAsString(),
-                             std::make_shared<CardBrokenCommunicationException>(e));
-    } catch (const InconsistentDataException& e) {
-        throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
-    }
+    const std::vector<uint8_t> encryptedKey = processSamCardGenerateKey(issuerKif,
+                                                                        issuerKvc,
+                                                                        newKif,
+                                                                        newKvc);
+
+    mCardCommands.push_back(std::make_shared<CmdCardChangeKey>(mCard->getCardClass(),
+                                                               keyIndex,
+                                                               encryptedKey));
 
     /* Transmit and receive data with the card */
     processAtomicCardCommands(mCardCommands, mChannelControl);
@@ -1291,6 +1193,17 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const ui
     notifyCommandsProcessed();
 
     return *this;
+}
+
+const std::vector<uint8_t> CardTransactionManagerAdapter::processSamCardGenerateKey(
+    const uint8_t issuerKif, const uint8_t issuerKvc, const uint8_t newKif, const uint8_t newKvc)
+{
+    mControlSamTransactionManager->prepareGiveRandom();
+    const std::shared_ptr<CmdSamCardGenerateKey> cmdSamCardGenerateKey =
+        mControlSamTransactionManager->prepareCardGenerateKey(issuerKif, issuerKvc, newKif, newKvc);
+    mControlSamTransactionManager->processCommands();
+
+    return cmdSamCardGenerateKey->getCipheredData();
 }
 
 const std::shared_ptr<CardResponseApi> CardTransactionManagerAdapter::transmitCardRequest(
@@ -1330,173 +1243,138 @@ const std::shared_ptr<CardResponseApi> CardTransactionManagerAdapter::transmitCa
 
 void CardTransactionManagerAdapter::finalizeSvCommand()
 {
-    try {
-        std::vector<uint8_t> svComplementaryData;
+    std::vector<uint8_t> svComplementaryData;
 
-        if (mSvLastModifyingCommand->getCommandRef() == CalypsoCardCommand::SV_RELOAD) {
+    if (mSvLastModifyingCommand->getCommandRef() == CalypsoCardCommand::SV_RELOAD) {
 
-            /* SV RELOAD: get the security data from the SAM */
-            auto svCommand = std::dynamic_pointer_cast<CmdCardSvReload>(mSvLastModifyingCommand);
+        /* SV RELOAD: get the security data from the SAM. */
+        auto svCommand = std::dynamic_pointer_cast<CmdCardSvReload>(mSvLastModifyingCommand);
 
-            svComplementaryData =
-                mSamCommandProcessor->getSvReloadComplementaryData(svCommand,
-                                                                   mCard->getSvGetHeader(),
-                                                                   mCard->getSvGetData());
+        svComplementaryData = processSamSvPrepareLoad(mCard->getSvGetHeader(),
+                                                      mCard->getSvGetData(),
+                                                      svCommand);
 
-            /* Finalize the SV command with the data provided by the SAM */
-            svCommand->finalizeCommand(svComplementaryData);
+        /* Finalize the SV command with the data provided by the SAM. */
+        svCommand->finalizeCommand(svComplementaryData);
 
-        } else {
+    } else {
 
-            /* SV DEBIT/UNDEBIT: get the security data from the SAM */
-            auto svCommand = std::dynamic_pointer_cast<CmdCardSvDebitOrUndebit>(
-                                 mSvLastModifyingCommand);
+        /* SV DEBIT/UNDEBIT: get the security data from the SAM. */
+        auto svCommand = std::dynamic_pointer_cast<CmdCardSvDebitOrUndebit>(mSvLastModifyingCommand);
 
-            svComplementaryData =
-                mSamCommandProcessor->getSvDebitOrUndebitComplementaryData(
-                    svCommand->getCommandRef() == CalypsoCardCommand::SV_DEBIT,
-                    svCommand,
-                    mCard->getSvGetHeader(),
-                    mCard->getSvGetData());
+        svComplementaryData = processSamSvPrepareDebitOrUndebit(
+                                  svCommand->getCommandRef() == CalypsoCardCommand::SV_DEBIT,
+                                  mCard->getSvGetHeader(),
+                                  mCard->getSvGetData(),
+                                  svCommand);
 
-            /* Finalize the SV command with the data provided by the SAM */
-            svCommand->finalizeCommand(svComplementaryData);
-        }
-    } catch (const CalypsoSamCommandException& e) {
-        throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                               "while preparing the SV command: " +
-                                               e.getCommand().getName() +
-                                               getTransactionAuditDataAsString(),
-                                               std::make_shared<CalypsoSamCommandException>(e));
-    } catch (const ReaderBrokenCommunicationException& e) {
-        throw ReaderIOException(MSG_SAM_READER_COMMUNICATION_ERROR +
-                                "while preparing the SV command." +
-                                getTransactionAuditDataAsString(),
-                                std::make_shared<ReaderBrokenCommunicationException>(e));
-    } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(MSG_SAM_COMMUNICATION_ERROR +
-                             "while preparing the SV command." +
-                             getTransactionAuditDataAsString(),
-                             std::make_shared<CardBrokenCommunicationException>(e));
-    } catch (const InconsistentDataException& e) {
-        throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
+        /* Finalize the SV command with the data provided by the SAM. */
+        svCommand->finalizeCommand(svComplementaryData);
     }
 }
 
-const std::vector<uint8_t> CardTransactionManagerAdapter::getSamChallenge()
+const std::vector<uint8_t> CardTransactionManagerAdapter::processSamSvPrepareLoad(
+    const std::vector<uint8_t>& svGetHeader,
+    const std::vector<uint8_t>& svGetData,
+    const std::shared_ptr<CmdCardSvReload> cmdCardSvReload)
 {
+    const std::shared_ptr<CmdSamSvPrepareLoad> cmdSamSvPrepareLoad =
+        mControlSamTransactionManager->prepareSvPrepareLoad(svGetHeader, svGetData, cmdCardSvReload);
+    mControlSamTransactionManager->processCommands();
+    const std::vector<uint8_t> prepareOperationData =
+        cmdSamSvPrepareLoad->getApduResponse()->getDataOut();
+
+    return computeOperationComplementaryData(prepareOperationData);
+}
+
+const std::vector<uint8_t> CardTransactionManagerAdapter::processSamSvPrepareDebitOrUndebit(
+    const bool isDebitCommand,
+    const std::vector<uint8_t> svGetHeader,
+    const std::vector<uint8_t> svGetData,
+    const std::shared_ptr<CmdCardSvDebitOrUndebit> cmdCardSvDebitOrUndebit)
+{
+    const std::shared_ptr<CmdSamSvPrepareDebitOrUndebit> cmdSamSvPrepareDebitOrUndebit =
+        mControlSamTransactionManager->prepareSvPrepareDebitOrUndebit(isDebitCommand,
+                                                                      svGetHeader,
+                                                                      svGetData,
+                                                                      cmdCardSvDebitOrUndebit);
+    mControlSamTransactionManager->processCommands();
+    const std::vector<uint8_t> prepareOperationData =
+        cmdSamSvPrepareDebitOrUndebit->getApduResponse()->getDataOut();
+
+    return computeOperationComplementaryData(prepareOperationData);
+}
+
+const std::vector<uint8_t> CardTransactionManagerAdapter::computeOperationComplementaryData(
+    const std::vector<uint8_t>& prepareOperationData)
+{
+    const std::vector<uint8_t>& samSerialNumber =
+        mSecuritySetting->getControlSam()->getSerialNumber();
+    std::vector<uint8_t> operationComplementaryData(samSerialNumber.size() +
+                                                    prepareOperationData.size());
+
+    System::arraycopy(samSerialNumber, 0, operationComplementaryData, 0, samSerialNumber.size());
+    System::arraycopy(prepareOperationData,
+                      0,
+                      operationComplementaryData,
+                      samSerialNumber.size(),
+                      prepareOperationData.size());
+
+    return operationComplementaryData;
+}
+
+void CardTransactionManagerAdapter::processSamSvCheck(const std::vector<uint8_t>& svOperationData)
+{
+    mControlSamTransactionManager->prepareSvCheck(svOperationData);
+
     try {
-        return mSamCommandProcessor->getChallenge();
-    } catch (const CalypsoSamCommandException& e) {
-        throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                               "while getting the SAM challenge: " +
-                                               e.getCommand().getName() +
-                                               getTransactionAuditDataAsString(),
-                                               std::make_shared<CalypsoSamCommandException>(e));
-    } catch (const ReaderBrokenCommunicationException& e) {
-        throw ReaderIOException(MSG_SAM_READER_COMMUNICATION_ERROR +
-                                "while getting the SAM challenge." +
-                                getTransactionAuditDataAsString(),
-                                std::make_shared<ReaderBrokenCommunicationException>(e));
-    } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(MSG_SAM_COMMUNICATION_ERROR +
-                             "while getting SAM challenge." +
-                             getTransactionAuditDataAsString(),
-                             std::make_shared<CardBrokenCommunicationException>(e));
-    } catch (const InconsistentDataException& e) {
-        throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
+        mControlSamTransactionManager->processCommands();
+    } catch (const ReaderIOException& e) {
+        throw CardSignatureNotVerifiableException(MSG_CARD_SIGNATURE_NOT_VERIFIABLE_SV,
+                                                  std::make_shared<ReaderIOException>(e));
+    } catch (const SamIOException& e) {
+        throw CardSignatureNotVerifiableException(MSG_CARD_SIGNATURE_NOT_VERIFIABLE_SV,
+                                                  std::make_shared<SamIOException>(e));
     }
 }
 
-const std::vector<uint8_t> CardTransactionManagerAdapter::getSessionTerminalSignature()
+const std::vector<uint8_t> CardTransactionManagerAdapter::processSamGetChallenge()
 {
-    try {
-        return mSamCommandProcessor->getTerminalSignature();
-    } catch (const CalypsoSamCommandException& e) {
-        throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                               "while getting the terminal signature: " +
-                                               e.getCommand().getName() +
-                                               getTransactionAuditDataAsString(),
-                                               std::make_shared<CalypsoSamCommandException>(e));
-    } catch (const ReaderBrokenCommunicationException& e) {
-        throw ReaderIOException(MSG_SAM_READER_COMMUNICATION_ERROR +
-                                "while getting the terminal signature." +
-                                getTransactionAuditDataAsString(),
-                                std::make_shared<ReaderBrokenCommunicationException>(e));
-    } catch (const CardBrokenCommunicationException& e) {
-        throw SamIOException(MSG_SAM_COMMUNICATION_ERROR +
-                             "while getting the terminal signature." +
-                             getTransactionAuditDataAsString(),
-                             std::make_shared<CardBrokenCommunicationException>(e));
-    } catch (const InconsistentDataException& e) {
-        throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
-    }
+    const std::shared_ptr<CmdSamGetChallenge> cmdSamGetChallenge =
+        mControlSamTransactionManager->prepareGetChallenge();
+    mControlSamTransactionManager->processCommands();
+    const std::vector<uint8_t> samChallenge = cmdSamGetChallenge->getChallenge();
+
+    mLogger->debug("SAM_CHALLENGE=%\n", HexUtil::toHex(samChallenge));
+
+    return samChallenge;
 }
 
-void CardTransactionManagerAdapter::checkCardSignature(const std::vector<uint8_t>& cardSignature)
+const std::vector<uint8_t> CardTransactionManagerAdapter::processSamSessionClosing()
 {
-    try {
-        mSamCommandProcessor->authenticateCardSignature(cardSignature);
-    } catch (const CalypsoSamSecurityDataException& e) {
-        throw InvalidCardSignatureException("The authentication of the card by the SAM has " \
-                                            "failed." +
-                                            getTransactionAuditDataAsString(),
-                                            std::make_shared<CalypsoSamSecurityDataException>(e));
-    } catch (const CalypsoSamCommandException& e) {
-        throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                               "while authenticating the card signature: " +
-                                               e.getCommand().getName() +
-                                               getTransactionAuditDataAsString(),
-                                               std::make_shared<CalypsoSamCommandException>(e));
-    } catch (const ReaderBrokenCommunicationException& e) {
-        throw CardSignatureNotVerifiableException(
-                  MSG_CARD_SIGNATURE_NOT_VERIFIABLE +
-                  getTransactionAuditDataAsString(),
-                  std::make_shared<ReaderIOException>(MSG_SAM_READER_COMMUNICATION_ERROR +
-                                                     "while authenticating the card signature.",
-                                                      e));
-    } catch (const CardBrokenCommunicationException& e) {
-        throw CardSignatureNotVerifiableException(
-                  MSG_CARD_SIGNATURE_NOT_VERIFIABLE +
-                  getTransactionAuditDataAsString(),
-                  std::make_shared<SamIOException>(MSG_SAM_COMMUNICATION_ERROR +
-                                                   "while authenticating the card signature.",
-                                                   e));
-    } catch (const InconsistentDataException& e) {
-        throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
-    }
+    const std::shared_ptr<CmdSamDigestClose> cmdSamDigestClose =
+        mControlSamTransactionManager->prepareSessionClosing();
+    mControlSamTransactionManager->processCommands();
+    const std::vector<uint8_t> terminalSignature = cmdSamDigestClose->getSignature();
+
+    mLogger->debug("SAM_SIGNATURE=%\n", HexUtil::toHex(terminalSignature));
+
+    return terminalSignature;
 }
 
-void CardTransactionManagerAdapter::checkSvOperationStatus(
-    const std::vector<uint8_t>& cardPostponedData)
+void CardTransactionManagerAdapter::processSamDigestAuthenticate(
+    const std::vector<uint8_t>& cardSignature)
 {
+    mControlSamTransactionManager->prepareDigestAuthenticate(cardSignature);
+
     try {
-        mSamCommandProcessor->checkSvStatus(cardPostponedData);
-    } catch (const CalypsoSamSecurityDataException& e) {
-        throw InvalidCardSignatureException("The checking of the SV operation by the SAM has " \
-                                            "failed." +
-                                            getTransactionAuditDataAsString(),
-                                            std::make_shared<CalypsoSamSecurityDataException>(e));
-    } catch (const CalypsoSamCommandException& e) {
-        throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                               "while checking the SV operation: " +
-                                               e.getCommand().getName() +
-                                               getTransactionAuditDataAsString(),
-                                               std::make_shared<CalypsoSamCommandException>(e));
-    } catch (const ReaderBrokenCommunicationException& e) {
-        throw CardSignatureNotVerifiableException(
-                  MSG_CARD_SIGNATURE_NOT_VERIFIABLE_SV + getTransactionAuditDataAsString(),
-                  std::make_shared<ReaderIOException>(MSG_SAM_READER_COMMUNICATION_ERROR +
-                                                      MSG_WHILE_CHECKING_THE_SV_OPERATION,
-                                                      e));
-    } catch (const CardBrokenCommunicationException& e) {
-        throw CardSignatureNotVerifiableException(
-                  MSG_CARD_SIGNATURE_NOT_VERIFIABLE_SV + getTransactionAuditDataAsString(),
-                  std::make_shared<SamIOException>(MSG_SAM_COMMUNICATION_ERROR +
-                                                   MSG_WHILE_CHECKING_THE_SV_OPERATION,
-                                                   e));
-    } catch (const InconsistentDataException& e) {
-        throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
+        mControlSamTransactionManager->processCommands();
+    } catch (const ReaderIOException& e) {
+        throw CardSignatureNotVerifiableException(MSG_CARD_SIGNATURE_NOT_VERIFIABLE,
+                                                  std::make_shared<ReaderIOException>(e));
+    } catch (const SamIOException& e) {
+        throw CardSignatureNotVerifiableException(MSG_CARD_SIGNATURE_NOT_VERIFIABLE,
+                                                  std::make_shared<SamIOException>(e));
     }
 }
 
@@ -2084,7 +1962,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvGet(const SvOper
     }
 
     /* CL-SV-CMDMODE.1 */
-    std::shared_ptr<CalypsoSam> calypsoSam = mSecuritySetting->getCalypsoSam();
+    std::shared_ptr<CalypsoSam> calypsoSam = mSecuritySetting->getControlSam();
     const bool useExtendedMode = mCard->isExtendedModeSupported() &&
                                  (calypsoSam == nullptr ||
                                   calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1);
@@ -2099,8 +1977,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvGet(const SvOper
         const SvOperation operation1 = SvOperation::RELOAD == svOperation ? SvOperation::DEBIT :
                                                                             SvOperation::RELOAD;
         addStoredValueCommand(std::make_shared<CmdCardSvGet>(mCard->getCardClass(),
-                                                             operation1, f
-                                                             alse),
+                                                             operation1,
+                                                             false),
                               operation1);
     }
 
@@ -2160,7 +2038,7 @@ void CardTransactionManagerAdapter::checkSvInsideSession()
 
 bool CardTransactionManagerAdapter::isExtendedModeAllowed() const
 {
-    std::shared_ptr<CalypsoSam> calypsoSam = mSecuritySetting->getCalypsoSam();
+    std::shared_ptr<CalypsoSam> calypsoSam = mSecuritySetting->getControlSam();
 
     return mCard->isExtendedModeSupported() &&
            calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1;
@@ -2256,13 +2134,12 @@ void CardTransactionManagerAdapter::addStoredValueCommand(
     const std::shared_ptr<AbstractCardCommand> command, const SvOperation svOperation)
 {
     /* Check the logic of the SV command sequencing */
-    switch (command-<getCommandRef()) {
-    case SV_GET:
+    if (command->getCommandRef() == CalypsoCardCommand::SV_GET) {
         mSvOperation = svOperation;
-        break;
-    case SV_RELOAD:
-    case SV_DEBIT:
-    case SV_UNDEBIT:
+
+    } else if (command->getCommandRef() == CalypsoCardCommand::SV_RELOAD ||
+               command->getCommandRef() == CalypsoCardCommand::SV_DEBIT ||
+               command->getCommandRef() == CalypsoCardCommand::SV_UNDEBIT) {
         /*
          * CL-SV-GETDEBIT.1
          * CL-SV-GETRLOAD.1
@@ -2284,8 +2161,8 @@ void CardTransactionManagerAdapter::addStoredValueCommand(
 
         mIsSvOperationComplete = true;
         mSvLastModifyingCommand = command;
-        break;
-    default:
+
+    } else {
         throw IllegalStateException("An SV command is expected.");
     }
 
@@ -2346,28 +2223,6 @@ std::ostream& operator<<(std::ostream& os, const std::shared_ptr<CardTransaction
         os << "APDU_RESPONSE_ADAPTER: null";
     } else {
         os << *ara;
-    }
-
-    return os;
-}
-
-/* SESSION STATE -------------------------------------------------------------------------------- */
-
-std::ostream& operator<<(std::ostream& os, const CardTransactionManagerAdapter::SessionState ss)
-{
-    switch (ss) {
-    case CardTransactionManagerAdapter::SessionState::SESSION_UNINITIALIZED:
-        os << "SESSION_UNINITIALIZED";
-        break;
-    case CardTransactionManagerAdapter::SessionState::SESSION_OPEN:
-        os << "SESSION_OPEN";
-        break;
-    case CardTransactionManagerAdapter::SessionState::SESSION_CLOSED:
-        os << "SESSION_CLOSED";
-        break;
-    default:
-        os << "UNKONWN";
-        break;
     }
 
     return os;
