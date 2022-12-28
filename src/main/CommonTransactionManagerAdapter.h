@@ -49,7 +49,8 @@ using namespace keyple::core::util;
  * @since 2.2.0
  */
 template <typename T, typename S, typename U>
-class CommonTransactionManagerAdapter : virtual public CommonTransactionManager<T, S> {
+class CommonTransactionManagerAdapter
+: virtual public CommonTransactionManager<T, S> {
 public:
     /* Prefix/suffix used to compose exception messages */
     const std::string MSG_SAM_READER_COMMUNICATION_ERROR =
@@ -83,7 +84,7 @@ public:
      *
      * @since 2.2.0
      */
-    const std::vector<std::vector<uint8_t>>& getTransactionAuditData() const final
+    const std::vector<std::vector<uint8_t>>& getTransactionAuditData() const override
     {
         /* CL-CSS-INFODATA.1 */
         return mTransactionAuditData;

@@ -884,9 +884,7 @@ const std::shared_ptr<CardSecuritySetting> CardTransactionManagerAdapter::getSec
     return mSecuritySetting;
 }
 
-template <typename T>
-CardTransactionManager& CardTransactionManagerAdapter::prepareComputeSignature(
-    const std::shared_ptr<CommonSignatureComputationData<T>> data)
+CardTransactionManager& CardTransactionManagerAdapter::prepareComputeSignature(const any data)
 {
     checkControlSam();
 
@@ -895,9 +893,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareComputeSignature(
     return *this;
 }
 
-template <typename T>
-CardTransactionManager& CardTransactionManagerAdapter::prepareVerifySignature(
-    const std::shared_ptr<CommonSignatureVerificationData<T>> data)
+CardTransactionManager& CardTransactionManagerAdapter::prepareVerifySignature(const any data)
 {
 
     checkControlSam();

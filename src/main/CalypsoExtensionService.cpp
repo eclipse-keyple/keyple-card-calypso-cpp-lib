@@ -135,11 +135,10 @@ std::shared_ptr<CardTransactionManager> CalypsoExtensionService::createCardTrans
         const std::shared_ptr<CalypsoCard> calypsoCard,
         const std::shared_ptr<CardSecuritySetting> cardSecuritySetting) const
 {
-    return std::dynamic_pointer_cast<CardTransactionManager>(
-               createCardTransactionManagerAdapter(cardReader,
-                                                   calypsoCard,
-                                                   cardSecuritySetting,
-                                                   true));
+    return createCardTransactionManagerAdapter(cardReader,
+                                               calypsoCard,
+                                               cardSecuritySetting,
+                                               true);
 }
 
 std::shared_ptr<CardTransactionManager>
@@ -147,8 +146,7 @@ std::shared_ptr<CardTransactionManager>
         std::shared_ptr<CardReader> cardReader,
         const std::shared_ptr<CalypsoCard> calypsoCard) const
 {
-    return std::dynamic_pointer_cast<CardTransactionManager>(
-               createCardTransactionManagerAdapter(cardReader, calypsoCard, nullptr, false));
+    return createCardTransactionManagerAdapter(cardReader, calypsoCard, nullptr, false);
 }
 
 std::shared_ptr<CardTransactionManagerAdapter>
@@ -203,16 +201,14 @@ std::shared_ptr<SamTransactionManager> CalypsoExtensionService::createSamTransac
     const std::shared_ptr<CalypsoSam> calypsoSam,
     const std::shared_ptr<SamSecuritySetting> samSecuritySetting) const
 {
-    return std::dynamic_pointer_cast<SamTransactionManager>(
-               createSamTransactionManagerAdapter(samReader, calypsoSam, samSecuritySetting, true));
+    return createSamTransactionManagerAdapter(samReader, calypsoSam, samSecuritySetting, true);
 }
 
 std::shared_ptr<SamTransactionManager> CalypsoExtensionService::createSamTransactionWithoutSecurity(
     std::shared_ptr<CardReader> samReader,
     const std::shared_ptr<CalypsoSam> calypsoSam) const
 {
-    return std::dynamic_pointer_cast<SamTransactionManager>(
-               createSamTransactionManagerAdapter(samReader, calypsoSam, nullptr, false));
+    return createSamTransactionManagerAdapter(samReader, calypsoSam, nullptr, false);
 }
 
 std::shared_ptr<SamTransactionManagerAdapter>

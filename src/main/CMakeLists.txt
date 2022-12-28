@@ -12,7 +12,8 @@
 
 SET(LIBRARY_NAME keyplecardcalypsocpplib)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DKEYPLECARDCALYPSO_EXPORT -Wno-undefined-var-template")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DKEYPLECARDCALYPSO_EXPORT")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-undefined-var-template")
 
 SET(CALYPSONET_CARD_DIR     "../../../calypsonet-terminal-card-cpp-api")
 SET(CALYPSONET_READER_DIR   "../../../calypsonet-terminal-reader-cpp-api")
@@ -27,8 +28,6 @@ SET(KEYPLE_UTIL_LIB         "keypleutilcpplib")
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpp/exception
 
     ${CALYPSONET_CARD_DIR}/src/main
     ${CALYPSONET_CARD_DIR}/src/main/spi

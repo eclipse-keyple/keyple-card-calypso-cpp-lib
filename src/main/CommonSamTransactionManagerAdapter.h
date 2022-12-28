@@ -121,13 +121,24 @@ public:
         const std::vector<std::vector<uint8_t>>& transactionAuditData)
     : CommonTransactionManagerAdapter(
       targetSmartCard,
-      std::dynamic_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
+      std::reinterpret_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
           securitySetting),
       transactionAuditData),
       mSamReader(securitySetting->getControlSamReader()),
       mSam(securitySetting->getControlSam()),
       mSecuritySetting(securitySetting),
       mDefaultKeyDiversifier(defaultKeyDiversifier) {}
+
+    /**
+     * C++: Ugly hack to avoid ambiguous method lookup. This function should be final in
+     * CommonTransactionManagerAdapter
+     *
+     * @since 2.2.0
+     */
+    const std::vector<std::vector<uint8_t>>& getTransactionAuditData() const final
+    {
+        return CommonTransactionManagerAdapter::getTransactionAuditData();
+    }
 
     /**
      * {@inheritDoc}
@@ -154,39 +165,43 @@ public:
      *
      * @since 2.2.0
      */
-    template <typename V>
-    SamTransactionManager& prepareComputeSignature(
-        const std::shared_ptr<V> data)
+    SamTransactionManager& prepareComputeSignature(const any data) override
     {
-        if (std::dynamic_pointer_cast<BasicSignatureComputationDataAdapter>(data)) {
+        /* C++: careful, code is a little bit different from Java because of any_cast flow */
+        try {
             /* Basic signature */
             auto dataAdapter =
-                std::dynamic_pointer_cast<BasicSignatureComputationDataAdapter>(data);
+                any_cast<std::shared_ptr<BasicSignatureComputationDataAdapter>>(data);
 
             Assert::getInstance().notNull(dataAdapter, MSG_INPUT_OUTPUT_DATA)
-                                .isInRange(dataAdapter->getData().size(),
+                                 .isInRange(dataAdapter->getData().size(),
                                             1,
                                             208,
                                             "length of data to sign")
-                                .isTrue(dataAdapter->getData().size() % 8 == 0,
-                                        "length of data to sign is a multiple of 8")
-                                .isInRange(dataAdapter->getSignatureSize(),
-                                           1,
-                                           8,
-                                           MSG_SIGNATURE_SIZE)
-                                .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
-                                        dataAdapter->getKeyDiversifier().dize() <= 8),
-                                        MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
+                                 .isTrue(dataAdapter->getData().size() % 8 == 0,
+                                         "length of data to sign is a multiple of 8")
+                                 .isInRange(dataAdapter->getSignatureSize(),
+                                            1,
+                                            8,
+                                            MSG_SIGNATURE_SIZE)
+                                 .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
+                                         dataAdapter->getKeyDiversifier().size() <= 8),
+                                         MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
             prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
             mSamCommands.push_back(std::make_shared<CmdSamDataCipher>(mSam->getProductType(),
-                                                                    dataAdapter,
-                                                                    nullptr));
+                                                                      dataAdapter,
+                                                                      nullptr));
+            return *this;
 
-        } else if (std::dynamic_pointer_cast<TraceableSignatureComputationDataAdapter>(data)) {
+        } catch (const std::exception& e) {
+            (void)e;
+        }
+
+        try {
             /* Traceable signature */
             auto dataAdapter =
-                std::dynamic_pointer_cast<TraceableSignatureComputationDataAdapter>(data);
+                any_cast<std::shared_ptr<TraceableSignatureComputationDataAdapter>>(data);
 
             Assert::getInstance().notNull(dataAdapter, MSG_INPUT_OUTPUT_DATA)
                                 .isInRange(dataAdapter->getData().size(),
@@ -199,16 +214,16 @@ public:
                                            MSG_SIGNATURE_SIZE)
                                 .isTrue(!dataAdapter->isSamTraceabilityMode() ||
                                         (dataAdapter->getTraceabilityOffset() >= 0 &&
-                                        dataAdapter->getTraceabilityOffset() <=
-                                            ((dataAdapter->getData().length * 8) -
+                                         dataAdapter->getTraceabilityOffset() <=
+                                            static_cast<int>((dataAdapter->getData().size() * 8) -
                                             (dataAdapter->isPartialSamSerialNumber() ?
                                             7 * 8 : 8 * 8))),
                                         "traceability offset is in range [0.." +
-                                        ((dataAdapter->getData().length * 8) -
-                                        (dataAdapter->isPartialSamSerialNumber() ? 7 * 8 : 8 * 8)) +
+                                        std::to_string(((dataAdapter->getData().size() * 8) -
+                                                        (dataAdapter->isPartialSamSerialNumber() ? 7 * 8 : 8 * 8))) +
                                         "]")
                                 .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
-                                        dataAdapter->getKeyDiversifier().length <= 8),
+                                        dataAdapter->getKeyDiversifier().size() <= 8),
                                         MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
                 prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
@@ -216,13 +231,15 @@ public:
                                         mSam->getProductType(),
                                         dataAdapter));
 
-        } else {
-            throw IllegalArgumentException("The provided data must be an instance of " \
-                                        "'BasicSignatureComputationDataAdapter' or " \
-                                        "'TraceableSignatureComputationDataAdapter'");
+                return *this;
+
+        } catch (const std::exception& e) {
+            (void)e;
         }
 
-        return *this;
+        throw IllegalArgumentException("The provided data must be an instance of " \
+                                       "'BasicSignatureComputationDataAdapter' or " \
+                                       "'TraceableSignatureComputationDataAdapter'");
     }
 
     /**
@@ -230,62 +247,67 @@ public:
      *
      * @since 2.2.0
      */
-    template <typename W>
-    SamTransactionManager& prepareVerifySignature(const std::shared_ptr<W> data)
+    SamTransactionManager& prepareVerifySignature(const any data) override
     {
-        if (std::dynamic_pointer_cast<BasicSignatureVerificationDataAdapter>(data)) {
+        /* C++: careful, code is a little bit different from Java because of any_cast flow */
+        try {
             /* Basic signature */
             auto dataAdapter =
-                std::dynamic_pointer_cast<BasicSignatureVerificationDataAdapter>(data);
+                any_cast<std::shared_ptr<BasicSignatureVerificationDataAdapter>>(data);
 
             Assert::getInstance().notNull(dataAdapter, MSG_INPUT_OUTPUT_DATA)
-                                .isInRange(dataAdapter->getData().size(),
+                                 .isInRange(dataAdapter->getData().size(),
                                             1,
                                             208,
                                             "length of signed data to verify")
-                                .isTrue(dataAdapter->getData().size() % 8 == 0,
-                                        "length of data to verify is a multiple of 8")
-                                .notNull(dataAdapter->getSignature(), "signature")
-                                .isInRange(dataAdapter->getSignature().size(),
+                                 .isTrue(dataAdapter->getData().size() % 8 == 0,
+                                         "length of data to verify is a multiple of 8")
+                                 .isInRange(dataAdapter->getSignature().size(),
                                             1,
                                             8,
                                             MSG_SIGNATURE_SIZE)
-                                .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
-                                        dataAdapter->getKeyDiversifier().length <= 8),
-                                        MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
+                                 .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
+                                          dataAdapter->getKeyDiversifier().size() <= 8),
+                                         MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
             prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
             mSamCommands.push_back(std::make_shared<CmdSamDataCipher>(mSam->getProductType(),
                                                                     nullptr,
                                                                     dataAdapter));
 
-        } else if (std::dynamic_pointer_cast<TraceableSignatureVerificationDataAdapter>(data)) {
+            return *this;
+
+        } catch (const std::exception& e) {
+            (void)e;
+        }
+
+        try {
             /* Traceable signature */
             auto dataAdapter =
-                std::dynamic_pointer_cast<TraceableSignatureVerificationDataAdapter>(data);
+                any_cast<std::shared_ptr<TraceableSignatureVerificationDataAdapter>>(data);
 
             Assert::getInstance().notNull(dataAdapter, MSG_INPUT_OUTPUT_DATA)
-                                .isInRange(dataAdapter->getData().size(),
-                                        1,
-                                        dataAdapter->isSamTraceabilityMode() ? 206 : 208,
-                                        "length of signed data to verify")
-                                .isInRange(dataAdapter->getSignature().size(),
-                                           1,
-                                           8,
-                                           MSG_SIGNATURE_SIZE)
-                                .isTrue(!dataAdapter->isSamTraceabilityMode() ||
-                                        (dataAdapter->getTraceabilityOffset() >= 0 &&
-                                        dataAdapter->getTraceabilityOffset() <=
-                                            ((dataAdapter->getData().length * 8) -
-                                            (dataAdapter->isPartialSamSerialNumber() ?
-                                                7 * 8 : 8 * 8))),
-                                        "traceability offset is in range [0.." +
-                                        ((dataAdapter->getData().size() * 8) -
-                                        (dataAdapter->isPartialSamSerialNumber() ? 7 * 8 : 8 * 8)) +
-                                        "]")
-                                .isTrue((dataAdapter->getKeyDiversifier().length >= 1 &&
-                                        dataAdapter->getKeyDiversifier().length <= 8),
-                                        MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
+                                 .isInRange(dataAdapter->getData().size(),
+                                            1,
+                                            dataAdapter->isSamTraceabilityMode() ? 206 : 208,
+                                            "length of signed data to verify")
+                                 .isInRange(dataAdapter->getSignature().size(),
+                                            1,
+                                            8,
+                                            MSG_SIGNATURE_SIZE)
+                                 .isTrue(!dataAdapter->isSamTraceabilityMode() ||
+                                         (dataAdapter->getTraceabilityOffset() >= 0 &&
+                                          dataAdapter->getTraceabilityOffset() <=
+                                             static_cast<int>((dataAdapter->getData().size() * 8) -
+                                                              (dataAdapter->isPartialSamSerialNumber() ?
+                                                              7 * 8 : 8 * 8))),
+                                         "traceability offset is in range [0.." +
+                                         std::to_string((dataAdapter->getData().size() * 8) -
+                                                         (dataAdapter->isPartialSamSerialNumber() ? 7 * 8 : 8 * 8)) +
+                                         "]")
+                                 .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
+                                         dataAdapter->getKeyDiversifier().size() <= 8),
+                                         MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
             /* Check SAM revocation status if requested. */
             if (dataAdapter->isSamRevocationStatusVerificationRequested()) {
@@ -311,12 +333,12 @@ public:
                         false);
 
                 /* Is SAM revoked ? */
-                if (mSecuritySetting->getSamRevocationServiceSpi()->isSamRevoked(samSerialNumber,
-                                                                                samCounterValue)) {
+                if (mSecuritySetting->getSamRevocationServiceSpi()
+                                    ->isSamRevoked(samSerialNumber, samCounterValue)) {
                     throw SamRevokedException(
                             StringUtils::format("SAM with serial number '%s' and counter value '%d' " \
                                                 "is revoked.",
-                                                HexUtil::toHex(samSerialNumber),
+                                                HexUtil::toHex(samSerialNumber).c_str(),
                                                 samCounterValue));
                 }
             }
@@ -325,12 +347,14 @@ public:
             mSamCommands.push_back(
                 std::make_shared<CmdSamPsoVerifySignature>(mSam->getProductType(), dataAdapter));
 
-        } else {
-            throw IllegalArgumentException("The provided data must be an instance of " \
-                                        "'CommonSignatureVerificationDataAdapter'");
+                return *this;
+
+        } catch (const std::exception& e) {
+            (void)e;
         }
 
-        return *this;
+        throw IllegalArgumentException("The provided data must be an instance of " \
+                                       "'CommonSignatureVerificationDataAdapter'");
     }
 
     /**

@@ -22,6 +22,7 @@
 #include "BasicSignatureComputationDataAdapter.h"
 #include "CalypsoSamAdapter.h"
 #include "SamTransactionManager.h"
+#include "SamTransactionManagerAdapter.h"
 #include "TraceableSignatureComputationDataAdapter.h"
 
 /* Keyple Core Service */

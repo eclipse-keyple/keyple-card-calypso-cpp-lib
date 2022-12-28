@@ -52,7 +52,7 @@ public:
         mKif = kif;
         mKvc = kvc;
 
-        return *mCurrentInstance;
+        return dynamic_cast<T&>(*this);
     }
 
     /**
@@ -64,7 +64,7 @@ public:
     {
         mKeyDiversifier = diversifier;
 
-        return *mCurrentInstance;
+        return dynamic_cast<T&>(*this);
     }
 
     /**
@@ -138,12 +138,18 @@ public:
         mIsSignatureValid = std::make_shared<bool>(isSignatureValid);
     }
 
-private:
     /**
+     * (package-private)<br>
      *
+     * @return Null if the key diversifier is not set.
+     * @since 2.2.0
      */
-    T* mCurrentInstance = dynamic_cast<T*>(this);
+    virtual const std::vector<uint8_t>& getKeyDiversifier() const
+    {
+        return mKeyDiversifier;
+    }
 
+private:
     /**
      *
      */
@@ -173,17 +179,6 @@ private:
      *
      */
     std::shared_ptr<bool> mIsSignatureValid = nullptr;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return Null if the key diversifier is not set.
-     * @since 2.2.0
-     */
-    virtual const std::vector<uint8_t>& getKeyDiversifier() const
-    {
-        return mKeyDiversifier;
-    }
 };
 
 }

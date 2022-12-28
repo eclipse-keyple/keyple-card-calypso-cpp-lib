@@ -28,7 +28,6 @@ SET(KEYPLE_UTIL_LIB         "keypleutilcpplib")
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../main
-    ${CMAKE_CURRENT_SOURCE_DIR}/../main/spi
     ${CMAKE_CURRENT_SOURCE_DIR}/../test/mock
 
     ${CALYPSONET_CALYPSO_DIR}/src/main

@@ -38,6 +38,7 @@
 #include "CardControlSamTransactionManagerAdapter.h"
 
 /* Keyple Core Util */
+#include "Any.h"
 #include "LoggerFactory.h"
 
 namespace keyple {
@@ -104,6 +105,17 @@ public:
                                   const std::shared_ptr<CardSecuritySettingAdapter> securitySetting);
 
     /**
+     * C++: Ugly hack to avoid ambiguous method lookup. This function should be final in
+     * CommonTransactionManagerAdapter
+     *
+     * @since 2.2.0
+     */
+    const std::vector<std::vector<uint8_t>>& getTransactionAuditData() const final
+    {
+        return CommonTransactionManagerAdapter::getTransactionAuditData();
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @since 2.0.0
@@ -144,18 +156,14 @@ public:
      *
      * @since 2.2.0
      */
-    template <typename T>
-    CardTransactionManager& prepareComputeSignature(
-        const std::shared_ptr<CommonSignatureComputationData<T>> data);
+    CardTransactionManager& prepareComputeSignature(const any data) override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.2.0
      */
-    template <typename T>
-    CardTransactionManager& prepareVerifySignature(
-        const std::shared_ptr<CommonSignatureVerificationData<T>> data);
+    CardTransactionManager& prepareVerifySignature(const any data) override;
 
     /**
      * {@inheritDoc}

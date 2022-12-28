@@ -27,7 +27,7 @@ using namespace keyple::core::util::cpp::exception;
 
 /**
  * (package-private)<br>
- * Implementation of {@link CommonSignatureComputationData}.
+ * Implementation of CommonSignatureComputationData.
  *
  * @param <T> The type of the lowest level child object.
  * @since 2.2.0
@@ -144,6 +144,17 @@ public:
         mSignature = signature;
     }
 
+    /**
+     * (package-private)<br>
+     *
+     * @return Null if the key diversifier is not set.
+     * @since 2.2.0
+     */
+    virtual const std::vector<uint8_t>& getKeyDiversifier() const
+    {
+        return mKeyDiversifier;
+    }
+
 private:
     /**
      *
@@ -179,17 +190,6 @@ private:
      * C++: required to avoid pointer on mSignature
      */
     bool mSignatureProcessed = false;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return Null if the key diversifier is not set.
-     * @since 2.2.0
-     */
-    virtual const std::vector<uint8_t>& getKeyDiversifier() const
-    {
-        return mKeyDiversifier;
-    }
 };
 
 }
