@@ -695,32 +695,32 @@ private:
     /**
      *
      */
-    bool mIsExtendedModeSupported;
+    bool mIsExtendedModeSupported = false;
 
     /**
      *
      */
-    bool mIsRatificationOnDeselectSupported;
+    bool mIsRatificationOnDeselectSupported = false;
 
     /**
      *
      */
-    bool mIsSvFeatureAvailable;
+    bool mIsSvFeatureAvailable = false;
 
     /**
      *
      */
-    bool mIsPinFeatureAvailable;
+    bool mIsPinFeatureAvailable = false;
 
     /**
      *
      */
-    bool mIsPkiModeSupported;
+    bool mIsPkiModeSupported = false;
 
     /**
      *
      */
-    bool mIsDfInvalidated;
+    bool mIsDfInvalidated = false;
 
     /**
      *
@@ -755,7 +755,7 @@ private:
     /**
      *
      */
-    bool mIsModificationCounterInBytes;
+    bool mIsModificationCounterInBytes = false;
 
     /**
      *
@@ -820,7 +820,7 @@ private:
     /**
      *
      */
-    bool mIsHce;
+    bool mIsHce = false;
 
     /**
      *

@@ -15,45 +15,6 @@ SET(LIBRARY_NAME keyplecardcalypsocpplib)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DKEYPLECARDCALYPSO_EXPORT")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-undefined-var-template")
 
-SET(CALYPSONET_CARD_DIR     "../../../calypsonet-terminal-card-cpp-api")
-SET(CALYPSONET_READER_DIR   "../../../calypsonet-terminal-reader-cpp-api")
-SET(CALYPSONET_CALYPSO_DIR  "../../../calypsonet-terminal-calypso-cpp-api")
-SET(KEYPLE_COMMON_DIR       "../../../keyple-common-cpp-api")
-SET(KEYPLE_PLUGIN_DIR       "../../../keyple-plugin-cpp-api")
-SET(KEYPLE_SERVICE_DIR      "../../../keyple-service-cpp-lib")
-SET(KEYPLE_RESOURCE_DIR     "../../../keyple-service-resource-cpp-lib")
-SET(KEYPLE_UTIL_DIR         "../../../keyple-util-cpp-lib")
-
-SET(KEYPLE_UTIL_LIB         "keypleutilcpplib")
-
-INCLUDE_DIRECTORIES(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-
-    ${CALYPSONET_CARD_DIR}/src/main
-    ${CALYPSONET_CARD_DIR}/src/main/spi
-
-    ${CALYPSONET_READER_DIR}/src/main
-    ${CALYPSONET_READER_DIR}/src/main/selection
-    ${CALYPSONET_READER_DIR}/src/main/selection/spi
-    ${CALYPSONET_READER_DIR}/src/main/spi
-
-    ${CALYPSONET_CALYPSO_DIR}/src/main
-    ${CALYPSONET_CALYPSO_DIR}/src/main/card
-    ${CALYPSONET_CALYPSO_DIR}/src/main/sam
-    ${CALYPSONET_CALYPSO_DIR}/src/main/spi
-    ${CALYPSONET_CALYPSO_DIR}/src/main/transaction
-
-    ${KEYPLE_COMMON_DIR}/src/main
-
-    ${KEYPLE_RESOURCE_DIR}/src/main/spi
-
-    ${KEYPLE_SERVICE_DIR}/src/main/cpp
-
-    ${KEYPLE_UTIL_DIR}/src/main
-    ${KEYPLE_UTIL_DIR}/src/main/cpp
-    ${KEYPLE_UTIL_DIR}/src/main/cpp/exception
-)
-
 ADD_LIBRARY(
     ${LIBRARY_NAME}
 
@@ -144,6 +105,19 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/TraceableSignatureVerificationDataAdapter.cpp
 )
 
-IF(APPLE OR WIN32)
-    TARGET_LINK_LIBRARIES(${LIBRARY_NAME} ${KEYPLE_UTIL_LIB})
-ENDIF(APPLE OR WIN32)
+TARGET_INCLUDE_DIRECTORIES(
+        ${LIBRARY_NAME}
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        cpp
+        cpp/exception
+)
+    
+# careful, link order matters here as there are includes with the same name, and we cannot discriminate based on path
+TARGET_LINK_LIBRARIES(
+    ${LIBRARY_NAME} 
+        PUBLIC 
+    CalypsoNet::TerminalCalypso 
+    Keyple::ServiceResource)
+
+ADD_LIBRARY(Keyple::CardCalypso ALIAS ${LIBRARY_NAME})

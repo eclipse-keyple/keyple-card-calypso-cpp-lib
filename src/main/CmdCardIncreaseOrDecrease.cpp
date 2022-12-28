@@ -108,7 +108,8 @@ int CmdCardIncreaseOrDecrease::getIncDecValue() const
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardIncreaseOrDecrease::initStatusTable()
 {
-    std::map<const int, const std::shared_ptr<StatusProperties>> m;
+    std::map<const int, const std::shared_ptr<StatusProperties>> m =
+        AbstractApduCommand::STATUS_TABLE;
 
     m.insert({0x6400,
               std::make_shared<StatusProperties>("Too many modifications in session.",
