@@ -856,9 +856,9 @@ private:
     /**
      * Gets the terminal challenge from the SAM, and raises exceptions if necessary.
      * (private)<br>
-     * Finalizes the last SV modifying command.
+     * Finalizes the last SV modifying command using the control SAM if an SV operation is pending.
      */
-    void finalizeSvCommand();
+    void finalizeSvCommandIfNeeded();
 
     /**
      * (private)<br>
@@ -1052,14 +1052,6 @@ private:
      * @throw IllegalStateException if no CardSecuritySetting is available.
      */
     void processAtomicOpening(std::vector<std::shared_ptr<AbstractApduCommand>>& cardCommands);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.2.0
-     */
-    const std::vector<std::shared_ptr<ApduRequestSpi>> getApduRequests(
-        const std::vector<std::shared_ptr<AbstractApduCommand>>& commands) override;
 
     /**
      * (private)<br>

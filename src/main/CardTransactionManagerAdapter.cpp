@@ -281,17 +281,6 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     mControlSamTransactionManager->updateSession(apduRequests, apduResponses, 1);
 }
 
-const std::vector<std::shared_ptr<ApduRequestSpi>> CardTransactionManagerAdapter::getApduRequests(
-    const std::vector<std::shared_ptr<AbstractApduCommand>>& commands)
-{
-    /* Process SAM operations first for SV if needed. */
-    if (mSvLastModifyingCommand != nullptr) {
-        finalizeSvCommand();
-    }
-
-    return CommonTransactionManagerAdapter::getApduRequests(commands);
-}
-
 void CardTransactionManagerAdapter::abortSecureSessionSilently()
 {
     if (mIsSessionOpen) {
@@ -916,6 +905,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareVerifySignature(co
 
 CardTransactionManager& CardTransactionManagerAdapter::processCommands()
 {
+    finalizeSvCommandIfNeeded();
+
     if (mIsSessionOpen) {
         processCommandsInsideSession();
     } else {
@@ -934,6 +925,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processClosing()
 {
     try {
         checkSession();
+        finalizeSvCommandIfNeeded();
 
         std::vector<std::shared_ptr<AbstractApduCommand>> cardAtomicCommands;
         bool isAtLeastOneReadCommand = false;
@@ -1051,6 +1043,8 @@ CardTransactionManager& CardTransactionManagerAdapter::processVerifyPin(
                                         "submission.");
         }
 
+        finalizeSvCommandIfNeeded();
+
         /* CL-PIN-PENCRYPT.1 */
         if (mSecuritySetting != nullptr && !mSecuritySetting->isPinPlainTransmissionEnabled()) {
 
@@ -1114,6 +1108,8 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
             throw IllegalStateException("'Change PIN' not allowed when a secure session is open.");
         }
 
+        finalizeSvCommandIfNeeded();
+
         /* CL-PIN-MENCRYPT.1 */
         if (mSecuritySetting->isPinPlainTransmissionEnabled()) {
 
@@ -1173,6 +1169,8 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const ui
     }
 
     Assert::getInstance().isInRange(keyIndex, 1, 3, "keyIndex");
+
+    finalizeSvCommandIfNeeded();
 
     /* CL-KEY-CHANGE.1 */
     mCardCommands.push_back(std::make_shared<CmdCardGetChallenge>(mCard->getCardClass()));
@@ -1243,8 +1241,12 @@ const std::shared_ptr<CardResponseApi> CardTransactionManagerAdapter::transmitCa
     return cardResponse;
 }
 
-void CardTransactionManagerAdapter::finalizeSvCommand()
+void CardTransactionManagerAdapter::finalizeSvCommandIfNeeded()
 {
+    if (mSvLastModifyingCommand == nullptr) {
+        return;
+    }
+
     std::vector<uint8_t> svComplementaryData;
 
     if (mSvLastModifyingCommand->getCommandRef() == CalypsoCardCommand::SV_RELOAD) {

@@ -98,7 +98,7 @@ public:
      * @return An empty list if there is no command.
      * @since 2.2.0
      */
-    virtual const std::vector<std::shared_ptr<ApduRequestSpi>> getApduRequests(
+    const std::vector<std::shared_ptr<ApduRequestSpi>> getApduRequests(
         const std::vector<std::shared_ptr<AbstractApduCommand>>& commands)
     {
         std::vector<std::shared_ptr<ApduRequestSpi>> apduRequests;
