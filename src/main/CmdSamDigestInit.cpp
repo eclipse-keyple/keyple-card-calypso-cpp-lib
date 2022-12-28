@@ -44,7 +44,7 @@ CmdSamDigestInit::CmdSamDigestInit(
   const uint8_t workKif,
   const uint8_t workKvc,
   const std::vector<uint8_t>& digestData)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     if (workKif == 0x00 || workKvc == 0x00) {
         throw IllegalArgumentException("Bad kif or kvc!");

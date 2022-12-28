@@ -20,7 +20,7 @@
 #include "ApduResponseAdapter.h"
 
 /* Keyple Core Util */
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalArgumentException.h"
 #include "IllegalStateException.h"
 #include "StringUtils.h"
@@ -93,27 +93,27 @@ static const std::shared_ptr<ApduResponseApi> buildSelectApplicationResponse(
     const std::string& startupInfoAsHexString,
     const int statusWord)
 {
-    const std::vector<uint8_t> dfName = ByteArrayUtil::fromHex(dfNameAsHexString);
-    const std::vector<uint8_t> serialNumber = ByteArrayUtil::fromHex(serialNumberAsHexString);
-    const std::vector<uint8_t> startupInfo = ByteArrayUtil::fromHex(startupInfoAsHexString);
+    const std::vector<uint8_t> dfName = HexUtil::toByteArray(dfNameAsHexString);
+    const std::vector<uint8_t> serialNumber = HexUtil::toByteArray(serialNumberAsHexString);
+    const std::vector<uint8_t> startupInfo = HexUtil::toByteArray(startupInfoAsHexString);
     std::vector<uint8_t> selAppResponse(23 + dfName.size() + startupInfo.size());
 
     selAppResponse[0] = 0x6F;
-    selAppResponse[1] = static_cast<uint8_t>(11 + 
-                                             dfName.size() + 
-                                             serialNumber.size() + 
+    selAppResponse[1] = static_cast<uint8_t>(11 +
+                                             dfName.size() +
+                                             serialNumber.size() +
                                              startupInfo.size());
     selAppResponse[2] = 0x84;
     selAppResponse[3] = static_cast<uint8_t>(dfName.size());
     System::arraycopy(dfName, 0, selAppResponse, 4, dfName.size());
     selAppResponse[4 + dfName.size()] = 0xA5;
-    selAppResponse[5 + dfName.size()] = static_cast<uint8_t>(7 + 
-                                                             serialNumber.size() + 
+    selAppResponse[5 + dfName.size()] = static_cast<uint8_t>(7 +
+                                                             serialNumber.size() +
                                                              startupInfo.size());
     selAppResponse[6 + dfName.size()] = 0xBF;
     selAppResponse[7 + dfName.size()] = 0x0C;
-    selAppResponse[8 + dfName.size()] = static_cast<uint8_t>(4 + 
-                                                             serialNumber.size() + 
+    selAppResponse[8 + dfName.size()] = static_cast<uint8_t>(4 +
+                                                             serialNumber.size() +
                                                              startupInfo.size());
     selAppResponse[9 + dfName.size()] = 0xC7;
     selAppResponse[10 + dfName.size()] = static_cast<uint8_t>(serialNumber.size());
@@ -151,7 +151,7 @@ TEST(CalypsoCardAdapterTest, initializeWithPowerOnData_shouldInitPrimeRevision1P
     ASSERT_FALSE(calypsoCardAdapter->isDfInvalidated());
     ASSERT_TRUE(calypsoCardAdapter->isRatificationOnDeselectSupported());
     ASSERT_EQ(calypsoCardAdapter->getApplicationSerialNumber(),
-              ByteArrayUtil::fromHex(CALYPSO_SERIAL_NUMBER));
+              HexUtil::toByteArray(CALYPSO_SERIAL_NUMBER));
 
     tearDown();
 }
@@ -161,7 +161,7 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenBadFci_shouldThrowIAE)
     setUp();
 
     const auto selectApplicationResponse =
-        std::make_shared<ApduResponseAdapter>(ByteArrayUtil::fromHex("1122339000"));
+        std::make_shared<ApduResponseAdapter>(HexUtil::toByteArray("1122339000"));
 
     EXPECT_THROW(calypsoCardAdapter->initializeWithFci(selectApplicationResponse),
                  IllegalArgumentException);
@@ -174,7 +174,7 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_withEmptyFCI_shouldInitUnknownPro
     setUp();
 
     const auto selectApplicationResponse =
-        std::make_shared<ApduResponseAdapter>(ByteArrayUtil::fromHex("9000"));
+        std::make_shared<ApduResponseAdapter>(HexUtil::toByteArray("9000"));
 
     calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
 
@@ -455,7 +455,7 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenStartupInfoIsLarger_shouldPro
     calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
 
     ASSERT_EQ(calypsoCardAdapter->getStartupInfoRawData(),
-              ByteArrayUtil::fromHex(STARTUP_INFO_PRIME_REVISION_3_EXTRA_BYTE));
+              HexUtil::toByteArray(STARTUP_INFO_PRIME_REVISION_3_EXTRA_BYTE));
 
     tearDown();
 }
@@ -466,15 +466,15 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenTagsAreInADifferentOrder_shou
 
     const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
         std::make_shared<ApduResponseAdapter>(
-            ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_DIFFERENT_TAGS_ORDER));
+            HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_DIFFERENT_TAGS_ORDER));
 
     calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
 
-    ASSERT_EQ(calypsoCardAdapter->getDfName(), ByteArrayUtil::fromHex(DF_NAME));
+    ASSERT_EQ(calypsoCardAdapter->getDfName(), HexUtil::toByteArray(DF_NAME));
     ASSERT_EQ(calypsoCardAdapter->getCalypsoSerialNumberFull(),
-              ByteArrayUtil::fromHex(CALYPSO_SERIAL_NUMBER));
+              HexUtil::toByteArray(CALYPSO_SERIAL_NUMBER));
     ASSERT_EQ(calypsoCardAdapter->getStartupInfoRawData(),
-              ByteArrayUtil::fromHex(STARTUP_INFO_PRIME_REVISION_3));
+              HexUtil::toByteArray(STARTUP_INFO_PRIME_REVISION_3));
 
     tearDown();
 }
@@ -538,7 +538,7 @@ TEST(CalypsoCardAdapterTest, getDfName_shouldReturnDfNameFromFCI)
 
     calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
 
-    ASSERT_EQ(calypsoCardAdapter->getDfName(), ByteArrayUtil::fromHex(DF_NAME));
+    ASSERT_EQ(calypsoCardAdapter->getDfName(), HexUtil::toByteArray(DF_NAME));
 
     tearDown();
 }
@@ -556,7 +556,7 @@ TEST(CalypsoCardAdapterTest, getApplicationSerialNumber_shouldReturnApplicationS
     calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
 
     ASSERT_EQ(calypsoCardAdapter->getApplicationSerialNumber(),
-              ByteArrayUtil::fromHex(CALYPSO_SERIAL_NUMBER));
+              HexUtil::toByteArray(CALYPSO_SERIAL_NUMBER));
 
     tearDown();
 }
@@ -574,7 +574,7 @@ TEST(CalypsoCardAdapterTest, getStartupInfoRawData_shouldReturnFromFCI)
     calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
 
     ASSERT_EQ(calypsoCardAdapter->getStartupInfoRawData(),
-              ByteArrayUtil::fromHex(STARTUP_INFO_PRIME_REVISION_3));
+              HexUtil::toByteArray(STARTUP_INFO_PRIME_REVISION_3));
 
     tearDown();
 }
@@ -911,6 +911,24 @@ TEST(CalypsoCardAdapterTest, getSvBalance_whenNotSet_shouldThrowISE)
     setUp();
 
     EXPECT_THROW(calypsoCardAdapter->getSvBalance(), IllegalStateException);
+
+    tearDown();
+}
+
+TEST(CalypsoCardAdapterTest, isDfRatified_whenNoSessionWasOpened_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(calypsoCardAdapter->isDfRatified(), IllegalStateException);
+
+    tearDown();
+}
+
+TEST(CalypsoCardAdapterTest, getTransactionCounter_whenNoSessionWasOpened_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(calypsoCardAdapter->getTransactionCounter(), IllegalStateException);
 
     tearDown();
 }

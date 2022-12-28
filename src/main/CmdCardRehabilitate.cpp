@@ -35,7 +35,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardRehabilitate::STATUS_TABLE = initStatusTable();
 
 CmdCardRehabilitate::CmdCardRehabilitate(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;

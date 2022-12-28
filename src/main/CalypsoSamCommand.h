@@ -30,62 +30,28 @@ namespace calypso {
  */
 class CalypsoSamCommand : public CardCommand {
 public:
-    /** select diversifier. */
     static const CalypsoSamCommand SELECT_DIVERSIFIER;
-
-    /** get challenge. */
     static const CalypsoSamCommand GET_CHALLENGE;
-
-    /** digest init. */
     static const CalypsoSamCommand DIGEST_INIT;
-
-    /** digest update. */
     static const CalypsoSamCommand DIGEST_UPDATE;
-
-    /** digest update multiple. */
     static const CalypsoSamCommand DIGEST_UPDATE_MULTIPLE;
-
-    /** digest close. */
     static const CalypsoSamCommand DIGEST_CLOSE;
-
-    /** digest authenticate. */
     static const CalypsoSamCommand DIGEST_AUTHENTICATE;
-
-    /** digest authenticate. */
     static const CalypsoSamCommand GIVE_RANDOM;
-
-    /** digest authenticate. */
     static const CalypsoSamCommand CARD_GENERATE_KEY;
-
-    /** card cipher PIN. */
     static const CalypsoSamCommand CARD_CIPHER_PIN;
-
-    /** unlock. */
     static const CalypsoSamCommand UNLOCK;
-
-    /** write key. */
     static const CalypsoSamCommand WRITE_KEY;
-
-    /** read key parameters. */
     static const CalypsoSamCommand READ_KEY_PARAMETERS;
-
-    /** read event counter. */
     static const CalypsoSamCommand READ_EVENT_COUNTER;
-
-    /** read ceilings. */
     static const CalypsoSamCommand READ_CEILINGS;
-
-    /** SV check. */
     static const CalypsoSamCommand SV_CHECK;
-
-    /** SV prepare debit. */
     static const CalypsoSamCommand SV_PREPARE_DEBIT;
-
-    /** SV prepare load. */
     static const CalypsoSamCommand SV_PREPARE_LOAD;
-
-    /** SV prepare undebit. */
     static const CalypsoSamCommand SV_PREPARE_UNDEBIT;
+    static const CalypsoSamCommand DATA_CIPHER;
+    static const CalypsoSamCommand PSO_COMPUTE_SIGNATURE;
+    static const CalypsoSamCommand PSO_VERIFY_SIGNATURE;
 
     /**
      * Gets the name.
@@ -102,6 +68,11 @@ public:
      * @since 2.0.0
      */
     uint8_t getInstructionByte() const override;
+
+    /**
+     *
+     */
+    bool operator==(const CalypsoSamCommand& csc) const;
 
 private:
     /**

@@ -16,13 +16,6 @@ namespace keyple {
 namespace card {
 namespace calypso {
 
-SearchCommandDataAdapter::SearchCommandDataAdapter()
-: mSfi(1), 
-  mRecordNumber(1), 
-  mOffset(0), 
-  mEnableRepeatedOffset(false),
-  mFetchFirstMatchingResult(false) {}
-
 SearchCommandData& SearchCommandDataAdapter::setSfi(const uint8_t sfi)
 {
     mSfi = sfi;

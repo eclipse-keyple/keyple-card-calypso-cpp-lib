@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -79,15 +79,17 @@ public:
      * @param calypsoCard The CalypsoCardAdapter object to fill with the provided response from the
      *        card.
      * @param commands The list of commands that get the responses.
+     *        C++: vector of AbstractApduCommand instead of AbstractCardCommand because of vector
+     *        vs. polymorphism issues...
      * @param apduResponses The APDU responses returned by the card to all commands.
      * @param isSessionOpen True when a secure session is open.
      * @throw CardCommandException If a response from the card was unexpected.
-     * @throw DesynchronizedExchangesException If the number of commands/responses does not match.
+     * @throw InconsistentDataException If the number of commands/responses does not match.
      * @since 2.0.0
      */
     static void updateCalypsoCard(
         std::shared_ptr<CalypsoCardAdapter> calypsoCard,
-        const std::vector<std::shared_ptr<AbstractCardCommand>>& commands,
+        const std::vector<std::shared_ptr<AbstractApduCommand>>& commands,
         const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses,
         const bool isSessionOpen);
 
@@ -107,6 +109,7 @@ private:
      * @param calypsoCard the {@link CalypsoCardAdapter} object to update.
      * @param cmdCardOpenSession the command.
      * @param apduResponse the response received.
+     * @throw CardCommandException if a response from the card was unexpected
      */
     static void updateCalypsoCardOpenSession(
         std::shared_ptr<CalypsoCardAdapter> calypsoCard,

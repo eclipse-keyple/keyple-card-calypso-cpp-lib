@@ -40,7 +40,7 @@ CmdSamCardGenerateKey::CmdSamCardGenerateKey(const CalypsoSam::ProductType produ
                                              const uint8_t cipheringKvc,
                                              const uint8_t sourceKif,
                                              const uint8_t sourceKvc)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);
 

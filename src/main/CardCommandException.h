@@ -27,8 +27,10 @@ namespace calypso {
  * @since 2.0.0
  */
 class CardCommandException : public CalypsoApduCommandException {
-protected:
+public:
     /**
+     * (package-private)<br>
+     * 
      * @param message the message to identify the exception context.
      * @param command the Calypso card command.
      * @param statusWord the status word (optional).

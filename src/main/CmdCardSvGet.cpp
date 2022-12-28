@@ -44,7 +44,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardSvGet::CmdCardSvGet(const CalypsoCardClass calypsoCardClass,
                            const SvOperation svOperation,
                            const bool useExtendedMode)
-: AbstractCardCommand(mCommand)
+: AbstractCardCommand(mCommand, 0)
 {
     const uint8_t cla = calypsoCardClass == CalypsoCardClass::LEGACY ?
                             CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :
@@ -85,11 +85,11 @@ CmdCardSvGet& CmdCardSvGet::setApduResponse(const std::shared_ptr<ApduResponseAp
         mChallengeOut = std::vector<uint8_t>(2);
         mPreviousSignatureLo = std::vector<uint8_t>(3);
         mCurrentKVC = cardResponse[0];
-        mTransactionNumber = ByteArrayUtil::twoBytesToInt(cardResponse, 1);
+        mTransactionNumber = ByteArrayUtil::extractInt(cardResponse, 1, 2, false);
         System::arraycopy(cardResponse, 3, mPreviousSignatureLo, 0, 3);
         mChallengeOut[0] = cardResponse[6];
         mChallengeOut[1] = cardResponse[7];
-        mBalance = ByteArrayUtil::threeBytesSignedToInt(cardResponse, 8);
+        mBalance = ByteArrayUtil::extractInt(cardResponse, 8, 3, true);
         if (cardResponse.size() == 0x21) {
             /* Reload */
             mLoadLog = std::make_shared<SvLoadLogRecordAdapter>(cardResponse, 11);
@@ -105,9 +105,9 @@ CmdCardSvGet& CmdCardSvGet::setApduResponse(const std::shared_ptr<ApduResponseAp
         mPreviousSignatureLo = std::vector<uint8_t>(6);
         System::arraycopy(cardResponse, 0, mChallengeOut, 0, 8);
         mCurrentKVC = cardResponse[8];
-        mTransactionNumber = ByteArrayUtil::twoBytesToInt(cardResponse, 9);
+        mTransactionNumber = ByteArrayUtil::extractInt(cardResponse, 9, 2, false);
         System::arraycopy(cardResponse, 11, mPreviousSignatureLo, 0, 6);
-        mBalance = ByteArrayUtil::threeBytesSignedToInt(cardResponse, 17);
+        mBalance = ByteArrayUtil::extractInt(cardResponse, 17, 3, true);
         mLoadLog = std::make_shared<SvLoadLogRecordAdapter>(cardResponse, 20);
         mDebitLog = std::make_shared<SvDebitLogRecordAdapter>(cardResponse, 42);
         break;

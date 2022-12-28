@@ -13,14 +13,16 @@
 #include "CalypsoSamSelectionAdapter.h"
 
 /* Calypsonet Terminal Calypso */
-#include "DesynchronizedExchangesException.h"
+#include "InconsistentDataException.h"
 
 /* Calypsonet Terminal Card */
 #include "ParseException.h"
 
 /* Keyple Core Util */
 #include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "KeypleAssert.h"
+#include "Pattern.h"
 #include "PatternSyntaxException.h"
 
 /* Keyple Card Calypso */
@@ -37,6 +39,7 @@ namespace calypso {
 using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card::spi;
 using namespace keyple::core::util;
+using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
 CalypsoSamSelectionAdapter::CalypsoSamSelectionAdapter()
@@ -50,7 +53,7 @@ const std::shared_ptr<CardSelectionRequestSpi> CalypsoSamSelectionAdapter::getCa
     /* Prepare the UNLOCK command if unlock data has been defined */
     if (!mUnlockData.empty()) {
         mSamCommands.push_back(
-            std::make_shared<CmdSamUnlock>(mProductType, ByteArrayUtil::fromHex(mUnlockData)));
+            std::make_shared<CmdSamUnlock>(mProductType, HexUtil::toByteArray(mUnlockData)));
         for (const auto& samCommand : mSamCommands) {
             cardSelectionApduRequests.push_back(samCommand->getApduRequest());
         }
@@ -74,7 +77,7 @@ const std::shared_ptr<SmartCardSpi> CalypsoSamSelectionAdapter::parse(
         /* An unlock command has been requested */
         if (cardSelectionResponse->getCardResponse() == nullptr ||
             cardSelectionResponse->getCardResponse()->getApduResponses().empty()) {
-            throw DesynchronizedExchangesException("Mismatch in the number of requests/responses");
+            throw InconsistentDataException("Mismatch in the number of requests/responses");
         }
 
         const std::shared_ptr<ApduResponseApi> apduResponse =
@@ -119,7 +122,8 @@ CalypsoSamSelection& CalypsoSamSelectionAdapter::filterBySerialNumber(
 
 CalypsoSamSelection& CalypsoSamSelectionAdapter::setUnlockData(const std::string& unlockData)
 {
-    Assert::getInstance().isTrue(unlockData.size() == 16 || unlockData.size() == 32, "length");
+    Assert::getInstance().isTrue(unlockData.size() == 16 || unlockData.size() == 32, "length")
+                         .isHexString(unlockData, "unlockData");
 
     if (!ByteArrayUtil::isValidHexString(unlockData)) {
         throw IllegalArgumentException("Invalid hexadecimal string.");

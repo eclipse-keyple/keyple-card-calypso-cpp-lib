@@ -41,7 +41,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdSamSvCheck::CmdSamSvCheck(const CalypsoSam::ProductType productType,
                              const std::vector<uint8_t>& svCardSignature)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     if (!svCardSignature.empty() && svCardSignature.size() != 3 && svCardSignature.size() != 6) {
         throw IllegalArgumentException("Invalid svCardSignature.");
@@ -61,7 +61,11 @@ CmdSamSvCheck::CmdSamSvCheck(const CalypsoSam::ProductType productType,
     } else {
         setApduRequest(
             std::make_shared<ApduRequestAdapter>(
-                ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, 0x00)));
+                ApduUtil::build(cla, 
+                                mCommand.getInstructionByte(), 
+                                p1, 
+                                p2, 
+                                std::vector<uint8_t>{0x00})));
     }
 }
 

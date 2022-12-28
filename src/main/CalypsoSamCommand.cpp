@@ -41,6 +41,9 @@ const CalypsoSamCommand CalypsoSamCommand::SV_CHECK("SV Check", 0x58);
 const CalypsoSamCommand CalypsoSamCommand::SV_PREPARE_DEBIT("SV Prepare Debit", 0x54);
 const CalypsoSamCommand CalypsoSamCommand::SV_PREPARE_LOAD("SV Prepare Load", 0x56);
 const CalypsoSamCommand CalypsoSamCommand::SV_PREPARE_UNDEBIT("SV Prepare Undebit", 0x5C);
+const CalypsoSamCommand CalypsoSamCommand::DATA_CIPHER("Data Cipher", 0x1C);
+const CalypsoSamCommand CalypsoSamCommand::PSO_COMPUTE_SIGNATURE("PSO Compute Signature", 0x2A);
+const CalypsoSamCommand CalypsoSamCommand::PSO_VERIFY_SIGNATURE("PSO Verify Signature", 0x2A);
 
 CalypsoSamCommand::CalypsoSamCommand(const std::string& name, const uint8_t instructionByte)
 : mName(name), mInstructionByte(instructionByte) {}
@@ -53,6 +56,12 @@ const std::string& CalypsoSamCommand::getName() const
 uint8_t CalypsoSamCommand::getInstructionByte() const
 {
     return mInstructionByte;
+}
+
+bool CalypsoSamCommand::operator==(const CalypsoSamCommand& csc) const
+{
+    return mInstructionByte == csc.mInstructionByte &&
+           mName == csc.mName;
 }
 
 }

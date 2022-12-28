@@ -34,14 +34,6 @@ using namespace calypsonet::terminal::calypso::transaction;
 class SearchCommandDataAdapter final : public SearchCommandData {
 public:
     /**
-     * (package-private)<br>
-     * Constructor.
-     *
-     * @since 2.1.0
-     */
-    SearchCommandDataAdapter();
-
-    /**
      * {@inheritDoc}
      *
      * @since 2.1.0
@@ -132,8 +124,7 @@ public:
     /**
      * (package-private)<br>
      *
-     * @return A not empty array of search data. It is required to check input data first using
-     *         checkInputData() method.
+     * @return A not empty array of search data. It is required to check input data first.
      * @since 2.1.0
      */
     const std::vector<uint8_t>& getSearchData() const;
@@ -158,7 +149,7 @@ private:
     /**
      *
      */
-    uint8_t mSfi;
+    uint8_t mSfi = 1;
 
     /**
      *
@@ -168,12 +159,12 @@ private:
     /**
      *
      */
-    int mOffset;
+    int mOffset = 0;
 
     /**
      *
      */
-    bool mEnableRepeatedOffset;
+    bool mEnableRepeatedOffset = false;
 
     /**
      *
@@ -188,7 +179,7 @@ private:
     /**
      *
      */
-    bool mFetchFirstMatchingResult;
+    bool mFetchFirstMatchingResult = false;
 
     /**
      *

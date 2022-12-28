@@ -38,7 +38,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdSamDigestUpdate::CmdSamDigestUpdate(const CalypsoSam::ProductType productType,
                                        const bool encryptedSession,
                                        const std::vector<uint8_t>& digestData)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);
     const uint8_t p1 = 0x00;

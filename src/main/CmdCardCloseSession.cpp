@@ -17,7 +17,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "Arrays.h"
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalArgumentException.h"
 
 /* Keyple Card Calypso */
@@ -40,14 +40,14 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCard> calypsoCard,
                                          const bool ratificationAsked,
                                          const std::vector<uint8_t> terminalSessionSignature)
-: AbstractCardCommand(mCommand), mCalypsoCard(calypsoCard)
+: AbstractCardCommand(mCommand, 0), mCalypsoCard(calypsoCard)
 {
     /* The optional parameter terminalSessionSignature could contain 4 or 8 bytes */
     if (!terminalSessionSignature.empty() &&
         terminalSessionSignature.size() != 4 &&
         terminalSessionSignature.size() != 8) {
         throw IllegalArgumentException("Invalid terminal sessionSignature: " +
-                                       ByteArrayUtil::toHex(terminalSessionSignature));
+                                       HexUtil::toHex(terminalSessionSignature));
     }
 
     const uint8_t p1 = ratificationAsked ? 0x80 : 0x00;
@@ -56,8 +56,6 @@ CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCard> caly
      * Case 4: this command contains incoming and outgoing data. We define le = 0, the actual
      * length will be processed by the lower layers.
      */
-    const uint8_t le = 0;
-
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(
@@ -67,11 +65,11 @@ CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCard> caly
                 p1,
                 0x00,
                 terminalSessionSignature,
-                le)));
+                0)));
 }
 
 CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCard> calypsoCard)
-: AbstractCardCommand(mCommand), mCalypsoCard(calypsoCard)
+: AbstractCardCommand(mCommand, 0), mCalypsoCard(calypsoCard)
 {
     /* CL-CSS-ABORTCMD.1 */
     setApduRequest(
@@ -175,12 +173,12 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     m.insert({0x6B00,
               std::make_shared<StatusProperties>("P1 or P2 signatureLo not supported.",
                                                  typeid(CardIllegalParameterException))});
-    m.insert({0x6988,
-              std::make_shared<StatusProperties>("incorrect signatureLo.",
-                                                 typeid(CardSecurityDataException))});
     m.insert({0x6985,
               std::make_shared<StatusProperties>("No session was opened.",
                                                  typeid(CardAccessForbiddenException))});
+    m.insert({0x6988,
+              std::make_shared<StatusProperties>("incorrect signatureLo.",
+                                                 typeid(CardSecurityDataException))});
 
     return m;
 }

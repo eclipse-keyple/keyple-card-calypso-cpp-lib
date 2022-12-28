@@ -36,7 +36,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdSamDigestAuthenticate::CmdSamDigestAuthenticate(const CalypsoSam::ProductType productType,
                                                    const std::vector<uint8_t>& signature)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     if (signature.empty()) {
         throw IllegalArgumentException("Signature can't be null");

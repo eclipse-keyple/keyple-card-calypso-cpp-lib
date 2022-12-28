@@ -84,7 +84,7 @@ public:
      * @param kvc the KVC.
      * @param date operation date (not checked by the card).
      * @param time operation time (not checked by the card).
-     * @param useExtendedMode True if the extended mode must be used.
+     * @param isExtendedModeAllowed True if the extended mode must is allowed.
      * @throw IllegalArgumentException If the command is inconsistent
      * @since 2.0.1
      */
@@ -94,7 +94,7 @@ public:
                             const uint8_t kvc,
                             const std::vector<uint8_t>& date,
                             const std::vector<uint8_t>& time,
-                            const bool useExtendedMode);
+                            const bool isExtendedModeAllowed);
 
     /**
      * (package-private)<br>
@@ -162,6 +162,10 @@ public:
         override;
 
 private:
+    /**
+     *
+     */
+    static const int SV_POSTPONED_DATA_IN_SESSION;
 
     /**
      *
@@ -176,7 +180,7 @@ private:
     /**
      *
      */
-    bool mUseExtendedMode;
+    bool mIsExtendedModeAllowed = false;
 
     /**
      * Apdu data array

@@ -12,33 +12,27 @@
 
 #pragma once
 
+/* Calypsonet Terminal Calypso */
+#include "SamSecuritySetting.h"
+
 /* Keyple Card Calypso */
-#include "CalypsoApduCommandException.h"
+#include "CommonSecuritySettingAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
+using namespace calypsonet::terminal::calypso::transaction;
+
 /**
- * This exception indicates that the status word is not referenced.
+ * (package-private)<br>
+ * Implementation of SamSecuritySetting.
  *
- * @since 2.0.0
+ * @since 2.2.0
  */
-class CardCommandUnknownStatusException : public CalypsoApduCommandException {
-public:
-  /**
-   * Constructor allowing to set a message, the command and the status word.
-   *
-   * @param message the message to identify the exception context (Should not be null).
-   * @param command the card command (Should not be null).
-   * @param statusWord the status word (Should not be null).
-   * @since 2.0.0
-   */
-   CardCommandUnknownStatusException(const std::string& message,
-                                     const CardCommand& command,
-                                     const std::shared_ptr<int> statusWord)
-    : CalypsoApduCommandException(message, command, statusWord) {}
-};
+class SamSecuritySettingAdapter final
+: public CommonSecuritySettingAdapter<SamSecuritySetting>,
+  public SamSecuritySetting {};
 
 }
 }

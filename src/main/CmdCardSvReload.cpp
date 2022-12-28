@@ -36,6 +36,7 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
+const int CmdCardSvReload::SV_POSTPONED_DATA_IN_SESSION = 0x6200;
 const CalypsoCardCommand CmdCardSvReload::mCommand = CalypsoCardCommand::SV_RELOAD;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
@@ -47,11 +48,11 @@ CmdCardSvReload::CmdCardSvReload(const CalypsoCardClass calypsoCardClass,
                                  const std::vector<uint8_t>& date,
                                  const std::vector<uint8_t>& time,
                                  const std::vector<uint8_t>& free,
-                                 const bool useExtendedMode)
-: AbstractCardCommand(mCommand),
+                                 const bool isExtendedModeAllowed)
+: AbstractCardCommand(mCommand, 0),
   /* Keeps a copy of these fields until the builder is finalized */
   mCalypsoCardClass(calypsoCardClass),
-  mUseExtendedMode(useExtendedMode)
+  mIsExtendedModeAllowed(isExtendedModeAllowed)
 {
     if (amount < -8388608 || amount > 8388607) {
         throw IllegalArgumentException("Amount is outside allowed boundaries (-8388608 <= amount " \
@@ -70,7 +71,7 @@ CmdCardSvReload::CmdCardSvReload(const CalypsoCardClass calypsoCardClass,
      * Handle the dataIn size with signatureHi length according to card revision (3.2 rev have a
      * 10-byte signature)
      */
-    mDataIn = std::vector<uint8_t>(18 + (useExtendedMode ? 10 : 5));
+    mDataIn = std::vector<uint8_t>(18 + (isExtendedModeAllowed ? 10 : 5));
 
     /* dataIn[0] will be filled in at the finalization phase */
     mDataIn[1] = date[0];
@@ -88,8 +89,8 @@ CmdCardSvReload::CmdCardSvReload(const CalypsoCardClass calypsoCardClass,
 
 void CmdCardSvReload::finalizeCommand(const std::vector<uint8_t>& reloadComplementaryData)
 {
-    if ((mUseExtendedMode && reloadComplementaryData.size() != 20) ||
-        (!mUseExtendedMode && reloadComplementaryData.size() != 15)) {
+    if ((mIsExtendedModeAllowed && reloadComplementaryData.size() != 20) ||
+        (!mIsExtendedModeAllowed && reloadComplementaryData.size() != 15)) {
         throw IllegalArgumentException("Bad SV prepare load data length.");
     }
 
@@ -105,13 +106,14 @@ void CmdCardSvReload::finalizeCommand(const std::vector<uint8_t>& reloadCompleme
                                   CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :
                                   CalypsoCardClass::ISO.getValue();
 
-    setApduRequest(
-        std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cardClass,
-                            mCommand.getInstructionByte(),
-                            p1,
-                            p2,
-                            mDataIn)));
+    auto apduRequest = std::make_shared<ApduRequestAdapter>(
+                           ApduUtil::build(cardClass,
+                                           mCommand.getInstructionByte(),
+                                           p1,
+                                           p2,
+                                           mDataIn));
+    apduRequest->addSuccessfulStatusWord(SV_POSTPONED_DATA_IN_SESSION);
+    setApduRequest(apduRequest);
 }
 
 const std::vector<uint8_t> CmdCardSvReload::getSvReloadData() const
@@ -124,7 +126,7 @@ const std::vector<uint8_t> CmdCardSvReload::getSvReloadData() const
      * svReloadData[1,2] / P1P2 not set because ignored
      * Lc is 5 bytes longer in revision 3.2
      */
-    svReloadData[3] = mUseExtendedMode ? 0x1C : 0x17;
+    svReloadData[3] = mIsExtendedModeAllowed ? 0x1C : 0x17;
 
     /* Appends the fixed part of dataIn */
     System::arraycopy(mDataIn, 0, svReloadData, 4, 11);
@@ -160,6 +162,10 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
         AbstractApduCommand::STATUS_TABLE;
 
+    m.insert({SV_POSTPONED_DATA_IN_SESSION,
+              std::make_shared<StatusProperties>("Successful execution, response data postponed " \
+                                                 "until session closing.",
+                                                 typeid(nullptr))});
     m.insert({0x6400,
               std::make_shared<StatusProperties>("Too many modifications in session.",
                                                  typeid(CardSessionBufferOverflowException))});
@@ -176,10 +182,6 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     m.insert({0x6988,
               std::make_shared<StatusProperties>("Incorrect signatureHi.",
                                                  typeid(CardSecurityDataException))});
-    m.insert({0x6200,
-              std::make_shared<StatusProperties>("Successful execution, response data postponed " \
-                                                 "until session closing.",
-                                                 typeid(nullptr))});
 
     return m;
 }

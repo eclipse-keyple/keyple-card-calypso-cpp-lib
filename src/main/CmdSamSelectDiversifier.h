@@ -38,15 +38,15 @@ class CmdSamSelectDiversifier final : public AbstractSamCommand {
 public:
     /**
      * (package-private)<br>
-     * Instantiates a new CmdSamSelectDiversifier.
+     * Creates a new instance.
      *
-     * @param productType the SAM product type.
-     * @param diversifier the application serial number.
+     * @param productType The SAM product type.
+     * @param diversifier The key diversifier.
      * @throws IllegalArgumentException If the diversifier is null or has a wrong length
      * @since 2.0.1
      */
     CmdSamSelectDiversifier(const CalypsoSam::ProductType productType,
-                            const std::vector<uint8_t>& diversifier);
+                            std::vector<uint8_t>& diversifier);
 
    /**
      * {@inheritDoc}
@@ -57,11 +57,6 @@ public:
         override;
 
 private:
-    /**
-     * The command
-     */
-    static const CalypsoSamCommand mCommand;
-
     /**
      *
      */

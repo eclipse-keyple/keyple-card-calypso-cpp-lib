@@ -21,6 +21,7 @@
 #include "CalypsoSamIllegalParameterException.h"
 #include "CalypsoSamIncorrectInputDataException.h"
 #include "CalypsoSamSecurityDataException.h"
+#include "CalypsoSamUnexpectedResponseLengthException.h"
 #include "CalypsoSamUnknownStatusException.h"
 
 namespace keyple {
@@ -30,8 +31,8 @@ namespace calypso {
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     AbstractSamCommand::STATUS_TABLE = initStatusTable();
 
-AbstractSamCommand::AbstractSamCommand(const CalypsoSamCommand& commandRef)
-: AbstractApduCommand(commandRef) {}
+AbstractSamCommand::AbstractSamCommand(const CalypsoSamCommand& commandRef, const int le)
+: AbstractApduCommand(commandRef, le) {}
 
 const CalypsoSamCommand& AbstractSamCommand::getCommandRef() const
 {
@@ -39,32 +40,37 @@ const CalypsoSamCommand& AbstractSamCommand::getCommandRef() const
 }
 
 const CalypsoApduCommandException AbstractSamCommand::buildCommandException(
-    const std::type_info& exceptionClass,
-    const std::string& message,
-    const CardCommand& commandRef,
-    const int statusWord) const
+    const std::type_info& exceptionClass, const std::string& message) const
 {
-
-    const auto& command = dynamic_cast<const CalypsoSamCommand&>(commandRef);
-    const auto sw = std::make_shared<int>(statusWord);
+    const auto& command = getCommandRef();
+    const auto statusWord = std::make_shared<int>(getApduResponse()->getStatusWord());
 
     if (exceptionClass == typeid(CalypsoSamAccessForbiddenException)) {
-        return CalypsoSamAccessForbiddenException(message, command, sw);
+        return CalypsoSamAccessForbiddenException(message, command, statusWord);
     } else if (exceptionClass == typeid(CalypsoSamCounterOverflowException)) {
-        return CalypsoSamCounterOverflowException(message, command, sw);
+        return CalypsoSamCounterOverflowException(message, command, statusWord);
     } else if (exceptionClass == typeid(CalypsoSamDataAccessException)) {
-        return CalypsoSamDataAccessException(message, command, sw);
+        return CalypsoSamDataAccessException(message, command, statusWord);
     } else if (exceptionClass == typeid(CalypsoSamIllegalArgumentException)) {
         return CalypsoSamIllegalArgumentException(message, command);
     } else if (exceptionClass == typeid(CalypsoSamIllegalParameterException)) {
-        return CalypsoSamIllegalParameterException(message, command, sw);
+        return CalypsoSamIllegalParameterException(message, command, statusWord);
     } else if (exceptionClass == typeid(CalypsoSamIncorrectInputDataException)) {
-        return CalypsoSamIncorrectInputDataException(message, command, sw);
+        return CalypsoSamIncorrectInputDataException(message, command, statusWord);
     } else if (exceptionClass == typeid(CalypsoSamSecurityDataException)) {
-        return CalypsoSamSecurityDataException(message, command, sw);
+        return CalypsoSamSecurityDataException(message, command, statusWord);
     } else {
-        return CalypsoSamUnknownStatusException(message, command, sw);
+        return CalypsoSamUnknownStatusException(message, command, statusWord);
     }
+}
+
+const CalypsoApduCommandException AbstractSamCommand::buildUnexpectedResponseLengthException(
+    const std::string& message) const
+{
+    return CalypsoSamUnexpectedResponseLengthException(
+               message,
+               getCommandRef(),
+               std::make_shared<int>(getApduResponse()->getStatusWord()));
 }
 
 AbstractSamCommand& AbstractSamCommand::setApduResponse(

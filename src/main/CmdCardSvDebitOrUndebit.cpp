@@ -36,6 +36,7 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
+const int CmdCardSvDebitOrUndebit::SV_POSTPONED_DATA_IN_SESSION = 0x6200;
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardSvDebitOrUndebit::STATUS_TABLE = initStatusTable();
 
@@ -45,11 +46,13 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
                                                  const uint8_t kvc,
                                                  const std::vector<uint8_t>& date,
                                                  const std::vector<uint8_t>& time,
-                                                 const bool useExtendedMode)
-: AbstractCardCommand(isDebitCommand ? CalypsoCardCommand::SV_DEBIT : CalypsoCardCommand::SV_UNDEBIT),
+                                                 const bool isExtendedModeAllowed)
+: AbstractCardCommand(isDebitCommand ? CalypsoCardCommand::SV_DEBIT :
+                                       CalypsoCardCommand::SV_UNDEBIT,
+                      0),
   /* Keeps a copy of these fields until the command is finalized */
   mCalypsoCardClass(calypsoCardClass),
-  mUseExtendedMode(useExtendedMode)
+  mIsExtendedModeAllowed(isExtendedModeAllowed)
 {
     /*
      * @see Calypso Layer ID 8.02 (200108)
@@ -72,7 +75,7 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
      * Handle the dataIn size with signatureHi length according to card product type (3.2 rev have a
      * 10-byte signature)
      */
-    mDataIn = std::vector<uint8_t>(15 + (useExtendedMode ? 10 : 5));
+    mDataIn = std::vector<uint8_t>(15 + (isExtendedModeAllowed ? 10 : 5));
 
     /* mDataIn[0] will be filled in at the finalization phase */
     const short amountShort =
@@ -90,8 +93,8 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
 void CmdCardSvDebitOrUndebit::finalizeCommand(
     const std::vector<uint8_t>& debitOrUndebitComplementaryData)
 {
-    if ((mUseExtendedMode && debitOrUndebitComplementaryData.size() != 20) ||
-        (!mUseExtendedMode && debitOrUndebitComplementaryData.size() != 15)) {
+    if ((mIsExtendedModeAllowed && debitOrUndebitComplementaryData.size() != 20) ||
+        (!mIsExtendedModeAllowed && debitOrUndebitComplementaryData.size() != 15)) {
         throw IllegalArgumentException("Bad SV prepare load data length.");
     }
 
@@ -111,13 +114,14 @@ void CmdCardSvDebitOrUndebit::finalizeCommand(
                                   CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :
                                   CalypsoCardClass::ISO.getValue();
 
-    setApduRequest(
-        std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cardClass,
-                            getCommandRef().getInstructionByte(),
-                            p1,
-                            p2,
-                            mDataIn)));
+    auto apduRequest = std::make_shared<ApduRequestAdapter>(
+                           ApduUtil::build(cardClass,
+                                           getCommandRef().getInstructionByte(),
+                                           p1,
+                                           p2,
+                                           mDataIn));
+    apduRequest->addSuccessfulStatusWord(SV_POSTPONED_DATA_IN_SESSION);
+    setApduRequest(apduRequest);
 }
 
 const std::vector<uint8_t> CmdCardSvDebitOrUndebit::getSvDebitOrUndebitData() const
@@ -130,7 +134,7 @@ const std::vector<uint8_t> CmdCardSvDebitOrUndebit::getSvDebitOrUndebitData() co
      * svDebitOrUndebitData[1,2] / P1P2 not set because ignored
      * Lc is 5 bytes longer in product type 3.2
      */
-    svDebitOrUndebitData[3] = mUseExtendedMode ? 0x19 : 0x14;
+    svDebitOrUndebitData[3] = mIsExtendedModeAllowed ? 0x19 : 0x14;
 
     /* Appends the fixed part of dataIn */
     System::arraycopy(mDataIn, 0, svDebitOrUndebitData, 4, 8);
@@ -167,6 +171,10 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
         AbstractApduCommand::STATUS_TABLE;
 
+    m.insert({SV_POSTPONED_DATA_IN_SESSION,
+              std::make_shared<StatusProperties>("Successful execution, response data postponed " \
+                                                 "until session closing.",
+                                                 typeid(nullptr))});
     m.insert({0x6400,
               std::make_shared<StatusProperties>("Too many modifications in session.",
                                                  typeid(CardSessionBufferOverflowException))});
@@ -183,10 +191,6 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     m.insert({0x6988,
               std::make_shared<StatusProperties>("Incorrect signatureHi.",
                                                  typeid(CardSecurityDataException))});
-    m.insert({0x6200,
-              std::make_shared<StatusProperties>("Successful execution, response data postponed " \
-                                                 "until session closing.",
-                                                 typeid(nullptr))});
 
     return m;
 }

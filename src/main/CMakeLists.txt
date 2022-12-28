@@ -13,6 +13,7 @@
 SET(LIBRARY_NAME keyplecardcalypsocpplib)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DKEYPLECARDCALYPSO_EXPORT")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-undefined-var-template")
 
 ADD_LIBRARY(
     ${LIBRARY_NAME}
@@ -33,8 +34,9 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamCommand.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamResourceProfileExtensionAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamSecurityContextException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamSelectionAdapter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CardCommandManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CardControlSamTransactionManagerAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardRequestAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardSecuritySettingAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardSelectionRequestAdapter.cpp
@@ -69,28 +71,38 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdCardWriteRecord.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamCardCipherPin.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamCardGenerateKey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDataCipher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestAuthenticate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestClose.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestInit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestUpdate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGetChallenge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGiveRandom.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamPsoComputeSignature.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamPsoVerifySignature.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadCeilings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadEventCounter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamReadKeyParameters.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSelectDiversifier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvCheck.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareDebitOrUndebit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamSvPrepareLoad.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamUnlock.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamWriteKey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DirectoryHeaderAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ElementaryFileAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FileDataAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FileHeaderAdapter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/SamCommandProcessor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SamControlSamTransactionManagerAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SamTransactionManagerAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SamUtilAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SearchCommandDataAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SvDebitLogRecordAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SvLoadLogRecordAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SvDebitLogRecordJsonDeserializerAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SvLoadLogRecordJsonDeserializerAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TraceableSignatureComputationDataAdapter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TraceableSignatureVerificationDataAdapter.cpp
 )
 
 TARGET_INCLUDE_DIRECTORIES(

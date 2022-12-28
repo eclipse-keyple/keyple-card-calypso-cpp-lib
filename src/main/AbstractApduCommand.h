@@ -133,16 +133,17 @@ public:
      * Constructor
      *
      * @param commandRef The command reference.
+     * @param le The value of the LE field.
      * @since 2.0.1
      */
-    AbstractApduCommand(const CardCommand& commandRef);
+    AbstractApduCommand(const CardCommand& commandRef, const int le);
 
     /**
      * (package-private)<br>
      * Appends a string to the current name.
      *
-     * <p>The sub name completes the name of the current command. This method must therefore only be
-     * invoked conditionally (log level &gt;= debug).
+     * <p>The sub name completes the name of the current command. This method must therefore 
+     * only be invoked conditionally (log level &gt;= debug).
      *
      * @param subName The string to append.
      * @throws NullPointerException If the request is not set.
@@ -218,27 +219,31 @@ public:
 
     /**
      * (package-private)<br>
-     * Builds a command exception.
-     *
-     * <p>This method should be override in subclasses in order to create specific exceptions.
-     *
-     * @param exceptionClass the exception class.
-     * @param message the message.
-     * @param commandRef CardCommand the command reference.
-     * @param statusWord the status word.
+     * Builds a specific APDU command exception.
+     * 
+     * @param message The message.
+     * @return A not null reference.
      * @return A not null value
      * @since 2.0.1
      */
     virtual const CalypsoApduCommandException buildCommandException(
-        const std::type_info& exceptionClass,
-        const std::string& message,
-        const CardCommand& commandRef,
-        const int statusWord) const;
+        const std::type_info& exceptionClass, const std::string& message) const = 0;
+
+    /**
+     * (package-private)<br>
+     * Builds a specific APDU command exception for the case of an unexpected response length.
+     *
+     * @param message The message.
+     * @return A not null reference.
+     * @since 2.1.1
+     */
+    virtual const CalypsoApduCommandException buildUnexpectedResponseLengthException(
+        const std::string& message) const = 0;
 
     /**
      * (package-private)<br>
      * Gets true if the status is successful from the statusTable according to the current status
-     * code.
+     * code and if the length of the response is equal to the LE field in the request.
      *
      * @return A value
      * @since 2.0.1
@@ -247,10 +252,12 @@ public:
 
     /**
      * (package-private)<br>
-     * This method check the status word.<br>
+     * This method check the status word and if the length of the response is equal to the LE field
+     * in the request.<br>
      * If status word is not referenced, then status is considered unsuccessful.
      *
-     * @throws CalypsoApduCommandException if status is not successful.
+     * @throw CalypsoApduCommandException if status is not successful or if the length of the
+     *        response is not equal to the LE field in the request.
      * @since 2.0.1
      */
     virtual void checkStatus();
@@ -269,6 +276,11 @@ private:
      *
      */
     const CardCommand& mCommandRef;
+
+    /**
+     * 
+     */
+    const int mLe;
 
     /**
      *

@@ -25,6 +25,7 @@ namespace calypso {
 using namespace keyple::core::util::cpp::exception;
 
 /**
+ * (package-private)<br>
  * This exception is the parent abstract class of all card APDU commands exceptions.
  *
  * @since 2.0.0
@@ -32,6 +33,7 @@ using namespace keyple::core::util::cpp::exception;
 class CalypsoApduCommandException : public Exception {
 public:
     /**
+     * (package-private)<br>
      * Gets the command
      *
      * @return A not null reference.
@@ -42,7 +44,8 @@ public:
         return mCommand;
     }
 
-    /**
+    /** 
+     * (package-private)<br>
      * Gets the status word
      *
      * @return A nullable reference
@@ -53,8 +56,8 @@ public:
         return mStatusWord;
     }
 
-protected:
     /**
+     * (package-private)<br>
      * Constructor allowing to set the error message and the reference to the command
      *
      * @param message the message to identify the exception context (Should not be null).

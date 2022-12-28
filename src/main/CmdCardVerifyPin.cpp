@@ -44,7 +44,7 @@ CmdCardVerifyPin::CmdCardVerifyPin(
   const CalypsoCardClass calypsoCardClass,
   const bool encryptPinTransmission,
   const std::vector<uint8_t>& pin)
-: AbstractCardCommand(mCommand), mCla(calypsoCardClass.getValue())
+: AbstractCardCommand(mCommand, 0), mCla(calypsoCardClass.getValue())
 {
     if (pin.empty() ||
         (!encryptPinTransmission && pin.size() != 4) ||
@@ -66,7 +66,7 @@ CmdCardVerifyPin::CmdCardVerifyPin(
 }
 
 CmdCardVerifyPin::CmdCardVerifyPin(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand), mCla(calypsoCardClass.getValue())
+: AbstractCardCommand(mCommand, 0), mCla(calypsoCardClass.getValue())
 {
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;

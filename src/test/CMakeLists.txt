@@ -28,12 +28,12 @@ SET(KEYPLE_UTIL_LIB         "keypleutilcpplib")
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../main
-    ${CMAKE_CURRENT_SOURCE_DIR}/../main/spi
     ${CMAKE_CURRENT_SOURCE_DIR}/../test/mock
 
     ${CALYPSONET_CALYPSO_DIR}/src/main
     ${CALYPSONET_CALYPSO_DIR}/src/main/card
     ${CALYPSONET_CALYPSO_DIR}/src/main/sam
+    ${CALYPSONET_CALYPSO_DIR}/src/main/spi
     ${CALYPSONET_CALYPSO_DIR}/src/main/transaction
 
     ${CALYPSONET_CARD_DIR}/src/main
@@ -64,6 +64,10 @@ ADD_EXECUTABLE(
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoExtensionServiceTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamSelectionAdapterTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CardTransactionManagerAdapterTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FileDataAdapterTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SamTransactionManagerAdapterTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SvDebitLogRecordTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SvLoadLogRecordTest.cpp
 )
 
 # Add Google Test

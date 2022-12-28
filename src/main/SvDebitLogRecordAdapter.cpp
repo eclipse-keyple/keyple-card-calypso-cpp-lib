@@ -14,6 +14,7 @@
 
 /* Keyple Core Util */
 #include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "KeypleStd.h"
 #include "System.h"
 
@@ -35,12 +36,12 @@ const std::vector<uint8_t>& SvDebitLogRecordAdapter::getRawData() const
 
 int SvDebitLogRecordAdapter::getAmount() const
 {
-    return ByteArrayUtil::twoBytesSignedToInt(mCardResponse, mOffset);
+    return ByteArrayUtil::extractInt(mCardResponse, mOffset, 2, true);
 }
 
 int SvDebitLogRecordAdapter::getBalance() const
 {
-    return ByteArrayUtil::threeBytesSignedToInt(mCardResponse, mOffset + 14);
+    return ByteArrayUtil::extractInt(mCardResponse, mOffset + 14, 3, true);
 }
 
 const std::vector<uint8_t> SvDebitLogRecordAdapter::getDebitTime() const
@@ -80,7 +81,7 @@ int SvDebitLogRecordAdapter::getSvTNum() const
     tnNum[0] = mCardResponse[mOffset + 17];
     tnNum[1] = mCardResponse[mOffset + 18];
 
-    return ByteArrayUtil::twoBytesToInt(tnNum, 0);
+    return ByteArrayUtil::extractInt(tnNum, 0, 2, false);
 }
 
 int SvDebitLogRecordAdapter::getSamTNum() const
@@ -88,7 +89,7 @@ int SvDebitLogRecordAdapter::getSamTNum() const
     std::vector<uint8_t> samTNum(3);
     System::arraycopy(mCardResponse, mOffset + 11, samTNum, 0, 3);
 
-    return ByteArrayUtil::threeBytesToInt(samTNum, 0);
+    return ByteArrayUtil::extractInt(samTNum, 0, 3, false);
 }
 
 std::ostream& operator<<(std::ostream& os, const SvDebitLogRecordAdapter& ra)
@@ -96,8 +97,8 @@ std::ostream& operator<<(std::ostream& os, const SvDebitLogRecordAdapter& ra)
     os << "SV_DEBIT_LOG_RECORD_ADAPTER: {"
        << "AMOUNT: " << ra.getAmount() << ", "
        << "BALANCE: " << ra.getBalance() << ", "
-       << "DEBIT_DATE:" << ra.getDebitDate() << ", "
-       << "LOAD_TIME:" << ra.getDebitDate() << ", "
+       << "DEBIT_DATE: " << ra.getDebitDate() << ", "
+       << "LOAD_TIME: " << ra.getDebitDate() << ", "
        << "KVC: " << ra.getKvc() << ", "
        << "SAM_ID: " << ra.getSamId() << ", "
        << "SV_TRANSACTION_NUMBER: " << ra.getSvTNum() << ", "
@@ -123,13 +124,13 @@ const std::string SvDebitLogRecordAdapter::toJSONString() const
     return "{" \
                "\"amount\":" + std::to_string(getAmount()) + ", " \
                "\"balance\":" + std::to_string(getBalance()) + ", " \
-               "\"debitDate\":" + ByteArrayUtil::toHex(getDebitDate()) + ", " \
-               "\"loadTime\":" + ByteArrayUtil::toHex(getDebitDate())  + ", " \
+               "\"debitDate\":" + HexUtil::toHex(getDebitDate()) + ", " \
+               "\"loadTime\":" + HexUtil::toHex(getDebitDate())  + ", " \
                "\"kvc\":" + std::to_string(getKvc()) + ", " \
-               "\"samId\": \"" + ByteArrayUtil::toHex(getSamId()) + "\", " \
+               "\"samId\": \"" + HexUtil::toHex(getSamId()) + "\", " \
                "\"svTransactionNumber\":" + std::to_string(getSvTNum()) + ", " \
                "\"svSamTransactionNumber\":" + std::to_string(getSamTNum()) + "" \
-            "}";
+           "}";
 }
 
 }

@@ -46,7 +46,7 @@ CmdSamSvPrepareLoad::CmdSamSvPrepareLoad(const CalypsoSam::ProductType productTy
                                          const std::vector<uint8_t>& svGetHeader,
                                          const std::vector<uint8_t>& svGetData,
                                          const std::vector<uint8_t>& svReloadCmdBuildData)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);
     const uint8_t p1 = 0x01;

@@ -73,7 +73,7 @@ public:
      * @param date debit date (not checked by the card).
      * @param time debit time (not checked by the card).
      * @param free 2 free bytes stored in the log but not processed by the card.
-     * @param useExtendedMode True if the extended mode must be used.
+     * @param isExtendedModeAllowed True if the extended mode is allowed.
      * @throw IllegalArgumentException If the command is inconsistent
      * @since 2.0.1
      */
@@ -83,7 +83,7 @@ public:
                     const std::vector<uint8_t>& date,
                     const std::vector<uint8_t>& time,
                     const std::vector<uint8_t>& free,
-                    const bool useExtendedMode);
+                    const bool isExtendedModeAllowed);
 
     /**
      * (package-private)<br>
@@ -159,6 +159,11 @@ private:
     /**
      *
      */
+    static const int SV_POSTPONED_DATA_IN_SESSION;
+
+    /**
+     *
+     */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
 
     /**
@@ -169,7 +174,7 @@ private:
     /**
      *
      */
-    bool mUseExtendedMode;
+    bool mIsExtendedModeAllowed = false;
 
     /**
      * Apdu data array

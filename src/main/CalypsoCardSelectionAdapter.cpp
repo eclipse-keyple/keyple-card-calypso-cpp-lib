@@ -34,6 +34,7 @@
 
 /* Keyple Core Util */
 #include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalArgumentException.h"
 #include "KeypleAssert.h"
 #include "Pattern.h"
@@ -96,9 +97,9 @@ CalypsoCardSelection& CalypsoCardSelectionAdapter::filterByDfName(const std::vec
 
 CalypsoCardSelection& CalypsoCardSelectionAdapter::filterByDfName(const std::string& aid)
 {
-    Assert::getInstance().isTrue(ByteArrayUtil::isValidHexString(aid), "aid format");
+    Assert::getInstance().isHexString(aid, "aid format");
 
-    filterByDfName(ByteArrayUtil::fromHex(aid));
+    filterByDfName(HexUtil::toByteArray(aid));
 
     return *this;
 }
@@ -210,7 +211,7 @@ CalypsoCardSelection& CalypsoCardSelectionAdapter::prepareSelectFile(
 {
     Assert::getInstance().isEqual(lid.size(), 2, "lid length");
 
-    return prepareSelectFile(static_cast<uint16_t>(ByteArrayUtil::twoBytesToInt(lid, 0)));
+    return prepareSelectFile(static_cast<uint16_t>(ByteArrayUtil::extractInt(lid, 0, 2, false)));
 }
 
 CalypsoCardSelection& CalypsoCardSelectionAdapter::prepareSelectFile(const uint16_t lid)

@@ -42,7 +42,9 @@ CmdCardIncreaseOrDecrease::CmdCardIncreaseOrDecrease(
   const uint8_t sfi,
   const uint8_t counterNumber,
   const int incDecValue)
-: AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE : CalypsoCardCommand::INCREASE),
+: AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE : 
+                                          CalypsoCardCommand::INCREASE,
+                      0),
   mSfi(sfi),
   mCounterNumber(counterNumber),
   mIncDecValue(incDecValue)

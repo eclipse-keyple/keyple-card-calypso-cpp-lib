@@ -28,7 +28,8 @@
 #include "CardResponseAdapter.h"
 
 /* Keyple Core Util */
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
+#include "IllegalArgumentException.h"
 
 /* Mock */
 #include "ApduResponseAdapterMock.h"
@@ -42,6 +43,7 @@ using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card;
 using namespace keyple::card::calypso;
 using namespace keyple::core::util;
+using namespace keyple::core::util::cpp::exception;
 
 
 class CardRequestMatcher : public CardRequestSpi /*: public ArgumentMatcher<CardRequestSpi> */{
@@ -163,13 +165,13 @@ static const std::string FILE7_REC1_COUNTER2 = "5AA55A";
 static const std::string REC_COUNTER_1000 = "0003E8";
 static const std::string REC_COUNTER_2000 = "0007D0";
 
-static const std::vector<uint8_t> FILE7_REC1_29B_BYTES = ByteArrayUtil::fromHex(FILE7_REC1_29B);
-static const std::vector<uint8_t> FILE7_REC2_29B_BYTES = ByteArrayUtil::fromHex(FILE7_REC2_29B);
-static const std::vector<uint8_t> FILE7_REC3_29B_BYTES = ByteArrayUtil::fromHex(FILE7_REC3_29B);
-static const std::vector<uint8_t> FILE7_REC4_29B_BYTES = ByteArrayUtil::fromHex(FILE7_REC4_29B);
-static const std::vector<uint8_t> FILE8_REC1_29B_BYTES = ByteArrayUtil::fromHex(FILE8_REC1_29B);
-static const std::vector<uint8_t> FILE8_REC1_5B_BYTES = ByteArrayUtil::fromHex(FILE8_REC1_5B);
-static const std::vector<uint8_t> FILE8_REC1_4B_BYTES = ByteArrayUtil::fromHex(FILE8_REC1_4B);
+static const std::vector<uint8_t> FILE7_REC1_29B_BYTES = HexUtil::toByteArray(FILE7_REC1_29B);
+static const std::vector<uint8_t> FILE7_REC2_29B_BYTES = HexUtil::toByteArray(FILE7_REC2_29B);
+static const std::vector<uint8_t> FILE7_REC3_29B_BYTES = HexUtil::toByteArray(FILE7_REC3_29B);
+static const std::vector<uint8_t> FILE7_REC4_29B_BYTES = HexUtil::toByteArray(FILE7_REC4_29B);
+static const std::vector<uint8_t> FILE8_REC1_29B_BYTES = HexUtil::toByteArray(FILE8_REC1_29B);
+static const std::vector<uint8_t> FILE8_REC1_5B_BYTES = HexUtil::toByteArray(FILE8_REC1_5B);
+static const std::vector<uint8_t> FILE8_REC1_4B_BYTES = HexUtil::toByteArray(FILE8_REC1_4B);
 
 //static const uint16_t LID_3F00 = (short) 0x3F00;
 //static const uint16_t LID_0002 = (short) 0x0002;
@@ -327,13 +329,13 @@ static const std::string CARD_GET_DATA_TRACEABILITY_INFORMATION_RSP =
     "001122334455667788999000";
 
 static const std::string CARD_VERIFY_PIN_PLAIN_OK_CMD =
-    "0020000004" + ByteArrayUtil::toHex(std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end()));
+    "0020000004" + HexUtil::toHex(std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end()));
 static const std::string CARD_VERIFY_PIN_ENCRYPTED_OK_CMD =
     "0020000008" + CIPHER_PIN_VERIFICATION_OK;
 static const std::string CARD_CHECK_PIN_CMD = "0020000000";
 static const std::string CARD_CHANGE_PIN_CMD = "00D800FF10" + CIPHER_PIN_UPDATE_OK;
 static const std::string CARD_CHANGE_PIN_PLAIN_CMD =
-    "00D800FF04" + ByteArrayUtil::toHex(std::vector<uint8_t>(NEW_PIN.begin(), NEW_PIN.end()));
+    "00D800FF04" + HexUtil::toHex(std::vector<uint8_t>(NEW_PIN.begin(), NEW_PIN.end()));
 static const std::string CARD_VERIFY_PIN_OK_RSP = SW1SW2_OK;
 static const std::string CARD_VERIFY_PIN_KO_RSP = "63C2";
 static const std::string CARD_CHANGE_PIN_RSP = SW1SW2_OK;
@@ -423,12 +425,12 @@ static const std::string SAM_DIGEST_AUTHENTICATE_CMD = "8082000004" + CARD_SIGNA
 static const std::string SAM_DIGEST_AUTHENTICATE_FAILED = "6988";
 
 static const std::string SAM_CARD_CIPHER_PIN_VERIFICATION_CMD =
-    "801280FF060000" + ByteArrayUtil::toHex(std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end()));
+    "801280FF060000" + HexUtil::toHex(std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end()));
 static const std::string SAM_CARD_CIPHER_PIN_VERIFICATION_RSP =
     CIPHER_PIN_VERIFICATION_OK + SW1SW2_OK;
 static const std::string SAM_CARD_CIPHER_PIN_UPDATE_CMD =
     "801240FF0A112200000000" +
-    ByteArrayUtil::toHex(std::vector<uint8_t>(NEW_PIN.begin(), NEW_PIN.end()));
+    HexUtil::toHex(std::vector<uint8_t>(NEW_PIN.begin(), NEW_PIN.end()));
 static const std::string SAM_CARD_CIPHER_PIN_UPDATE_RSP = CIPHER_PIN_UPDATE_OK + SW1SW2_OK;
 static const std::string SAM_GIVE_RANDOM_CMD = "8086000008" + CARD_CHALLENGE;
 static const std::string SAM_GIVE_RANDOM_RSP = SW1SW2_OK;
@@ -456,7 +458,6 @@ static std::shared_ptr<CardTransactionManager> cardTransactionManager;
 static std::shared_ptr<CalypsoCardAdapter> calypsoCard;
 static std::shared_ptr<ReaderMock> cardReader;
 static std::shared_ptr<ReaderMock> samReader;
-static std::shared_ptr<CardSelectionResponseApiMock> samCardSelectionResponse;
 static std::shared_ptr<CalypsoSamAdapter> calypsoSam;
 static std::shared_ptr<CardSecuritySetting> cardSecuritySetting;
 
@@ -467,18 +468,18 @@ static void setUp()
     calypsoCard = std::make_shared<CalypsoCardAdapter>();
     calypsoCard->initializeWithFci(
         std::make_shared<ApduResponseAdapterMock>(
-            ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3)));
+            HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3)));
 
     samReader = std::make_shared<ReaderMock>();
 
-    samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
+    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
     EXPECT_CALL(*samCardSelectionResponse, getPowerOnData())
         .WillRepeatedly(ReturnRef(SAM_C1_POWER_ON_DATA));
 
     calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
 
     cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
-    cardSecuritySetting->setSamResource(samReader, calypsoSam);
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam);
 
     cardTransactionManager =
         CalypsoExtensionService::getInstance()
@@ -490,8 +491,9 @@ static void tearDown()
     cardReader.reset();
     calypsoCard.reset();
     samReader.reset();
-    samCardSelectionResponse.reset();
     calypsoSam.reset();
+    cardTransactionManager.reset();
+    cardSecuritySetting.reset();
 }
 
 static std::shared_ptr<CardRequestSpi> createCardRequest(
@@ -501,7 +503,7 @@ static std::shared_ptr<CardRequestSpi> createCardRequest(
 
     for (const auto& apduCommand : apduCommands) {
         apduRequests.push_back(
-            std::make_shared<ApduRequestAdapter>(ByteArrayUtil::fromHex(apduCommand)));
+            std::make_shared<ApduRequestAdapter>(HexUtil::toByteArray(apduCommand)));
     }
 
     return std::make_shared<CardRequestAdapter>(apduRequests, false);
@@ -514,7 +516,7 @@ static std::shared_ptr<CardResponseApi> createCardResponse(
 
     for (const auto& apduResponse : apduCommandResponses) {
         apduResponses.push_back(
-            std::make_shared<ApduResponseAdapterMock>(ByteArrayUtil::fromHex(apduResponse)));
+            std::make_shared<ApduResponseAdapterMock>(HexUtil::toByteArray(apduResponse)));
     }
 
     return std::make_shared<CardResponseAdapterMock>(apduResponses, true);
@@ -534,6 +536,15 @@ TEST(CardTransactionManagerAdapterTest, getCalypsoCard_shouldReturnCalypsoCard)
     setUp();
 
     ASSERT_EQ(cardTransactionManager->getCalypsoCard(), calypsoCard);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, getSecuritySetting_shouldReturnCardSecuritySetting)
+{
+    setUp();
+
+    ASSERT_EQ(cardTransactionManager->getSecuritySetting(), cardSecuritySetting);
 
     tearDown();
 }
@@ -579,6 +590,31 @@ TEST(CardTransactionManagerAdapterTest,
     //     .transmitCardRequest(
     //         argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
     // verifyNoMoreInteractions(samReader, cardReader);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     processOpening_whenSuccessful_shouldUpdateTransactionCounterAndRatificationStatus)
+{
+    setUp();
+
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_CMD});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
+
+    ASSERT_TRUE(calypsoCard->isDfRatified());
+    ASSERT_EQ(calypsoCard->getTransactionCounter(), 0x030490);
 
     tearDown();
 }
@@ -649,7 +685,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardSecuritySetting =
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
-//             .setSamResource(samReader, calypsoSam)
+//             .setControlSamResource(samReader, calypsoSam)
 //             .addAuthorizedSessionKey( 0x00,  0x00);
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
@@ -668,8 +704,28 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
 //   }
 
+//   public void processCommands_whenOutOfSession_shouldExchangeApduWithCardOnly() throws Exception {
+//     CardRequestSpi cardCardRequest =
+//         createCardRequest(
+//             CARD_READ_REC_SFI7_REC1_CMD, CARD_READ_REC_SFI8_REC1_CMD, CARD_READ_REC_SFI10_REC1_CMD);
+//     CardResponseApi cardCardResponse =
+//         createCardResponse(
+//             CARD_READ_REC_SFI7_REC1_RSP, CARD_READ_REC_SFI8_REC1_RSP, CARD_READ_REC_SFI10_REC1_RSP);
+//     when(cardReader.transmitCardRequest(
+//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
+//         .thenReturn(cardCardResponse);
+//     cardTransactionManager.prepareReadRecord(FILE7, 1);
+//     cardTransactionManager.prepareReadRecord(FILE8, 1);
+//     cardTransactionManager.prepareReadRecord(FILE10, 1);
+//     cardTransactionManager.processCommands();
+//     verify(cardReader)
+//         .transmitCardRequest(
+//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
+//     verifyNoMoreInteractions(samReader, cardReader);
+//   }
+
 //   @Test
-//   public void processCardCommands_whenOutOfSession_shouldExchangeApduWithCardOnly()
+//   public void processCommands_whenOutOfSession_shouldExchangeApduWithCardOnly()
 //       throws Exception {
 //     CardRequestSpi cardCardRequest =
 //         createCardRequest(
@@ -683,7 +739,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.prepareReadRecord(FILE7, 1);
 //     cardTransactionManager.prepareReadRecord(FILE8, 1);
 //     cardTransactionManager.prepareReadRecord(FILE10, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -775,8 +831,8 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 //   }
 
-//   @Test(expected = CardCloseSecureSessionException.class)
-//   public void processClosing_whenCloseSessionFails_shouldThrowCardCloseSecureSessionException()
+//   @Test(expected = UnexpectedCommandStatusException.class)
+//   public void processClosing_whenCloseSessionFails_shouldThrowUCSE()
 //       throws Exception {
 //     // open sesion
 //     CardRequestSpi samCardRequest =
@@ -819,8 +875,8 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.processClosing();
 //   }
 
-//   @Test(expected = SessionAuthenticationException.class)
-//   public void processClosing_whenCardAuthenticationFails_shouldThrowSessionAuthenticationException()
+//   @Test(expected = InvalidCardSignatureException.class)
+//   public void processClosing_whenCardAuthenticationFails_shouldThrowICSE()
 //       throws Exception {
 //     // open session
 //     CardRequestSpi samCardRequest =
@@ -928,7 +984,7 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void processVerifyPin_whenPINIsNotFirstCommand_shouldThrowISE() {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
 //     cardTransactionManager.prepareReadRecord(FILE7, 1);
 //     cardTransactionManager.processVerifyPin(PIN_OK.getBytes());
 //   }
@@ -944,14 +1000,14 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardSecuritySetting =
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
-//             .setSamResource(samReader, calypsoSam)
+//             .setControlSamResource(samReader, calypsoSam)
 //             .enablePinPlainTransmission();
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
 //             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_VERIFY_PIN_PLAIN_OK_CMD);
 //     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK);
 //     when(cardReader.transmitCardRequest(
@@ -973,13 +1029,13 @@ TEST(CardTransactionManagerAdapterTest,
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
 //             .enablePinPlainTransmission()
-//             .setSamResource(samReader, calypsoSam);
+//             .setControlSamResource(samReader, calypsoSam);
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
 //             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
 
 //     calypsoCard.setPinAttemptRemaining(3);
 
@@ -1009,13 +1065,13 @@ TEST(CardTransactionManagerAdapterTest,
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
 //             .setPinModificationCipheringKey(PIN_CIPHERING_KEY_KIF, PIN_CIPHERING_KEY_KVC)
-//             .setSamResource(samReader, calypsoSam);
+//             .setControlSamResource(samReader, calypsoSam);
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
 //             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
 
 //     CardRequestSpi cardGetChallengeCardRequest = createCardRequest(CARD_GET_CHALLENGE_CMD);
 //     CardResponseApi cardGetChallengeCardResponse = createCardResponse(CARD_GET_CHALLENGE_RSP);
@@ -1068,14 +1124,14 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardSecuritySetting =
 //         CalypsoExtensionService.getInstance()
 //             .createCardSecuritySetting()
-//             .setSamResource(samReader, calypsoSam)
+//             .setControlSamResource(samReader, calypsoSam)
 //             .enablePinPlainTransmission();
 //     cardTransactionManager =
 //         CalypsoExtensionService.getInstance()
 //             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
 
 //     CardRequestSpi cardGetChallengeCardRequest = createCardRequest(CARD_GET_CHALLENGE_CMD);
 //     CardResponseApi cardGetChallengeCardResponse = createCardResponse(CARD_GET_CHALLENGE_RSP);
@@ -1123,34 +1179,40 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 //   }
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSelectFile_whenLidIsNull_shouldThrowIAE() {
-//     byte[] nullArray = null;
-//     cardTransactionManager.prepareSelectFile(nullArray);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFileDeprecated_whenLidIsLessThan2ByteLong_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSelectFile_whenLidIsLessThan2ByteLong_shouldThrowIAE() {
-//     cardTransactionManager.prepareSelectFile(new byte[1]);
-//   }
+    const std::vector<uint8_t> one(1);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSelectFile_whenLidIsMoreThan2ByteLong_shouldThrowIAE() {
-//     cardTransactionManager.prepareSelectFile(new byte[3]);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSelectFile(one), IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFileDeprecated_whenLidIsMoreThan2ByteLong_shouldThrowIAE)
+{
+    setUp();
+
+    const std::vector<uint8_t> three(3);
+
+    EXPECT_THROW(cardTransactionManager->prepareSelectFile(three), IllegalArgumentException);
+}
 
 //   @Test
 //   public void
 //       prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision3_shouldPrepareSelectFileApduWith1234()
 //           throws Exception {
-//     byte[] lid = new byte[] { 0x12,  0x34};
+//     short lid = 0x1234;
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_SELECT_FILE_1234_CMD);
 //     CardResponseApi cardCardResponse = createCardResponse(CARD_SELECT_FILE_1234_RSP);
 //     when(cardReader.transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(lid);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1161,17 +1223,17 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void
 //       prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision2_shouldPrepareSelectFileApduWith1234()
 //           throws Exception {
-//     byte[] lid = new byte[] { 0x12,  0x34};
+//     short lid = 0x1234;
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_SELECT_FILE_1234_CMD_PRIME_REV2);
 //     CardResponseApi cardCardResponse = createCardResponse(CARD_SELECT_FILE_1234_RSP_PRIME_REV2);
 //     when(cardReader.transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(lid);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1188,7 +1250,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(SelectFileControl.FIRST_EF);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1205,7 +1267,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(SelectFileControl.NEXT_EF);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1222,7 +1284,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSelectFile(SelectFileControl.CURRENT_DF);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1243,7 +1305,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareGetData(GetDataTag.FCP_FOR_CURRENT_FILE);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1268,7 +1330,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     assertThat(calypsoCard.getFiles()).isEmpty();
 
 //     cardTransactionManager.prepareGetData(GetDataTag.EF_LIST);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1324,7 +1386,7 @@ TEST(CardTransactionManagerAdapterTest,
 
 //     assertThat(calypsoCard.getTraceabilityInformation()).isEmpty();
 
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1332,7 +1394,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getTraceabilityInformation())
-//         .isEqualTo(ByteArrayUtil::fromHex("00112233445566778899"));
+//         .isEqualTo(HexUtil::toByteArray("00112233445566778899"));
 //   }
 
 //   @Test
@@ -1344,7 +1406,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareGetData(GetDataTag.FCI_FOR_CURRENT_DF);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1375,7 +1437,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareReadRecord(FILE7, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -1421,7 +1483,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(7);
 
 //     cardTransactionManager.prepareReadRecords( 1, 1, 2, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1429,9 +1491,9 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(1))
-//         .isEqualTo(ByteArrayUtil::fromHex("11"));
+//         .isEqualTo(HexUtil::toByteArray("11"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(2))
-//         .isEqualTo(ByteArrayUtil::fromHex("22"));
+//         .isEqualTo(HexUtil::toByteArray("22"));
 //   }
 
 //   @Test
@@ -1456,7 +1518,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(7);
 
 //     cardTransactionManager.prepareReadRecords( 1, 1, 5, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1464,15 +1526,15 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(1))
-//         .isEqualTo(ByteArrayUtil::fromHex("11"));
+//         .isEqualTo(HexUtil::toByteArray("11"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(2))
-//         .isEqualTo(ByteArrayUtil::fromHex("22"));
+//         .isEqualTo(HexUtil::toByteArray("22"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(3))
-//         .isEqualTo(ByteArrayUtil::fromHex("33"));
+//         .isEqualTo(HexUtil::toByteArray("33"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(4))
-//         .isEqualTo(ByteArrayUtil::fromHex("44"));
+//         .isEqualTo(HexUtil::toByteArray("44"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(5))
-//         .isEqualTo(ByteArrayUtil::fromHex("55"));
+//         .isEqualTo(HexUtil::toByteArray("55"));
 //   }
 
 //   @Test(expected = IllegalArgumentException.class)
@@ -1519,7 +1581,7 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void prepareSearchRecords_whenProductTypeIsNotPrimeRev3_shouldThrowUOE() {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
 //     cardTransactionManager.prepareSearchRecords(null);
 //   }
 
@@ -1703,7 +1765,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .createSearchCommandData()
 //             .setSearchData(new byte[] {0x12, 0x34});
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1736,7 +1798,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .setSearchData(new byte[] {0x12, 0x34})
 //             .fetchFirstMatchingResult();
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1745,7 +1807,7 @@ TEST(CardTransactionManagerAdapterTest,
 
 //     assertThat(data.getMatchingRecordNumbers()).containsExactly(4, 6);
 //     assertThat(calypsoCard.getFileBySfi( 4).getData().getContent(4))
-//         .isEqualTo(ByteArrayUtil::fromHex("112233123456"));
+//         .isEqualTo(HexUtil::toByteArray("112233123456"));
 //   }
 
 //   @Test
@@ -1765,7 +1827,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .createSearchCommandData()
 //             .setSearchData(new byte[] {0x12, 0x34});
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1793,7 +1855,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .setSearchData(new byte[] {0x12, 0x34})
 //             .setMask(new byte[] {0x56});
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1821,7 +1883,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             .setSearchData(new byte[] {0x12, 0x34})
 //             .setMask(new byte[] {0x56, 0x77});
 //     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1835,7 +1897,7 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void prepareReadRecordsPartially_whenProductTypeIsNotPrimeRev3OrLight_shouldThrowUOE() {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
 //     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 1, 1, 1);
 //   }
 
@@ -1908,7 +1970,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(3);
 
 //     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 2, 3, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1916,9 +1978,9 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(1))
-//         .isEqualTo(ByteArrayUtil::fromHex("00000011"));
+//         .isEqualTo(HexUtil::toByteArray("00000011"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(2))
-//         .isEqualTo(ByteArrayUtil::fromHex("00000022"));
+//         .isEqualTo(HexUtil::toByteArray("00000022"));
 //   }
 
 //   @Test
@@ -1943,7 +2005,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 5, 3, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -1951,22 +2013,22 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(1))
-//         .isEqualTo(ByteArrayUtil::fromHex("00000011"));
+//         .isEqualTo(HexUtil::toByteArray("00000011"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(2))
-//         .isEqualTo(ByteArrayUtil::fromHex("00000022"));
+//         .isEqualTo(HexUtil::toByteArray("00000022"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(3))
-//         .isEqualTo(ByteArrayUtil::fromHex("00000033"));
+//         .isEqualTo(HexUtil::toByteArray("00000033"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(4))
-//         .isEqualTo(ByteArrayUtil::fromHex("00000044"));
+//         .isEqualTo(HexUtil::toByteArray("00000044"));
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(5))
-//         .isEqualTo(ByteArrayUtil::fromHex("00000055"));
+//         .isEqualTo(HexUtil::toByteArray("00000055"));
 //   }
 
 //   @Test(expected = UnsupportedOperationException.class)
 //   public void prepareUpdateBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE() {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
 //     cardTransactionManager.prepareUpdateBinary( 1, 1, new byte[1]);
 //   }
 
@@ -2012,7 +2074,7 @@ TEST(CardTransactionManagerAdapterTest,
 //         .thenReturn(cardCardResponse);
 
 //     cardTransactionManager.prepareReadBinary( 1, 256, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2020,8 +2082,8 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .startsWith(ByteArrayUtil::fromHex("1100"))
-//         .endsWith(ByteArrayUtil::fromHex("0066"))
+//         .startsWith(HexUtil::toByteArray("1100"))
+//         .endsWith(HexUtil::toByteArray("0066"))
 //         .hasSize(257);
 //   }
 
@@ -2038,7 +2100,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareReadBinary( 1, 0, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2046,7 +2108,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(ByteArrayUtil::fromHex("11"));
+//         .isEqualTo(HexUtil::toByteArray("11"));
 //   }
 
 //   @Test
@@ -2063,7 +2125,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareReadBinary( 1, 0, 1);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2071,7 +2133,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(ByteArrayUtil::fromHex("11"));
+//         .isEqualTo(HexUtil::toByteArray("11"));
 //   }
 
 //   @Test(expected = IllegalArgumentException.class)
@@ -2119,8 +2181,8 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 
-//     cardTransactionManager.prepareUpdateBinary( 1, 256, ByteArrayUtil::fromHex("66"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.prepareUpdateBinary( 1, 256, HexUtil::toByteArray("66"));
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2140,8 +2202,8 @@ TEST(CardTransactionManagerAdapterTest,
 //         .thenReturn(cardCardResponse);
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
-//     cardTransactionManager.prepareUpdateBinary( 1, 4, ByteArrayUtil::fromHex("55"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.prepareUpdateBinary( 1, 4, HexUtil::toByteArray("55"));
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2149,7 +2211,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(ByteArrayUtil::fromHex("0000000055"));
+//         .isEqualTo(HexUtil::toByteArray("0000000055"));
 //   }
 
 //   @Test
@@ -2169,8 +2231,8 @@ TEST(CardTransactionManagerAdapterTest,
 //         .thenReturn(cardCardResponse);
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
-//     cardTransactionManager.prepareUpdateBinary( 1, 0, ByteArrayUtil::fromHex("1122334455"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.prepareUpdateBinary( 1, 0, HexUtil::toByteArray("1122334455"));
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2178,14 +2240,14 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(ByteArrayUtil::fromHex("1122334455"));
+//         .isEqualTo(HexUtil::toByteArray("1122334455"));
 //   }
 
 //   @Test(expected = UnsupportedOperationException.class)
 //   public void prepareWriteBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE() {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
 //     cardTransactionManager.prepareWriteBinary( 1, 1, new byte[1]);
 //   }
 
@@ -2234,8 +2296,8 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 
-//     cardTransactionManager.prepareWriteBinary( 1, 256, ByteArrayUtil::fromHex("66"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.prepareWriteBinary( 1, 256, HexUtil::toByteArray("66"));
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2255,8 +2317,8 @@ TEST(CardTransactionManagerAdapterTest,
 //         .thenReturn(cardCardResponse);
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
-//     cardTransactionManager.prepareWriteBinary( 1, 4, ByteArrayUtil::fromHex("55"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.prepareWriteBinary( 1, 4, HexUtil::toByteArray("55"));
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2264,7 +2326,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(ByteArrayUtil::fromHex("0000000055"));
+//         .isEqualTo(HexUtil::toByteArray("0000000055"));
 //   }
 
 //   @Test
@@ -2284,8 +2346,8 @@ TEST(CardTransactionManagerAdapterTest,
 //         .thenReturn(cardCardResponse);
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
-//     cardTransactionManager.prepareWriteBinary( 1, 0, ByteArrayUtil::fromHex("1122334455"));
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.prepareWriteBinary( 1, 0, HexUtil::toByteArray("1122334455"));
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2293,7 +2355,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 
 //     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(ByteArrayUtil::fromHex("1122334455"));
+//         .isEqualTo(HexUtil::toByteArray("1122334455"));
 //   }
 
 //   @Test(expected = IllegalArgumentException.class)
@@ -2328,7 +2390,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareIncreaseCounter( 1, 1, 100);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2371,7 +2433,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
 
 //     cardTransactionManager.prepareDecreaseCounter( 1, 1, 100);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2435,7 +2497,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     counterNumberToIncValueMap.put(1, 1);
 //     counterNumberToIncValueMap.put(2, 2);
 //     cardTransactionManager.prepareIncreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2471,7 +2533,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     counterNumberToIncValueMap.put(2, 2);
 //     counterNumberToIncValueMap.put(3, 3);
 //     cardTransactionManager.prepareIncreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2539,7 +2601,7 @@ TEST(CardTransactionManagerAdapterTest,
 //     counterNumberToIncValueMap.put(8, 0x88);
 //     counterNumberToIncValueMap.put(1, 0x11);
 //     cardTransactionManager.prepareDecreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 
 //     verify(cardReader)
 //         .transmitCardRequest(
@@ -2569,14 +2631,14 @@ TEST(CardTransactionManagerAdapterTest,
 //       throws Exception {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_CHECK_PIN_CMD);
 //     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK);
 //     when(cardReader.transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareCheckPinStatus();
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2602,14 +2664,14 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void prepareSvGet_whenSvOperationDebit_shouldPrepareSvGetDebitApdu() throws Exception {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_SV_GET_DEBIT_CMD);
 //     CardResponseApi cardCardResponse = createCardResponse(CARD_SV_GET_DEBIT_RSP);
 //     when(cardReader.transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSvGet(SvOperation.DEBIT, SvAction.DO);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2620,14 +2682,14 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void prepareSvGet_whenSvOperationReload_shouldPrepareSvGetReloadApdu() throws Exception {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_SV_GET_RELOAD_CMD);
 //     CardResponseApi cardCardResponse = createCardResponse(CARD_SV_GET_RELOAD_RSP);
 //     when(cardReader.transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSvGet(SvOperation.RELOAD, SvAction.DO);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2639,14 +2701,14 @@ TEST(CardTransactionManagerAdapterTest,
 //       throws Exception {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2_WITH_STORED_VALUE)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2_WITH_STORED_VALUE)));
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_PRIME_REV2_SV_GET_RELOAD_CMD);
 //     CardResponseApi cardCardResponse = createCardResponse(CARD_SV_GET_RELOAD_RSP);
 //     when(cardReader.transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareSvGet(SvOperation.RELOAD, SvAction.DO);
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2682,7 +2744,7 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void prepareSvReadAllLogs_whenNotAnSVApplication_shouldThrowISE() {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
 //     cardTransactionManager.prepareSvReadAllLogs();
 //   }
 
@@ -2690,7 +2752,7 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void prepareInvalidate_whenCardIsInvalidated_shouldThrowISE() {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED)));
 //     cardTransactionManager.prepareInvalidate();
 //   }
 
@@ -2702,7 +2764,7 @@ TEST(CardTransactionManagerAdapterTest,
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareInvalidate();
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
@@ -2718,14 +2780,14 @@ TEST(CardTransactionManagerAdapterTest,
 //   public void prepareRehabilitate_whenCardIsInvalidated_prepareInvalidateApdu() throws Exception {
 //     calypsoCard.initializeWithFci(
 //         new ApduResponseAdapter(
-//             ByteArrayUtil::fromHex(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED)));
+//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED)));
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_REHABILITATE_CMD);
 //     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK);
 //     when(cardReader.transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
 //         .thenReturn(cardCardResponse);
 //     cardTransactionManager.prepareRehabilitate();
-//     cardTransactionManager.processCardCommands();
+//     cardTransactionManager.processCommands();
 //     verify(cardReader)
 //         .transmitCardRequest(
 //             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));

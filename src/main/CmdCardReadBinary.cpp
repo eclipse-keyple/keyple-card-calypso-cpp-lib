@@ -41,7 +41,7 @@ CmdCardReadBinary::CmdCardReadBinary(const CalypsoCardClass calypsoCardClass,
                                      const uint8_t sfi,
                                      const uint8_t offset,
                                      const uint8_t length)
-: AbstractCardCommand(CalypsoCardCommand::READ_BINARY), mSfi(sfi), mOffset(offset)
+: AbstractCardCommand(CalypsoCardCommand::READ_BINARY, length), mSfi(sfi), mOffset(offset)
 {
     const uint8_t msb = ((offset & 0xFF00) >> 8);
     const uint8_t lsb = (offset & 0xFF);

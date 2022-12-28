@@ -41,7 +41,7 @@ CmdCardReadRecordMultiple::CmdCardReadRecordMultiple(
     const uint8_t recordNumber,
     const uint8_t offset,
     const uint8_t length)
-: AbstractCardCommand(CalypsoCardCommand::READ_RECORD_MULTIPLE),
+: AbstractCardCommand(CalypsoCardCommand::READ_RECORD_MULTIPLE, 0),
   mSfi(sfi),
   mRecordNumber(recordNumber),
   mOffset(offset),

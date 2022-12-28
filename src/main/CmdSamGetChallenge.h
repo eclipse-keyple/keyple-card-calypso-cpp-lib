@@ -42,11 +42,10 @@ public:
      *
      * @param productType the SAM product type.
      * @param expectedResponseLength the expected response length.
-     * @throws IllegalArgumentException If the expected response length has wrong value.
      * @since 2.0.1
      */
     CmdSamGetChallenge(const CalypsoSam::ProductType productType,
-                       const uint8_t expectedResponseLength);
+                       const int expectedResponseLength);
 
     /**
      * (package-private)<br>

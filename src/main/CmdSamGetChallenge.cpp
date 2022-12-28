@@ -35,21 +35,16 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamGetChallenge::STATUS_TABLE = initStatusTable();
 
 CmdSamGetChallenge::CmdSamGetChallenge(const CalypsoSam::ProductType productType,
-                                       const uint8_t expectedResponseLength)
-: AbstractSamCommand(mCommand)
+                                       const int expectedResponseLength)
+: AbstractSamCommand(mCommand, expectedResponseLength)
 {
-    if (expectedResponseLength != 0x04 && expectedResponseLength != 0x08) {
-        throw IllegalArgumentException("Bad challenge length! Expected 4 or 8, got " +
-                                       std::to_string(expectedResponseLength));
-    }
-
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    const uint8_t p1 = 0x00;
-    const uint8_t p2 = 0x00;
-
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, expectedResponseLength)));
+            ApduUtil::build(SamUtilAdapter::getClassByte(productType),
+                            mCommand.getInstructionByte(),
+                            0,
+                            0,
+                            expectedResponseLength)));
 }
 
 const std::vector<uint8_t> CmdSamGetChallenge::getChallenge() const

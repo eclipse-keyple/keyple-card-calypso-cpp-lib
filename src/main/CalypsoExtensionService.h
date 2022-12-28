@@ -16,18 +16,28 @@
 #include <string>
 
 /* Calypsonet Terminal Calypso */
+#include "BasicSignatureComputationData.h"
+#include "BasicSignatureVerificationData.h"
 #include "CalypsoCard.h"
 #include "CalypsoCardSelection.h"
 #include "CalypsoSamSelection.h"
 #include "CardSecuritySetting.h"
 #include "CardTransactionManager.h"
+#include "CommonSignatureComputationData.h"
+#include "CommonSignatureVerificationData.h"
+#include "SamSecuritySetting.h"
+#include "SamTransactionManager.h"
 #include "SearchCommandData.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoCardSelectionAdapter.h"
 #include "CalypsoSamSelectionAdapter.h"
+#include "CardTransactionManagerAdapter.h"
 #include "KeypleCardCalypsoExport.h"
+#include "SamTransactionManagerAdapter.h"
 #include "SearchCommandDataAdapter.h"
+#include "TraceableSignatureComputationData.h"
+#include "TraceableSignatureVerificationData.h"
 
 /* Keyple Core Common */
 #include "KeypleCardExtension.h"
@@ -53,28 +63,18 @@ using namespace keyple::core::service::resource::spi;
  */
 class KEYPLECARDCALYPSO_API CalypsoExtensionService final : public KeypleCardExtension {
 public:
-    /**
-     *
-     */
-    static const std::string PRODUCT_TYPE;
-
     // static {
     //     // Register additional JSON adapters.
-    //     JsonUtil.registerTypeAdapter(
-    //         DirectoryHeader.class, new DirectoryHeaderJsonDeserializerAdapter(), false);
-    //     JsonUtil.registerTypeAdapter(
-    //         ElementaryFile.class, new ElementaryFileJsonDeserializerAdapter(), false);
-    //     JsonUtil.registerTypeAdapter(FileHeader.class, new FileHeaderJsonDeserializerAdapter(), false);
-    //     JsonUtil.registerTypeAdapter(
-    //         SvLoadLogRecord.class, new SvLoadLogRecordJsonDeserializerAdapter(), false);
-    //     JsonUtil.registerTypeAdapter(
-    //         SvDebitLogRecord.class, new SvDebitLogRecordJsonDeserializerAdapter(), false);
+    //     JsonUtil.registerTypeAdapter(ElementaryFile.class, new ElementaryFileJsonAdapter(), false);
+    //     JsonUtil.registerTypeAdapter(FileHeader.class, new FileHeaderJsonAdapter(), false);
+    //     JsonUtil.registerTypeAdapter(SvLoadLogRecord.class, new SvLoadLogRecordJsonAdapter(), false);
+    //     JsonUtil.registerTypeAdapter(SvDebitLogRecord.class, new SvDebitLogRecordJsonAdapter(), false);
     // }
 
     /**
-     * Gets the single instance of CalypsoExtensionService.
+     * Returns the service instance.
      *
-     * @return The instance of CalypsoExtensionService.
+     * @return A not null reference.
      * @since 2.0.0
      */
     static std::shared_ptr<CalypsoExtensionService> getInstance();
@@ -101,13 +101,56 @@ public:
     const std::string& getCommonApiVersion() const override;
 
     /**
-     * Creates an instance of SearchCommandData to be used to define the parameters of the
+     * Returns a new instance of SearchCommandData to use to define the parameters of the
      * CardTransactionManager::prepareSearchRecords(SearchCommandData) method.
      *
      * @return A not null reference.
      * @since 2.1.0
      */
     std::shared_ptr<SearchCommandData> createSearchCommandData() const;
+
+    /**
+     * Returns a new instance of BasicSignatureComputationData to use to define the parameters
+     * of the CardTransactionManager#prepareComputeSignature(CommonSignatureComputationData)
+     * and SamTransactionManager#prepareComputeSignature(CommonSignatureComputationData)
+     * methods.
+     *
+     * @return A not null reference.
+     * @since 2.2.0
+     */
+    std::shared_ptr<BasicSignatureComputationData> createBasicSignatureComputationData() const;
+
+    /**
+     * Returns a new instance of TraceableSignatureComputationData to use to define the parameters
+     * of the CardTransactionManager::prepareComputeSignature(CommonSignatureComputationData) and
+     * SamTransactionManager::prepareComputeSignature(CommonSignatureComputationData) methods.
+     *
+     * @return A not null reference.
+     * @since 2.2.0
+     */
+    std::shared_ptr<TraceableSignatureComputationData> createTraceableSignatureComputationData()
+        const;
+
+    /**
+     * Returns a new instance of BasicSignatureVerificationData to use to define the parameters of
+     * the CardTransactionManager::prepareVerifySignature(CommonSignatureVerificationData) and
+     * SamTransactionManager::prepareVerifySignature(CommonSignatureVerificationData) methods.
+     *
+     * @return A not null reference.
+     * @since 2.2.0
+     */
+    std::shared_ptr<BasicSignatureVerificationData> createBasicSignatureVerificationData() const;
+
+    /**
+     * Returns a new instance of TraceableSignatureVerificationData to use to define the parameters
+     * of the CardTransactionManager::prepareVerifySignature(CommonSignatureVerificationData) and
+     * SamTransactionManager::prepareVerifySignature(CommonSignatureVerificationData) methods.
+     *
+     * @return A not null reference.
+     * @since 2.2.0
+     */
+    std::shared_ptr<TraceableSignatureVerificationData>
+        createTraceableSignatureVerificationData() const;
 
     /**
      * Creates an instance of CalypsoCardSelection that can be supplemented later with
@@ -119,7 +162,7 @@ public:
     std::shared_ptr<CalypsoCardSelection> createCardSelection() const;
 
     /**
-     * Creates an instance of {@link CalypsoCardSelection}.
+     * Returns a new instance of CalypsoSamSelection to use when selecting a SAM.
      *
      * @return A not null reference.
      * @since 2.0.0
@@ -127,23 +170,22 @@ public:
     std::shared_ptr<CalypsoSamSelection> createSamSelection() const;
 
     /**
-     * Creates an instance of CardResourceProfileExtension to be provided to the
-     * CardResourceService.
+     * Returns a new instance of CardResourceProfileExtension to provide to the
+     * keyple::core::service::resource::CardResourceService service.
      *
-     * <p>The provided argument defines the selection rules to be applied to the SAM when detected by
-     * the card resource service.
+     * <p>The provided argument defines the selection rules to be applied to the SAM when detected
+     * by the card resource service.
      *
      * @param calypsoSamSelection A not null CalypsoSamSelection.
      * @return A not null reference.
-     * @throw IllegalArgumentException If calypsoSamSelection is null.
+     * @throw IllegalArgumentException If "calypsoSamSelection" is null.
      * @since 2.0.0
      */
     std::shared_ptr<CardResourceProfileExtension> createSamResourceProfileExtension(
         const std::shared_ptr<CalypsoSamSelection> calypsoSamSelection) const;
 
     /**
-     * Creates an instance of CalypsoCardSelection that can be supplemented later with
-     * specific commands.
+     * Returns a new instance of {@link CardSecuritySetting} to use for secure card operations.
      *
      * @return A not null reference.
      * @since 2.0.0
@@ -151,37 +193,80 @@ public:
     std::shared_ptr<CardSecuritySetting> createCardSecuritySetting() const;
 
     /**
-     * Creates a card transaction manager to handle operations secured with a SAM.
+     * Return a new card transaction manager to handle operations secured with a control SAM.
      *
      * <p>The reader and the card's initial data are those from the selection.<br>
      * The provided CardSecuritySetting must match the specific needs of the card (SAM card
      * resource profile and other optional settings).
      *
-     * @param reader The reader through which the card communicates.
+     * @param cardReader The reader through which the card communicates.
      * @param calypsoCard The initial card data provided by the selection process.
      * @param cardSecuritySetting The security settings.
      * @return A not null reference.
-     * @throw IllegalArgumentException If one of the provided argument is null or if the CalypsoCard
+     * @throw IllegalArgumentException If one of the provided argument is null or if "calypsoCard"
      *        has a null or unknown product type.
      * @since 2.0.0
      */
     std::shared_ptr<CardTransactionManager> createCardTransaction(
-        std::shared_ptr<CardReader> reader,
+        std::shared_ptr<CardReader> cardReader,
         const std::shared_ptr<CalypsoCard> calypsoCard,
-        const std::shared_ptr<CardSecuritySetting> cardSecuritySetting);
+        const std::shared_ptr<CardSecuritySetting> cardSecuritySetting) const;
 
     /**
-     * Creates a card transaction manager to handle non-secured operations.
+     * Returns a new card transaction manager to handle non-secured operations.
      *
-     * @param reader The reader through which the card communicates.
+     * @param cardReader The reader through which the card communicates.
      * @param calypsoCard The initial card data provided by the selection process.
      * @return A not null reference.
-     * @throw IllegalArgumentException If one of the provided argument is null or if the CalypsoCard
+     * @throw IllegalArgumentException If one of the provided argument is null or if "calypsoCard"
      *        has a null or unknown product type.
      * @since 2.0.0
      */
     std::shared_ptr<CardTransactionManager> createCardTransactionWithoutSecurity(
-        std::shared_ptr<CardReader> reader, const std::shared_ptr<CalypsoCard> calypsoCard);
+        std::shared_ptr<CardReader> cardReader,
+        const std::shared_ptr<CalypsoCard> calypsoCard) const;
+
+    /**
+     * Returns a new instance of SamSecuritySetting to use for secure SAM operations.
+     *
+     * @return A not null reference.
+     * @since 2.2.0
+     */
+    std::shared_ptr<SamSecuritySetting> createSamSecuritySetting() const;
+
+    /**
+     * Returns a new SAM transaction manager to handle operations secured with a control SAM.
+     *
+     * <p>The reader and the SAM's initial data are those from the selection.<br>
+     * The provided SamSecuritySetting must match the specific needs of the SAM (SAM card
+     * resource profile and other optional settings).
+     *
+     * @param samReader The reader through which the SAM communicates.
+     * @param calypsoSam The initial SAM data provided by the selection process.
+     * @param samSecuritySetting The security settings.
+     * @retur A not null reference.
+     * @throw IllegalArgumentException If one of the provided argument is null or if "calypsoSam"
+     *        has a null or unknown product type.
+     * @since 2.2.0
+     */
+    std::shared_ptr<SamTransactionManager> createSamTransaction(
+        std::shared_ptr<CardReader> samReader,
+        const std::shared_ptr<CalypsoSam> calypsoSam,
+        const std::shared_ptr<SamSecuritySetting> samSecuritySetting) const;
+
+    /**
+     * Returns a new SAM transaction manager to handle non-secured operations.
+     *
+     * @param samReader The reader through which the SAM communicates.
+     * @param calypsoSam The initial SAM data provided by the selection process.
+     * @return A not null reference.
+     * @throw IllegalArgumentException If one of the provided argument is null or if "calypsoSam"
+     *        has a null or unknown product type.
+     * @since 2.2.0
+     */
+    std::shared_ptr<SamTransactionManager> createSamTransactionWithoutSecurity(
+        std::shared_ptr<CardReader> samReader,
+        const std::shared_ptr<CalypsoSam> calypsoSam) const;
 
 private:
     /**
@@ -194,6 +279,42 @@ private:
      * Private constructor
      */
     CalypsoExtensionService();
+
+    /**
+     * (private)<br>
+     * Returns a new card transaction manager adapter.
+     *
+     * @param cardReader The reader.
+     * @param calypsoCard The card.
+     * @param cardSecuritySetting The security settings.
+     * @param isSecureMode True if is secure mode requested.
+     * @return A not null reference.
+     * @throws IllegalArgumentException If one of the provided argument is null or if "calypsoCard"
+     *     has a null or unknown product type.
+     */
+    std::shared_ptr<CardTransactionManagerAdapter> createCardTransactionManagerAdapter(
+        std::shared_ptr<CardReader> cardReader,
+        const std::shared_ptr<CalypsoCard> calypsoCard,
+        const std::shared_ptr<CardSecuritySetting> cardSecuritySetting,
+        const bool isSecureMode) const;
+
+    /**
+     * (private)<br>
+     * Returns a new SAM transaction manager adapter.
+     *
+     * @param samReader The reader.
+     * @param calypsoSam The SAM.
+     * @param samSecuritySetting The security settings.
+     * @param isSecureMode True if is secure mode requested.
+     * @return A not null reference.
+     * @throws IllegalArgumentException If one of the provided argument is null or if "calypsoSam" has
+     *     a null or unknown product type.
+     */
+    std::shared_ptr<SamTransactionManagerAdapter> createSamTransactionManagerAdapter(
+        std::shared_ptr<CardReader> samReader,
+        const std::shared_ptr<CalypsoSam> calypsoSam,
+        const std::shared_ptr<SamSecuritySetting> samSecuritySetting,
+        const bool isSecureMode) const;
 };
 
 }

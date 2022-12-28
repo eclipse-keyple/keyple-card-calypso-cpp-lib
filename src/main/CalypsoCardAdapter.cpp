@@ -16,7 +16,7 @@
 #include "FileHeader.h"
 
 /* Keyple Core Util */
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 #include "IllegalArgumentException.h"
 #include "IllegalStateException.h"
 #include "KeypleStd.h"
@@ -93,7 +93,7 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
      * FCI is not provided: we consider it is Calypso card rev 1, it's serial number is provided in
      * the ATR.
      */
-    const std::vector<uint8_t> atr = ByteArrayUtil::fromHex(powerOnData);
+    const std::vector<uint8_t> atr = HexUtil::toByteArray(powerOnData);
 
     /* Basic check: we expect to be here following a selection based on the ATR */
     if (atr.size() != CARD_REV1_ATR_LENGTH) {
@@ -104,8 +104,8 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
     mCalypsoSerialNumber = std::vector<uint8_t>(8);
 
     /*
-     * Old cards have their modification counter in number of commands the array is initialized with
-     * 0 (cf. default value for primitive types).
+     * Old cards have their modification counter expressed in number of commands the array is
+     * initialized with 0 (cf. default value for primitive types).
      */
     System::arraycopy(atr, 12, mCalypsoSerialNumber, 4, 4);
     mModificationsCounterMax = REV1_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION;
@@ -176,7 +176,7 @@ void CalypsoCardAdapter::initializeWithFci(
     if (mProductType == ProductType::PRIME_REVISION_2) {
         mCalypsoCardClass = CalypsoCardClass::LEGACY;
 
-        /* Old cards have their modification counter in number of commands */
+        /* Old cards have their modification counter expressed in number of commands */
         mIsModificationCounterInBytes = false;
         mModificationsCounterMax = REV2_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION;
 
@@ -372,6 +372,21 @@ bool CalypsoCardAdapter::isDfRatified() const
                                 "opened.");
 }
 
+int CalypsoCardAdapter::getTransactionCounter() const
+{
+    if (mTransactionCounter == nullptr) {
+        throw IllegalStateException("Unable to determine the transaction counter. No session was " \
+                                    "opened.");
+    }
+
+    return *mTransactionCounter.get();
+}
+
+void CalypsoCardAdapter::setTransactionCounter(const int transactionCounter)
+{
+    mTransactionCounter = std::make_shared<int>(transactionCounter);
+}
+
 void CalypsoCardAdapter::setSvData(const uint8_t svKvc,
                                    const std::vector<uint8_t>& svGetHeader,
                                    const std::vector<uint8_t>& svGetData,
@@ -453,7 +468,7 @@ const std::vector<std::shared_ptr<SvDebitLogRecord>> CalypsoCardAdapter::getSvDe
         return svDebitLogRecords;
     }
 
-    const std::map<const uint8_t, std::vector<uint8_t>>& logRecords = 
+    const std::map<const uint8_t, std::vector<uint8_t>>& logRecords =
         ef->getData()->getAllRecordsContent();
     for (const auto& entry : logRecords) {
         svDebitLogRecords.push_back(std::make_shared<SvDebitLogRecordAdapter>(entry.second, 0));

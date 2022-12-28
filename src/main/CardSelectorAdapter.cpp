@@ -13,7 +13,7 @@
 #include "CardSelectorAdapter.h"
 
 /* Keyple Core Util */
-#include "ByteArrayUtil.h"
+#include "HexUtil.h"
 
 namespace keyple {
 namespace card {
@@ -52,7 +52,7 @@ CardSelectorSpi& CardSelectorAdapter::filterByDfName(const std::vector<uint8_t>&
 
 CardSelectorSpi& CardSelectorAdapter::filterByDfName(const std::string& aid)
 {
-    return filterByDfName(ByteArrayUtil::fromHex(aid));
+    return filterByDfName(HexUtil::toByteArray(aid));
 }
 
 CardSelectorSpi& CardSelectorAdapter::setFileOccurrence(const FileOccurrence fileOccurrence)

@@ -13,7 +13,7 @@
 #include "CalypsoCardUtilAdapter.h"
 
 /* Calypsonet Terminal Calypso */
-#include "DesynchronizedExchangesException.h"
+#include "InconsistentDataException.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoCardCommand.h"
@@ -168,7 +168,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
 
 void CalypsoCardUtilAdapter::updateCalypsoCard(
     std::shared_ptr<CalypsoCardAdapter> calypsoCard,
-    const std::vector<std::shared_ptr<AbstractCardCommand>>& commands,
+    const std::vector<std::shared_ptr<AbstractApduCommand>>& commands,
     const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses,
     const bool isSessionOpen)
 {
@@ -178,10 +178,10 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
      * desynchronized exception.
      */
     if (apduResponses.size() > commands.size()) {
-        throw DesynchronizedExchangesException(
-                  "The number of commands/responses does not match: commands=" +
+        throw InconsistentDataException(
+                  "The number of commands/responses does not match: nb commands = " +
                   std::to_string(commands.size()) +
-                  ", responses=" +
+                  ", nb responses = " +
                   std::to_string(apduResponses.size()));
     }
 
@@ -190,10 +190,10 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
      * of an error that occurred in strict mode. In this case the last response will raise an
      * exception.
      */
-    std::vector<std::shared_ptr<AbstractCardCommand>>::const_iterator
+    std::vector<std::shared_ptr<AbstractApduCommand>>::const_iterator
         commandIterator = commands.begin();
     for (const auto& apduResponse : apduResponses) {
-        auto command = *commandIterator++;
+        auto command = std::dynamic_pointer_cast<AbstractCardCommand>(*commandIterator++);
         updateCalypsoCard(calypsoCard, command, apduResponse, isSessionOpen);
     }
 
@@ -202,10 +202,10 @@ void CalypsoCardUtilAdapter::updateCalypsoCard(
      * throw a desynchronized exception.
      */
     if (apduResponses.size() < commands.size()) {
-        throw DesynchronizedExchangesException(
-                  "The number of commands/responses does not match: commands=" +
+        throw InconsistentDataException(
+                  "The number of commands/responses does not match: nb commands = " +
                   std::to_string(commands.size()) +
-                  ", responses=" +
+                  ", nb responses = " +
                   std::to_string(apduResponses.size()));
     }
 }
@@ -215,10 +215,12 @@ void CalypsoCardUtilAdapter::updateCalypsoCardOpenSession(
     std::shared_ptr<CmdCardOpenSession> cmdCardOpenSession,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardOpenSession->setApduResponse(apduResponse);
+    cmdCardOpenSession->setApduResponse(apduResponse).checkStatus();
 
     /* CL-CSS-INFORAT.1 */
     calypsoCard->setDfRatified(cmdCardOpenSession->wasRatified());
+    /* CL-CSS-INFOTCNT.1 */
+    calypsoCard->setTransactionCounter(cmdCardOpenSession->getTransactionCounterValue());
 
     const std::vector<uint8_t>& recordDataRead = cmdCardOpenSession->getRecordDataRead();
 

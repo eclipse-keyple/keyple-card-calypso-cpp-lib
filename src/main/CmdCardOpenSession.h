@@ -49,20 +49,21 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardOpenSession.
      *
-     * 
-     * @param calypsoCard The card image.
+     * @param productType The card product type.
      * @param keyIndex The key index.
      * @param samChallenge The SAM challenge.
      * @param sfi The optional SFI of the file to read.
      * @param recordNumber The optional record number to read.
+     * @param isExtendedModeAllowed True if the extended mode is allowed.
      * @throw IllegalArgumentException If the key index is 0 and rev is 2.4
      * @since 2.0.1
      */
-    CmdCardOpenSession(const std::shared_ptr<CalypsoCard> calypsoCard,
+    CmdCardOpenSession(const CalypsoCard::ProductType productType,
                        const uint8_t keyIndex,
                        const std::vector<uint8_t>& samChallenge,
                        const uint8_t sfi,
-                       const uint8_t recordNumber);
+                       const uint8_t recordNumber,
+                       const bool isExtendedModeAllowed);
 
     /**
      * (private)<br>
@@ -72,14 +73,12 @@ public:
      * @param samChallenge the sam challenge returned by the SAM Get Challenge APDU command.
      * @param sfi the sfi to select.
      * @param recordNumber the record number to read.
-     * @param calypsoCard The {@link CalypsoCard}.
      * @throw IllegalArgumentException If the request is inconsistent
      */
     void createRev3(const uint8_t keyIndex,
                     const std::vector<uint8_t>& samChallenge,
                     const uint8_t sfi,
-                    const uint8_t recordNumber,
-                    const std::shared_ptr<CalypsoCard> calypsoCard);
+                    const uint8_t recordNumber);
 
     /**
      * (private)<br>
@@ -442,22 +441,27 @@ private:
     /**
      *
      */
-    const std::shared_ptr<CalypsoCard> mCalypsoCard;
+    const CalypsoCard::ProductType mProductType = CalypsoCard::ProductType::UNKNOWN;
+
+    /**
+     * 
+     */
+    const bool mIsExtendedModeAllowed = false;
 
     /**
      *
      */
-    uint8_t mSfi;
+    uint8_t mSfi = 0;
 
     /**
      *
      */
-    uint8_t mRecordNumber;
+    uint8_t mRecordNumber = 0;
 
     /**
      * The secure session
      */
-    std::shared_ptr<SecureSession> mSecureSession;
+    std::shared_ptr<SecureSession> mSecureSession = nullptr;
 
     /**
      *

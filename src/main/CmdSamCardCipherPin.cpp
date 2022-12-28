@@ -42,7 +42,7 @@ CmdSamCardCipherPin::CmdSamCardCipherPin(const CalypsoSam::ProductType productTy
                                          const uint8_t cipheringKvc,
                                          const std::vector<uint8_t>& currentPin,
                                          const std::vector<uint8_t>& newPin)
-: AbstractSamCommand(mCommand)
+: AbstractSamCommand(mCommand, 0)
 {
     if (currentPin.size() != 4) {
         throw IllegalArgumentException("Bad current PIN value.");

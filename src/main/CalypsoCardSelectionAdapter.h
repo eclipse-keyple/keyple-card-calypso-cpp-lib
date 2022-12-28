@@ -117,7 +117,7 @@ public:
      * @since 2.0.0
      * @deprecated
      */
-    CalypsoCardSelection& prepareReadRecordFile(const uint8_t sfi, const uint8_t recordNumber) 
+    CalypsoCardSelection& prepareReadRecordFile(const uint8_t sfi, const uint8_t recordNumber)
         override;
 
     /**
@@ -180,9 +180,10 @@ private:
     static const int SW_CARD_INVALIDATED;
 
     /**
-     *
+     * C++: vector of AbstractApduCommand instead of AbstractCardCommand because of vector
+     * vs. polymorphism issues...
      */
-    std::vector<std::shared_ptr<AbstractCardCommand>> mCommands;
+    std::vector<std::shared_ptr<AbstractApduCommand>> mCommands;
 
     /**
      *

@@ -54,9 +54,10 @@ public:
      * Constructor dedicated for the building of referenced Calypso commands
      *
      * @param commandRef a command reference from the Calypso command table.
+     * @param le The value of the LE field.
      * @since 2.0.1
      */
-    AbstractSamCommand(const CalypsoSamCommand& commandRef);
+    AbstractSamCommand(const CalypsoSamCommand& commandRef, const int le);
 
     /**
      * {@inheritDoc}
@@ -71,9 +72,15 @@ public:
      * @since 2.0.1
      */
     const CalypsoApduCommandException buildCommandException(const std::type_info& exceptionClass,
-                                                            const std::string& message,
-                                                            const CardCommand& commandRef,
-                                                            const int statusWord) const final;
+                                                            const std::string& message) const final;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.1.1
+     */
+    const CalypsoApduCommandException buildUnexpectedResponseLengthException(
+        const std::string& message) const final;
 
     /**
      * {@inheritDoc}
