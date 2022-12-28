@@ -1054,6 +1054,14 @@ private:
     void processAtomicOpening(std::vector<std::shared_ptr<AbstractApduCommand>>& cardCommands);
 
     /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.0
+     */
+    const std::vector<std::shared_ptr<ApduRequestSpi>> getApduRequests(
+        const std::vector<std::shared_ptr<AbstractApduCommand>>& commands) override;
+
+    /**
      * (private)<br>
      * Aborts the secure session without raising any exception.
      */

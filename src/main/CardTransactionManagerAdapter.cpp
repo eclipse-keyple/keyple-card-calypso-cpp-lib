@@ -281,6 +281,17 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     mControlSamTransactionManager->updateSession(apduRequests, apduResponses, 1);
 }
 
+const std::vector<std::shared_ptr<ApduRequestSpi>> CardTransactionManagerAdapter::getApduRequests(
+    const std::vector<std::shared_ptr<AbstractApduCommand>>& commands)
+{
+    /* Process SAM operations first for SV if needed. */
+    if (mSvLastModifyingCommand != nullptr) {
+        finalizeSvCommand();
+    }
+
+    return CommonTransactionManagerAdapter::getApduRequests(commands);
+}
+
 void CardTransactionManagerAdapter::abortSecureSessionSilently()
 {
     if (mIsSessionOpen) {
@@ -1205,11 +1216,6 @@ const std::vector<uint8_t> CardTransactionManagerAdapter::processSamCardGenerate
 const std::shared_ptr<CardResponseApi> CardTransactionManagerAdapter::transmitCardRequest(
     const std::shared_ptr<CardRequestSpi> cardRequest, const ChannelControl channelControl)
 {
-    /* Process SAM operations first for SV if needed */
-    if (mSvLastModifyingCommand != nullptr) {
-        finalizeSvCommand();
-    }
-
     /* Process card request */
     std::shared_ptr<CardResponseApi> cardResponse = nullptr;
 
