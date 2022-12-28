@@ -159,6 +159,11 @@ private:
     /**
      *
      */
+    static const int SV_POSTPONED_DATA_IN_SESSION;
+
+    /**
+     *
+     */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
 
     /**

@@ -28,9 +28,6 @@
 #include "CmdCardSvDebitOrUndebit.h"
 #include "CommonControlSamTransactionManagerAdapter.h"
 
-/* Keyple Core Util */
-#include "LoggerFactory.h"
-
 namespace keyple {
 namespace card {
 namespace calypso {
@@ -333,12 +330,6 @@ private:
          */
         void prepareDigestClose();
     };
-
-    /**
-     *
-     */
-    const std::unique_ptr<Logger> mLogger =
-        LoggerFactory::getLogger(typeid(CardControlSamTransactionManagerAdapter));
 
     /**
      *

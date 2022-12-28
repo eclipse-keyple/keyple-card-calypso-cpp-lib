@@ -162,6 +162,10 @@ public:
         override;
 
 private:
+    /**
+     *
+     */
+    static const int SV_POSTPONED_DATA_IN_SESSION;
 
     /**
      *
