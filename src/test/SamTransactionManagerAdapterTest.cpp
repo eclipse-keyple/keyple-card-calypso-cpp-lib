@@ -122,7 +122,7 @@ static void tearDown()
     samReader.reset();
     _sam.reset();
     samSecuritySetting.reset();
-    samSecuritySetting.reset();
+    samTransactionManager.reset();
 }
 
 static std::shared_ptr<CardRequestSpi> createCardRequest(
@@ -510,7 +510,8 @@ TEST(SamTransactionManagerAdapterTest,
 
     auto data = std::make_shared<BasicSignatureComputationDataAdapter>();
     data->setData(std::vector<uint8_t>(10), 1, 2).setKeyDiversifier(std::vector<uint8_t>(0));
-    samTransactionManager->prepareComputeSignature(data);
+
+    EXPECT_THROW(samTransactionManager->prepareComputeSignature(data), IllegalArgumentException);
 
     tearDown();
 }
@@ -535,7 +536,8 @@ TEST(SamTransactionManagerAdapterTest,
 
     auto data = std::make_shared<BasicSignatureComputationDataAdapter>();
     data->setData(std::vector<uint8_t>(10), 1, 2).setKeyDiversifier(std::vector<uint8_t>(9));
-    samTransactionManager->prepareComputeSignature(data);
+
+    EXPECT_THROW(samTransactionManager->prepareComputeSignature(data), IllegalArgumentException);
 
     tearDown();
 }
@@ -590,7 +592,8 @@ TEST(SamTransactionManagerAdapterTest,
     auto data = std::make_shared<BasicSignatureComputationDataAdapter>();
     data->setData(std::vector<uint8_t>(8), 1, 2);
     samTransactionManager->prepareComputeSignature(data);
-    data->getSignature();
+
+    EXPECT_THROW(data->getSignature(), IllegalStateException);
 
     tearDown();
 }
@@ -617,7 +620,8 @@ TEST(SamTransactionManagerAdapterTest,
     auto data = std::make_shared<TraceableSignatureComputationDataAdapter>();
     data->setData(std::vector<uint8_t>(10), 1, 2);
     samTransactionManager->prepareComputeSignature(data);
-    data->getSignedData();
+
+    EXPECT_THROW(data->getSignedData(), IllegalStateException);
 
     tearDown();
 }
@@ -940,7 +944,7 @@ TEST(SamTransactionManagerAdapterTest,
 
     const auto data = std::make_shared<TraceableSignatureVerificationDataMock>();
 
-    samTransactionManager->prepareVerifySignature(data);
+    EXPECT_THROW(samTransactionManager->prepareVerifySignature(data), IllegalArgumentException);
 
     tearDown();
 }
@@ -970,6 +974,8 @@ TEST(SamTransactionManagerAdapterTest, prepareVerifySignature_PSO_whenMessageIsN
 TEST(SamTransactionManagerAdapterTest,
      prepareVerifySignature_Basic_whenMessageIsEmpty_shouldThrowIAE)
 {
+    setUp();
+
     auto data = std::make_shared<BasicSignatureVerificationDataAdapter>();
     data->setData(std::vector<uint8_t>(0), std::vector<uint8_t>(8), 1, 2);
 
@@ -1087,7 +1093,8 @@ TEST(SamTransactionManagerAdapterTest,
 
     auto data = std::make_shared<BasicSignatureVerificationDataAdapter>();
     data->setData(std::vector<uint8_t>(10), std::vector<uint8_t>(0), 1, 2);
-    samTransactionManager->prepareVerifySignature(data);
+
+    EXPECT_THROW(samTransactionManager->prepareVerifySignature(data), IllegalArgumentException);
 
     tearDown();
 }
@@ -1124,7 +1131,8 @@ TEST(SamTransactionManagerAdapterTest,
 
     auto data = std::make_shared<TraceableSignatureVerificationDataAdapter>();
     data->setData(std::vector<uint8_t>(10), std::vector<uint8_t>(0), 1, 2);
-    samTransactionManager->prepareVerifySignature(data);
+
+    EXPECT_THROW(samTransactionManager->prepareVerifySignature(data), IllegalArgumentException);
 
     tearDown();
 }
@@ -1268,7 +1276,8 @@ TEST(SamTransactionManagerAdapterTest,
     auto data = std::make_shared<TraceableSignatureVerificationDataAdapter>();
     data->setData(std::vector<uint8_t>(10), std::vector<uint8_t>(8), 1, 2)
          .setKeyDiversifier(std::vector<uint8_t>(0));
-    samTransactionManager->prepareVerifySignature(data);
+
+    EXPECT_THROW(samTransactionManager->prepareVerifySignature(data), IllegalArgumentException);
 
     tearDown();
 }
@@ -1341,7 +1350,8 @@ TEST(SamTransactionManagerAdapterTest,
     auto data = std::make_shared<BasicSignatureVerificationDataAdapter>();
     data->setData(std::vector<uint8_t>(8), std::vector<uint8_t>(8), 1, 2);
     samTransactionManager->prepareVerifySignature(data);
-    data->isSignatureValid();
+
+    EXPECT_THROW(data->isSignatureValid(), IllegalStateException);
 
     tearDown();
 }
@@ -1380,8 +1390,7 @@ TEST(SamTransactionManagerAdapterTest,
     setUp();
 
     auto samRevocationServiceSpi = std::make_shared<SamRevocationServiceSpiMock>();
-    EXPECT_CALL(*samRevocationServiceSpi, isSamRevoked(HexUtil::toByteArray("B2B3B4"), 0xC5C6C7))
-        .WillRepeatedly(Return(false));
+    EXPECT_CALL(*samRevocationServiceSpi, isSamRevoked(_, _)).WillRepeatedly(Return(false));
 
     samSecuritySetting->setSamRevocationService(samRevocationServiceSpi);
 
@@ -1400,8 +1409,7 @@ TEST(SamTransactionManagerAdapterTest,
     setUp();
 
     auto samRevocationServiceSpi = std::make_shared<SamRevocationServiceSpiMock>();
-    EXPECT_CALL(*samRevocationServiceSpi, isSamRevoked(HexUtil::toByteArray("B2B3B4"), 0xB5B6B7))
-        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*samRevocationServiceSpi, isSamRevoked(_, _)).WillRepeatedly(Return(true));
 
     samSecuritySetting->setSamRevocationService(samRevocationServiceSpi);
 
@@ -1420,8 +1428,7 @@ TEST(SamTransactionManagerAdapterTest,
     setUp();
 
     auto samRevocationServiceSpi = std::make_shared<SamRevocationServiceSpiMock>();
-    EXPECT_CALL(*samRevocationServiceSpi, isSamRevoked(HexUtil::toByteArray("B2B3B4B5"), 0xB6B7B8))
-        .WillRepeatedly(Return(true));
+    EXPECT_CALL(*samRevocationServiceSpi, isSamRevoked(_, _)).WillRepeatedly(Return(true));
 
     samSecuritySetting->setSamRevocationService(samRevocationServiceSpi);
 
@@ -1800,6 +1807,7 @@ TEST(SamTransactionManagerAdapterTest,
                   HexUtil::toByteArray(CIPHER_MESSAGE_INCORRECT_SIGNATURE),
                   1,
                   2);
+
     EXPECT_THROW(samTransactionManager->prepareVerifySignature(data).processCommands(),
                  InvalidSignatureException);
     ASSERT_FALSE(data->isSignatureValid());
@@ -1842,8 +1850,9 @@ TEST(SamTransactionManagerAdapterTest, processCommands_whenNoError_shouldClearCo
     const auto cardRequest2 = createCardRequest({C_PSO_COMPUTE_SIGNATURE_DEFAULT});
     const auto cardResponse2 = createCardResponse({R_PSO_COMPUTE_SIGNATURE_DEFAULT});
 
-    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(cardResponse1));
-    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(cardResponse2));
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _))
+        .WillOnce(Return(cardResponse1))
+        .WillOnce(Return(cardResponse2));
 
     auto data1 = std::make_shared<TraceableSignatureComputationDataAdapter>();
     data1->setData(HexUtil::toByteArray(PSO_MESSAGE), 1, 2);
@@ -1866,8 +1875,9 @@ TEST(SamTransactionManagerAdapterTest, processCommands_whenError_shouldClearComm
     auto cardRequest2 = createCardRequest({C_PSO_COMPUTE_SIGNATURE_DEFAULT});
     auto cardResponse2 = createCardResponse({R_PSO_COMPUTE_SIGNATURE_DEFAULT});
 
-    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(cardResponse1));
-    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(cardResponse2));
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _))
+        .WillOnce(Return(cardResponse1))
+        .WillOnce(Return(cardResponse2));
 
     auto data1 = std::make_shared<TraceableSignatureComputationDataAdapter>();
     data1->setData(HexUtil::toByteArray(PSO_MESSAGE), 1, 2);

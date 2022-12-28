@@ -63,6 +63,7 @@ public:
     T& setKeyDiversifier(const std::vector<uint8_t>& diversifier) override
     {
         mKeyDiversifier = diversifier;
+        mIsKeyDiversifierSet = true;
 
         return dynamic_cast<T&>(*this);
     }
@@ -149,6 +150,14 @@ public:
         return mKeyDiversifier;
     }
 
+    /**
+     * C++: specific function
+     */
+    bool isKeyDiversifierSet() const
+    {
+        return mIsKeyDiversifierSet;
+    }
+
 private:
     /**
      *
@@ -174,6 +183,11 @@ private:
      *
      */
     std::vector<uint8_t> mKeyDiversifier;
+
+    /**
+     *
+     */
+    bool mIsKeyDiversifierSet = false;
 
     /**
      *

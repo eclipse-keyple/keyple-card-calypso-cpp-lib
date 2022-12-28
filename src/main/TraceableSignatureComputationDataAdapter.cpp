@@ -72,6 +72,7 @@ void TraceableSignatureComputationDataAdapter::setSignedData(
     const std::vector<uint8_t>& signedData)
 {
     mSignedData = signedData;
+    mSignedDataPresent = true;
 }
 
 }

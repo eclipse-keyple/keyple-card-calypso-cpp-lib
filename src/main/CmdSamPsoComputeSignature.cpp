@@ -124,7 +124,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamPsoComputeSignature::initStatusTable()
 {
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
-        CmdSamPsoComputeSignature::STATUS_TABLE;
+        AbstractSamCommand::STATUS_TABLE;
 
     m.insert({0x6700,
               std::make_shared<StatusProperties>("Incorrect Lc.",

@@ -68,8 +68,8 @@ const CalypsoApduCommandException AbstractSamCommand::buildUnexpectedResponseLen
     const std::string& message) const
 {
     return CalypsoSamUnexpectedResponseLengthException(
-               message, 
-               getCommandRef(), 
+               message,
+               getCommandRef(),
                std::make_shared<int>(getApduResponse()->getStatusWord()));
 }
 

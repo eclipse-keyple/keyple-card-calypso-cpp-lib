@@ -69,6 +69,7 @@ public:
     T& setKeyDiversifier(const std::vector<uint8_t>& diversifier) override
     {
         mKeyDiversifier = diversifier;
+        mIsKeyDiversifierSet = true;
 
         return dynamic_cast<T&>(*this);
     }
@@ -142,6 +143,7 @@ public:
     virtual void setSignature(const std::vector<uint8_t>& signature)
     {
         mSignature = signature;
+        mSignatureProcessed = true;
     }
 
     /**
@@ -153,6 +155,14 @@ public:
     virtual const std::vector<uint8_t>& getKeyDiversifier() const
     {
         return mKeyDiversifier;
+    }
+
+    /**
+     * C++: specific function
+     */
+    bool isKeyDiversifierSet() const
+    {
+        return mIsKeyDiversifierSet;
     }
 
 private:
@@ -180,6 +190,11 @@ private:
      *
      */
     std::vector<uint8_t> mKeyDiversifier;
+
+    /**
+     *
+     */
+    bool mIsKeyDiversifierSet = false;
 
     /**
      *

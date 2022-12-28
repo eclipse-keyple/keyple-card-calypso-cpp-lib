@@ -53,6 +53,7 @@
 #include "ByteArrayUtil.h"
 #include "HexUtil.h"
 #include "KeypleAssert.h"
+#include "KeypleStd.h"
 #include "LoggerFactory.h"
 #include "StringUtils.h"
 
@@ -92,13 +93,13 @@ public:
         const std::shared_ptr<SamSecuritySettingAdapter> securitySetting)
     : CommonTransactionManagerAdapter(
       sam,
-      std::dynamic_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
+      std::reinterpret_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
           securitySetting),
       std::vector<std::vector<uint8_t>>()),
       mSamReader(samReader),
       mSam(sam),
       mSecuritySetting(
-          std::dynamic_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
+          std::reinterpret_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
               securitySetting)),
       mDefaultKeyDiversifier(sam->getSerialNumber()) {}
 
@@ -184,8 +185,9 @@ public:
                                             1,
                                             8,
                                             MSG_SIGNATURE_SIZE)
-                                 .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
-                                         dataAdapter->getKeyDiversifier().size() <= 8),
+                                 .isTrue(dataAdapter->isKeyDiversifierSet() == false ||
+                                         (dataAdapter->getKeyDiversifier().size() >= 1 &&
+                                          dataAdapter->getKeyDiversifier().size() <= 8),
                                          MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
             prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
@@ -222,8 +224,9 @@ public:
                                         std::to_string(((dataAdapter->getData().size() * 8) -
                                                         (dataAdapter->isPartialSamSerialNumber() ? 7 * 8 : 8 * 8))) +
                                         "]")
-                                .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
-                                        dataAdapter->getKeyDiversifier().size() <= 8),
+                                .isTrue(dataAdapter->isKeyDiversifierSet() == false ||
+                                        (dataAdapter->getKeyDiversifier().size() >= 1 &&
+                                         dataAdapter->getKeyDiversifier().size() <= 8),
                                         MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
                 prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
@@ -266,7 +269,8 @@ public:
                                             1,
                                             8,
                                             MSG_SIGNATURE_SIZE)
-                                 .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
+                                 .isTrue(dataAdapter->isKeyDiversifierSet() == false ||
+                                         (dataAdapter->getKeyDiversifier().size() >= 1 &&
                                           dataAdapter->getKeyDiversifier().size() <= 8),
                                          MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
@@ -305,15 +309,16 @@ public:
                                          std::to_string((dataAdapter->getData().size() * 8) -
                                                          (dataAdapter->isPartialSamSerialNumber() ? 7 * 8 : 8 * 8)) +
                                          "]")
-                                 .isTrue((dataAdapter->getKeyDiversifier().size() >= 1 &&
-                                         dataAdapter->getKeyDiversifier().size() <= 8),
+                                 .isTrue(dataAdapter->isKeyDiversifierSet() == false ||
+                                         (dataAdapter->getKeyDiversifier().size() >= 1 &&
+                                          dataAdapter->getKeyDiversifier().size() <= 8),
                                          MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
             /* Check SAM revocation status if requested. */
             if (dataAdapter->isSamRevocationStatusVerificationRequested()) {
                 Assert::getInstance().notNull(mSecuritySetting, "security settings")
-                                    .notNull(mSecuritySetting->getSamRevocationServiceSpi(),
-                                            "SAM revocation service");
+                                     .notNull(mSecuritySetting->getSamRevocationServiceSpi(),
+                                             "SAM revocation service");
 
                 /* Extract the SAM serial number and the counter value from the data. */
                 const std::vector<uint8_t> samSerialNumber =
@@ -349,8 +354,14 @@ public:
 
                 return *this;
 
-        } catch (const std::exception& e) {
+        } catch (const std::bad_cast& e) {
+            /* C++: Fall through... */
             (void)e;
+
+        } catch (const Exception& e) {
+            /* C++: rethrow since we are in a try/catch block */
+            (void)e;
+            throw;
         }
 
         throw IllegalArgumentException("The provided data must be an instance of " \
@@ -383,6 +394,11 @@ public:
             const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses =
                 cardResponse->getApduResponses();
 
+
+            std::cout << "apduResponses size: " << apduResponses.size() << ", "
+                      << "apduRequests size: " << apduRequests.size()
+                      << std::endl;
+
             /*
             * If there are more responses than requests, then we are unable to fill the card image.
             * In this case we stop processing immediately because it may be a case of fraud, and we
@@ -406,22 +422,30 @@ public:
                 try {
                     mSamCommands[i]->setApduResponse(apduResponses[i]).checkStatus();
 
-                } catch (const CalypsoSamCommandException& e) {
+                } catch (const Exception& ex) {
+                    /*
+                     * C++: for some reason, it doesn't work if trying to catch directly the
+                     * CalypsoSamCommandException exception.
+                     */
+                    const CalypsoSamCommandException &e =
+                        dynamic_cast<const CalypsoSamCommandException&>(ex);
+
                     try {
                         const CalypsoSamCommand& commandRef =
                             std::dynamic_pointer_cast<AbstractSamCommand>(mSamCommands[i])
                                 ->getCommandRef();
+
                         if (commandRef == CalypsoSamCommand::DIGEST_AUTHENTICATE) {
                             /* C++: cast made outside the if/else condition, will throw if false */
-                            (void)dynamic_cast<const CalypsoSamSecurityDataException&>(e);
+                            (void)static_cast<const CalypsoSamSecurityDataException&>(e);
                             throw InvalidCardSignatureException(
                                     "Invalid card signature.",
                                     std::make_shared<CalypsoSamCommandException>(e));
 
                         } else if (commandRef == CalypsoSamCommand::PSO_VERIFY_SIGNATURE ||
-                                commandRef == CalypsoSamCommand::DATA_CIPHER) {
+                                   commandRef == CalypsoSamCommand::DATA_CIPHER) {
                             /* C++: cast made outside the if/else condition, will throw if false */
-                            (void)dynamic_cast<const CalypsoSamSecurityDataException&>(e);
+                            (void)static_cast<const CalypsoSamSecurityDataException&>(e);
                             throw InvalidSignatureException(
                                     "Invalid signature.",
                                     std::make_shared<CalypsoSamSecurityDataException>(
@@ -431,7 +455,7 @@ public:
 
                         } else if (commandRef == CalypsoSamCommand::SV_CHECK) {
                             /* C++: cast made outside the if/else condition, will throw if false */
-                            (void)dynamic_cast<const CalypsoSamSecurityDataException&>(e);
+                            (void)static_cast<const CalypsoSamSecurityDataException&>(e);
                             throw InvalidCardSignatureException(
                                     "Invalid SV card signature.",
                                     std::make_shared<CalypsoSamSecurityDataException>(
@@ -443,14 +467,19 @@ public:
                     } catch (const std::bad_cast& e) {
                         /* C++: Fall through... */
                         (void)e;
+
+                    } catch (const Exception& e) {
+                        /* C++: need to rethrow as we are in a try/catch block */
+                        (void)e;
+                        throw;
                     }
 
-                    throw UnexpectedCommandStatusException(MSG_SAM_COMMAND_ERROR +
-                                                        "while processing responses to SAM " \
-                                                        "commands: " +
-                                                        e.getCommand().getName() +
-                                                        getTransactionAuditDataAsString(),
-                                                        std::make_shared<CalypsoSamCommandException>(e));
+                    throw UnexpectedCommandStatusException(
+                              MSG_SAM_COMMAND_ERROR +
+                              "while processing responses to SAM commands: " +
+                              e.getCommand().getName() +
+                              getTransactionAuditDataAsString(),
+                              std::make_shared<CalypsoSamCommandException>(e));
                 }
             }
 
@@ -459,17 +488,21 @@ public:
             * throw an exception.
             */
             if (apduResponses.size() < apduRequests.size()) {
-                throw InconsistentDataException("The number of SAM commands/responses does not match:" \
-                                                " nb commands = " +
-                                                std::to_string(apduRequests.size()) +
-                                                ", nb responses = " +
-                                                std::to_string(apduResponses.size()) +
-                                                getTransactionAuditDataAsString());
+                throw InconsistentDataException(
+                          "The number of SAM commands/responses does not match:" \
+                          " nb commands = " + std::to_string(apduRequests.size()) +
+                          ", nb responses = " + std::to_string(apduResponses.size()) +
+                          getTransactionAuditDataAsString());
             }
 
         } catch (const Exception& e) {
-            /* C++: GCC compiler requires a catch block */
+            /* C++: need to rethrow as we are in a try/catch block */
             (void)e;
+
+            /* Reset the list of commands (finally) */
+            mSamCommands.clear();
+
+            throw;
         }
 
         /* Reset the list of commands (finally) */

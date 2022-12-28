@@ -123,7 +123,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamPsoVerifySignature::initStatusTable()
 {
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
-        CmdSamPsoVerifySignature::STATUS_TABLE;
+        AbstractSamCommand::STATUS_TABLE;
 
     m.insert({0x6982,
               std::make_shared<StatusProperties>("Busy status: the command is temporarily" \
