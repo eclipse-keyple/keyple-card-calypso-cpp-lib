@@ -27,6 +27,9 @@
 #include "AbstractSamCommand.h"
 #include "CardSelectorAdapter.h"
 
+/* Keyple Core Util */
+#include "LoggerFactory.h"
+
 
 namespace keyple {
 namespace card {
@@ -34,6 +37,7 @@ namespace calypso {
 
 using namespace calypsonet::terminal::calypso::sam;
 using namespace calypsonet::terminal::card::spi;
+using namespace keyple::core::util::cpp;
 
 /**
  * (package-private)<br>
@@ -93,17 +97,23 @@ private:
     /**
      *
      */
+    const std::unique_ptr<Logger> mLogger =
+        LoggerFactory::getLogger(typeid(CalypsoSamSelectionAdapter));
+
+    /**
+     *
+     */
+    static const int SW_NOT_LOCKED;
+
+    /**
+     *
+     */
     const std::shared_ptr<CardSelectorAdapter> mSamCardSelector;
 
     /**
      *
      */
-    std::vector<std::shared_ptr<AbstractSamCommand>> mSamCommands;
-
-    /**
-     *
-     */
-    CalypsoSam::ProductType mProductType;
+    CalypsoSam::ProductType mProductType = CalypsoSam::ProductType::UNKNOWN;
 
     /**
      *
@@ -113,7 +123,7 @@ private:
     /**
      *
      */
-    std::string mUnlockData;
+    std::shared_ptr<CmdSamUnlock> mUnlockCommand;
 
     /**
      * (private) Build a regular expression to be used as ATR filter in the SAM selection process.

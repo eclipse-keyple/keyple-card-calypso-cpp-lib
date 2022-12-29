@@ -26,6 +26,7 @@
 #include "PatternSyntaxException.h"
 
 /* Keyple Card Calypso */
+#include "CalypsoSamAccessForbiddenException.h"
 #include "CalypsoSamAdapter.h"
 #include "CalypsoSamCommandException.h"
 #include "CardRequestAdapter.h"
@@ -42,26 +43,21 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
+const int CalypsoSamSelectionAdapter::SW_NOT_LOCKED = 0x6985;
+
 CalypsoSamSelectionAdapter::CalypsoSamSelectionAdapter()
-: mSamCardSelector(std::make_shared<CardSelectorAdapter>()),
-  mProductType(CalypsoSam::ProductType::UNKNOWN) {}
+: mSamCardSelector(std::make_shared<CardSelectorAdapter>()) {}
 
 const std::shared_ptr<CardSelectionRequestSpi> CalypsoSamSelectionAdapter::getCardSelectionRequest()
 {
-    std::vector<std::shared_ptr<ApduRequestSpi>> cardSelectionApduRequests;
-
-    /* Prepare the UNLOCK command if unlock data has been defined */
-    if (!mUnlockData.empty()) {
-        mSamCommands.push_back(
-            std::make_shared<CmdSamUnlock>(mProductType, HexUtil::toByteArray(mUnlockData)));
-        for (const auto& samCommand : mSamCommands) {
-            cardSelectionApduRequests.push_back(samCommand->getApduRequest());
-        }
-    }
-
     mSamCardSelector->filterByPowerOnData(buildAtrRegex(mProductType, mSerialNumberRegex));
 
-    if (!cardSelectionApduRequests.empty()) {
+    /* Prepare the UNLOCK command if unlock data has been defined */
+    if (mUnlockCommand != nullptr) {
+        std::vector<std::shared_ptr<ApduRequestSpi>> cardSelectionApduRequests;
+        std::shared_ptr<ApduRequestAdapter> request = mUnlockCommand->getApduRequest();
+        request->addSuccessfulStatusWord(SW_NOT_LOCKED);
+        cardSelectionApduRequests.push_back(request);
         return std::make_shared<CardSelectionRequestAdapter>(
                    mSamCardSelector,
                    std::make_shared<CardRequestAdapter>(cardSelectionApduRequests, false));
@@ -73,7 +69,7 @@ const std::shared_ptr<CardSelectionRequestSpi> CalypsoSamSelectionAdapter::getCa
 const std::shared_ptr<SmartCardSpi> CalypsoSamSelectionAdapter::parse(
     const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse)
 {
-    if (mSamCommands.size() == 1) {
+    if (mUnlockCommand != nullptr) {
         /* An unlock command has been requested */
         if (cardSelectionResponse->getCardResponse() == nullptr ||
             cardSelectionResponse->getCardResponse()->getApduResponses().empty()) {
@@ -85,7 +81,9 @@ const std::shared_ptr<SmartCardSpi> CalypsoSamSelectionAdapter::parse(
 
         /* Check the SAM response to the unlock command */
         try {
-            mSamCommands[0]->setApduResponse(apduResponse).checkStatus();
+            mUnlockCommand->setApduResponse(apduResponse).checkStatus();
+        } catch (const CalypsoSamAccessForbiddenException& e) {
+            mLogger->warn("SAM not locked or already unlocked\n");
         } catch (const CalypsoSamCommandException& e) {
             throw ParseException("An exception occurred while parse the SAM responses.",
                                  std::make_shared<CalypsoSamCommandException>(e));
@@ -122,14 +120,15 @@ CalypsoSamSelection& CalypsoSamSelectionAdapter::filterBySerialNumber(
 
 CalypsoSamSelection& CalypsoSamSelectionAdapter::setUnlockData(const std::string& unlockData)
 {
-    Assert::getInstance().isTrue(unlockData.size() == 16 || unlockData.size() == 32, "length")
+    Assert::getInstance().isTrue(unlockData.size() == 16 || unlockData.size() == 32,
+                                 "unlock data length == 16 or 32")
                          .isHexString(unlockData, "unlockData");
 
     if (!ByteArrayUtil::isValidHexString(unlockData)) {
         throw IllegalArgumentException("Invalid hexadecimal string.");
     }
 
-    mUnlockData = unlockData;
+    mUnlockCommand = std::make_shared<CmdSamUnlock>(mProductType, HexUtil::toByteArray(unlockData));
 
     return *this;
 }
