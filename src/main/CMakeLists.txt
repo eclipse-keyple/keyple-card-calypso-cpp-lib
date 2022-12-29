@@ -106,18 +106,25 @@ ADD_LIBRARY(
 )
 
 TARGET_INCLUDE_DIRECTORIES(
-        ${LIBRARY_NAME}
+    ${LIBRARY_NAME}
+
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        cpp
-        cpp/exception
+
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    cpp
+    cpp/exception
 )
-    
-# careful, link order matters here as there are includes with the same name, and we cannot discriminate based on path
+
+# Careful, link order matters here as there are includes with the same name, and we cannot
+# discriminate based on path
 TARGET_LINK_LIBRARIES(
-    ${LIBRARY_NAME} 
-        PUBLIC 
-    CalypsoNet::TerminalCalypso 
-    Keyple::ServiceResource)
+
+    ${LIBRARY_NAME}
+
+    PUBLIC
+
+    CalypsoNet::TerminalCalypso
+    Keyple::ServiceResource
+)
 
 ADD_LIBRARY(Keyple::CardCalypso ALIAS ${LIBRARY_NAME})
