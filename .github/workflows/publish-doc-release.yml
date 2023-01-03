@@ -1,13 +1,11 @@
 name: Publish API documentation
 
 on:
-  push:
-    branches:
-      - main
-      - doxygen
+  release:
+    types: [published]
 
 jobs:
-  publish-doc:
+  publish-doc-release:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code from ${{ github.repository }}/${{ github.ref }}
