@@ -17,11 +17,12 @@ else
   echo "Snapshot mode: fetch existing tags..."
   git fetch --tags
   if [ "$(git tag -l "$version")" ]; then
-    echo "ERROR: version '$version' has already been released"
+    echo "ERROR: version '$version' has already been released, please increase the version number."
     exit 1
   fi
+  version="$version-SNAPSHOT"
 fi
 
 echo "PROJECT_VERSION=$version" >> $GITHUB_ENV
 
-echo "Retained PROJECT_VERSION=${{ env.PROJECT_VERSION}}"
+echo "Retained PROJECT_VERSION=$version"

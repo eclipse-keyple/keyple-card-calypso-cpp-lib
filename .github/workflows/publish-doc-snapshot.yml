@@ -1,24 +1,14 @@
-# This workflow forces the documentation generation to a specified value.
-# It can be useful to bypass version checking by the automatic script.
-# Launch this workflow in command line using 'gh' with for example :
-#      gh workflow run --ref branch-name
-# follow the instructions.
-
-name: Force API documentation publishing
+name: Publish API documentation (snapshot)
 
 on:
-  workflow_dispatch:
-    inputs:
-      projectVersion:
-        description: 'Project version to use for the doc generation'
-        required: true
-        default: ''
   push:
     branches:
+      - main
+      - master
       - doxygen
 
 jobs:
-  publish-doc:
+  publish-doc-snapshot:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code from ${{ github.repository }}/${{ github.ref }}
@@ -27,9 +17,9 @@ jobs:
           fetch-depth: 0
       - name: Make scripts executable
         run: chmod +x ./.github/scripts/*.sh
-      - name: Set specific version
+      - name: Check version
         working-directory: .
-        run: echo "PROJECT_VERSION=${{ github.event.inputs.projectVersion }}" >> $GITHUB_ENV
+        run: ./.github/scripts/check_version.sh
       - name: Patch Doxyfile
         working-directory: .
         run: ./.github/scripts/patch_doxyfile.sh ${{ env.PROJECT_VERSION }}
