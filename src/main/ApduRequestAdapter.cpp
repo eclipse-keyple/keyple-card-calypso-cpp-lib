@@ -49,7 +49,7 @@ const std::string& ApduRequestAdapter::getInfo() const
     return mInfo;
 }
 
-const std::vector<uint8_t>& ApduRequestAdapter::getApdu() const
+std::vector<uint8_t>& ApduRequestAdapter::getApdu()
 {
     return mApdu;
 }

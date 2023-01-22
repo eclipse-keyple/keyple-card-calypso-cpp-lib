@@ -97,7 +97,7 @@ public:
      *
      * @since 2.0.0
      */
-    const std::vector<uint8_t>& getApdu() const override;
+    std::vector<uint8_t>& getApdu() override;
 
     /**
      *
@@ -114,7 +114,7 @@ private:
     /**
      *
      */
-    const std::vector<uint8_t> mApdu;
+    std::vector<uint8_t> mApdu;
 
     /**
      *

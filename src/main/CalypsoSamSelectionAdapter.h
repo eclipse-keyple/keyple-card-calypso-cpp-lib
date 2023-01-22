@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -26,6 +26,7 @@
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 #include "CardSelectorAdapter.h"
+#include "CmdSamUnlock.h"
 
 /* Keyple Core Util */
 #include "LoggerFactory.h"
