@@ -332,10 +332,10 @@ $(function() {
 <div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span>    std::shared_ptr&lt;CardControlSamTransactionManagerAdapter&gt; mControlSamTransactionManager;</div>
 <div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span>    std::vector&lt;std::shared_ptr&lt;AbstractApduCommand&gt;&gt; mCardCommands;</div>
 <div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span> </div>
-<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>    <span class="keywordtype">bool</span> mIsSessionOpen;</div>
+<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>    <span class="keywordtype">bool</span> mIsSessionOpen = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>    WriteAccessLevel mWriteAccessLevel = WriteAccessLevel::DEBIT; <span class="comment">/* MSVC: default value required */</span></div>
 <div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>    ChannelControl mChannelControl = ChannelControl::KEEP_OPEN;</div>
-<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>    <span class="keywordtype">int</span> mModificationsCounter;</div>
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>    <span class="keywordtype">int</span> mModificationsCounter = 0;</div>
 <div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>    SvOperation mSvOperation;</div>
 <div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>    SvAction mSvAction = SvAction::DO; <span class="comment">/* MSVC: default value required */</span></div>
 <div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>    CalypsoCardCommand mSvLastCommandRef = <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a3d44ac99b264016391974598c07facf0">CalypsoCardCommand::NONE</a>; <span class="comment">/* GCC: default value required */</span></div>
