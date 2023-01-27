@@ -633,10 +633,10 @@ private:
     /**
      * Dynamic fields
      */
-    bool mIsSessionOpen;
+    bool mIsSessionOpen = false;
     WriteAccessLevel mWriteAccessLevel = WriteAccessLevel::DEBIT; /* MSVC: default value required */
     ChannelControl mChannelControl = ChannelControl::KEEP_OPEN;
-    int mModificationsCounter;
+    int mModificationsCounter = 0;
     SvOperation mSvOperation;
     SvAction mSvAction = SvAction::DO; /* MSVC: default value required */
     CalypsoCardCommand mSvLastCommandRef = CalypsoCardCommand::NONE; /* GCC: default value required */
