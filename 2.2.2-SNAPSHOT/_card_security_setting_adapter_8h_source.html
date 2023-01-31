@@ -72,7 +72,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <a href="_card_security_setting_adapter_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">/**************************************************************************************************</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment"> * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment"> * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment"> *                                                                                                *</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment"> * See the NOTICE file(s) distributed with this work for additional information regarding         *</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="comment"> * copyright ownership.                                                                           *</span></div>
@@ -182,15 +182,15 @@ $(function() {
 <div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span><span class="keyword">private</span>:</div>
 <div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>    <span class="keyword">static</span> <span class="keyword">const</span> std::string WRITE_ACCESS_LEVEL;</div>
 <div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span> </div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <span class="keywordtype">bool</span> mIsMultipleSessionEnabled;</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <span class="keywordtype">bool</span> mIsMultipleSessionEnabled = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span> </div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>    <span class="keywordtype">bool</span> mIsRatificationMechanismEnabled;</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>    <span class="keywordtype">bool</span> mIsRatificationMechanismEnabled = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span> </div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    <span class="keywordtype">bool</span> mIsPinPlainTransmissionEnabled;</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    <span class="keywordtype">bool</span> mIsPinPlainTransmissionEnabled = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span> </div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <span class="keywordtype">bool</span> mIsSvLoadAndDebitLogEnabled;</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <span class="keywordtype">bool</span> mIsSvLoadAndDebitLogEnabled = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span> </div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    <span class="keywordtype">bool</span> mIsSvNegativeBalanceAuthorized;</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    <span class="keywordtype">bool</span> mIsSvNegativeBalanceAuthorized = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span> </div>
 <div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>    std::map&lt;WriteAccessLevel, std::map&lt;uint8_t, uint8_t&gt;&gt; mKifMap;</div>
 <div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span> </div>
