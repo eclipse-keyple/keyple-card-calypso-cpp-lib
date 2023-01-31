@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -51,7 +51,7 @@ CmdSamReadEventCounter::CmdSamReadEventCounter(const CalypsoSam::ProductType pro
                                            ".");
         }
 
-        p2 = 0xE0 + index;
+        p2 = static_cast<uint8_t>(0xE0 + index);
     
     } else {
         /* SINGLE_COUNTER */
@@ -61,7 +61,7 @@ CmdSamReadEventCounter::CmdSamReadEventCounter(const CalypsoSam::ProductType pro
                                            ".");
         }
 
-        p2 = 0x80 + index;
+        p2 = static_cast<uint8_t>(0x80 + index);
     }
 
     setApduRequest(

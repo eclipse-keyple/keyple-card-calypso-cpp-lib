@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -44,7 +44,7 @@ CmdSamGetChallenge::CmdSamGetChallenge(const CalypsoSam::ProductType productType
                             mCommand.getInstructionByte(),
                             0,
                             0,
-                            expectedResponseLength)));
+                            static_cast<uint8_t>(expectedResponseLength))));
 }
 
 const std::vector<uint8_t> CmdSamGetChallenge::getChallenge() const

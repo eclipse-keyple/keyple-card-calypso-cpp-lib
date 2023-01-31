@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -83,6 +83,7 @@ const std::shared_ptr<SmartCardSpi> CalypsoSamSelectionAdapter::parse(
         try {
             mUnlockCommand->setApduResponse(apduResponse).checkStatus();
         } catch (const CalypsoSamAccessForbiddenException& e) {
+            (void)e;
             mLogger->warn("SAM not locked or already unlocked\n");
         } catch (const CalypsoSamCommandException& e) {
             throw ParseException("An exception occurred while parse the SAM responses.",

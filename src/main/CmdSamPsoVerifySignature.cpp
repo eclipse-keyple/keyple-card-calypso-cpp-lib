@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -48,9 +48,11 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
 
     /* DataIn */
     const int messageOffset = data->isSamTraceabilityMode() ? 6 : 4;
-    const int messageSize = data->getData().size();
-    const int signatureSize = data->getSignature().size();
-    std::vector<uint8_t> dataIn(messageOffset + messageSize + signatureSize);
+    const int messageSize = static_cast<int>(data->getData().size());
+    const int signatureSize = static_cast<int>(data->getSignature().size());
+    std::vector<uint8_t> dataIn(static_cast<uint64_t>(messageOffset) + 
+                                static_cast<uint64_t>(messageSize) + 
+                                static_cast<uint64_t>(signatureSize));
 
     /* SignKeyNum: Selection of the key by KIF and KVC given in the incoming data */
     dataIn[0] = 0xFF;
@@ -82,8 +84,8 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
 
     /* TraceOffset (optional): Bit offset in MessageIn of the SAM traceability data */
     if (data->isSamTraceabilityMode()) {
-        dataIn[4] = data->getTraceabilityOffset() >> 8;
-        dataIn[5] = data->getTraceabilityOffset();
+        dataIn[4] = static_cast<uint8_t>(data->getTraceabilityOffset() >> 8);
+        dataIn[5] = static_cast<uint8_t>(data->getTraceabilityOffset());
     }
 
     /* MessageIn: Message to sign */

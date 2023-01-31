@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -103,10 +103,10 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType p
 
     switch (sourceKeyRef) {
     case SourceRef::WORK_KEY:
-        p2 = recordNumber;
+        p2 = static_cast<uint8_t>(recordNumber);
         break;
     case SourceRef::SYSTEM_KEY:
-        p2 = 0xC0 + recordNumber;
+        p2 = static_cast<uint8_t>(0xC0 + recordNumber);
         break;
     default:
         std::stringstream ss;

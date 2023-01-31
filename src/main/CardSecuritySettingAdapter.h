@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -296,27 +296,27 @@ private:
     /**
      *
      */
-    bool mIsMultipleSessionEnabled;
+    bool mIsMultipleSessionEnabled = false;
 
     /**
      *
      */
-    bool mIsRatificationMechanismEnabled;
+    bool mIsRatificationMechanismEnabled = false;
 
     /**
      *
      */
-    bool mIsPinPlainTransmissionEnabled;
+    bool mIsPinPlainTransmissionEnabled = false;
 
     /**
      *
      */
-    bool mIsSvLoadAndDebitLogEnabled;
+    bool mIsSvLoadAndDebitLogEnabled = false;
 
     /**
      *
      */
-    bool mIsSvNegativeBalanceAuthorized;
+    bool mIsSvNegativeBalanceAuthorized = false;
 
     /**
      *

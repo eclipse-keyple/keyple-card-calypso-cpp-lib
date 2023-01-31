@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -53,7 +53,7 @@ CmdSamReadCeilings::CmdSamReadCeilings(const CalypsoSam::ProductType productType
         }
 
         p1 = 0x00;
-        p2 = 0xB0 + index;
+        p2 = static_cast<uint8_t>(0xB0 + index);
     
     } else {
         /* SINGLE_CEILING */

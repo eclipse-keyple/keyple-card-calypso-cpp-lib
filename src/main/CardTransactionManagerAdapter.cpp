@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -1400,7 +1400,7 @@ int CardTransactionManagerAdapter::computeCommandSessionBufferSize(
     std::shared_ptr<AbstractCardCommand> command)
 {
     return mCard->isModificationsCounterInBytes() ?
-               command->getApduRequest()->getApdu().size() +
+               static_cast<int>(command->getApduRequest()->getApdu().size()) +
                    SESSION_BUFFER_CMD_ADDITIONAL_COST -
                    APDU_HEADER_LENGTH :
                1;

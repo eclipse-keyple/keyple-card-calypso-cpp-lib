@@ -1,5 +1,5 @@
 # *************************************************************************************************
-# Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                         *
+# Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                         *
 #                                                                                                 *
 # See the NOTICE file(s) distributed with this work for additional information regarding          *
 # copyright ownership.                                                                            *
@@ -13,7 +13,6 @@
 SET(LIBRARY_NAME keyplecardcalypsocpplib)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DKEYPLECARDCALYPSO_EXPORT")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-undefined-var-template")
 
 ADD_LIBRARY(
     ${LIBRARY_NAME}
