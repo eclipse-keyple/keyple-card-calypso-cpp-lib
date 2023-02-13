@@ -2042,272 +2042,274 @@ $(function() {
 <div class="line"><a id="l01969" name="l01969"></a><span class="lineno"> 1969</span>    std::shared_ptr&lt;CalypsoSam&gt; calypsoSam = mSecuritySetting-&gt;getControlSam();</div>
 <div class="line"><a id="l01970" name="l01970"></a><span class="lineno"> 1970</span>    <span class="keyword">const</span> <span class="keywordtype">bool</span> useExtendedMode = mCard-&gt;isExtendedModeSupported() &amp;&amp;</div>
 <div class="line"><a id="l01971" name="l01971"></a><span class="lineno"> 1971</span>                                 (calypsoSam == <span class="keyword">nullptr</span> ||</div>
-<div class="line"><a id="l01972" name="l01972"></a><span class="lineno"> 1972</span>                                  calypsoSam-&gt;getProductType() == CalypsoSam::ProductType::SAM_C1);</div>
-<div class="line"><a id="l01973" name="l01973"></a><span class="lineno"> 1973</span> </div>
-<div class="line"><a id="l01974" name="l01974"></a><span class="lineno"> 1974</span>    <span class="keywordflow">if</span> (mSecuritySetting-&gt;isSvLoadAndDebitLogEnabled() &amp;&amp; !useExtendedMode) {</div>
-<div class="line"><a id="l01975" name="l01975"></a><span class="lineno"> 1975</span> </div>
-<div class="line"><a id="l01976" name="l01976"></a><span class="lineno"> 1976</span>        <span class="comment">/*</span></div>
-<div class="line"><a id="l01977" name="l01977"></a><span class="lineno"> 1977</span><span class="comment">         * @see Calypso Layer ID 8.09/8.10 (200108): both reload and debit logs are requested</span></div>
-<div class="line"><a id="l01978" name="l01978"></a><span class="lineno"> 1978</span><span class="comment">         * for a non rev3.2 card add two SvGet commands (for RELOAD then for DEBIT).</span></div>
-<div class="line"><a id="l01979" name="l01979"></a><span class="lineno"> 1979</span><span class="comment">         * CL-SV-GETNUMBER.1</span></div>
-<div class="line"><a id="l01980" name="l01980"></a><span class="lineno"> 1980</span><span class="comment">         */</span></div>
-<div class="line"><a id="l01981" name="l01981"></a><span class="lineno"> 1981</span>        <span class="keyword">const</span> SvOperation operation1 = SvOperation::RELOAD == svOperation ? SvOperation::DEBIT :</div>
-<div class="line"><a id="l01982" name="l01982"></a><span class="lineno"> 1982</span>                                                                            SvOperation::RELOAD;</div>
-<div class="line"><a id="l01983" name="l01983"></a><span class="lineno"> 1983</span>        <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">addStoredValueCommand</a>(std::make_shared&lt;CmdCardSvGet&gt;(mCard-&gt;getCardClass(),</div>
-<div class="line"><a id="l01984" name="l01984"></a><span class="lineno"> 1984</span>                                                             operation1,</div>
-<div class="line"><a id="l01985" name="l01985"></a><span class="lineno"> 1985</span>                                                             <span class="keyword">false</span>),</div>
-<div class="line"><a id="l01986" name="l01986"></a><span class="lineno"> 1986</span>                              operation1);</div>
-<div class="line"><a id="l01987" name="l01987"></a><span class="lineno"> 1987</span>    }</div>
-<div class="line"><a id="l01988" name="l01988"></a><span class="lineno"> 1988</span> </div>
-<div class="line"><a id="l01989" name="l01989"></a><span class="lineno"> 1989</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">addStoredValueCommand</a>(std::make_shared&lt;CmdCardSvGet&gt;(mCard-&gt;getCardClass(),</div>
-<div class="line"><a id="l01990" name="l01990"></a><span class="lineno"> 1990</span>                                                         svOperation,</div>
-<div class="line"><a id="l01991" name="l01991"></a><span class="lineno"> 1991</span>                                                         useExtendedMode),</div>
-<div class="line"><a id="l01992" name="l01992"></a><span class="lineno"> 1992</span>                          svOperation);</div>
-<div class="line"><a id="l01993" name="l01993"></a><span class="lineno"> 1993</span> </div>
-<div class="line"><a id="l01994" name="l01994"></a><span class="lineno"> 1994</span>    mSvAction = svAction;</div>
-<div class="line"><a id="l01995" name="l01995"></a><span class="lineno"> 1995</span> </div>
-<div class="line"><a id="l01996" name="l01996"></a><span class="lineno"> 1996</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l01997" name="l01997"></a><span class="lineno"> 1997</span>}</div>
-<div class="line"><a id="l01998" name="l01998"></a><span class="lineno"> 1998</span> </div>
-<div class="line"><a id="l01999" name="l01999"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1"> 1999</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1">CardTransactionManagerAdapter::prepareSvReload</a>(</div>
-<div class="line"><a id="l02000" name="l02000"></a><span class="lineno"> 2000</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> amount,</div>
-<div class="line"><a id="l02001" name="l02001"></a><span class="lineno"> 2001</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; date,</div>
-<div class="line"><a id="l02002" name="l02002"></a><span class="lineno"> 2002</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; time,</div>
-<div class="line"><a id="l02003" name="l02003"></a><span class="lineno"> 2003</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; free)</div>
-<div class="line"><a id="l02004" name="l02004"></a><span class="lineno"> 2004</span>{</div>
-<div class="line"><a id="l02005" name="l02005"></a><span class="lineno"> 2005</span>    checkSvInsideSession();</div>
-<div class="line"><a id="l02006" name="l02006"></a><span class="lineno"> 2006</span> </div>
-<div class="line"><a id="l02007" name="l02007"></a><span class="lineno"> 2007</span>    <span class="comment">/* Create the initial command with the application data */</span></div>
-<div class="line"><a id="l02008" name="l02008"></a><span class="lineno"> 2008</span>    <span class="keyword">auto</span> svReloadCmdBuild = std::make_shared&lt;CmdCardSvReload&gt;(mCard-&gt;getCardClass(),</div>
-<div class="line"><a id="l02009" name="l02009"></a><span class="lineno"> 2009</span>                                                              amount,</div>
-<div class="line"><a id="l02010" name="l02010"></a><span class="lineno"> 2010</span>                                                              mCard-&gt;getSvKvc(),</div>
-<div class="line"><a id="l02011" name="l02011"></a><span class="lineno"> 2011</span>                                                              date,</div>
-<div class="line"><a id="l02012" name="l02012"></a><span class="lineno"> 2012</span>                                                              time,</div>
-<div class="line"><a id="l02013" name="l02013"></a><span class="lineno"> 2013</span>                                                              free,</div>
-<div class="line"><a id="l02014" name="l02014"></a><span class="lineno"> 2014</span>                                                              isExtendedModeAllowed());</div>
-<div class="line"><a id="l02015" name="l02015"></a><span class="lineno"> 2015</span> </div>
-<div class="line"><a id="l02016" name="l02016"></a><span class="lineno"> 2016</span>    <span class="comment">/* Create and keep the CalypsoCardCommand */</span></div>
-<div class="line"><a id="l02017" name="l02017"></a><span class="lineno"> 2017</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">addStoredValueCommand</a>(svReloadCmdBuild, SvOperation::RELOAD);</div>
-<div class="line"><a id="l02018" name="l02018"></a><span class="lineno"> 2018</span> </div>
-<div class="line"><a id="l02019" name="l02019"></a><span class="lineno"> 2019</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l02020" name="l02020"></a><span class="lineno"> 2020</span>}</div>
-<div class="line"><a id="l02021" name="l02021"></a><span class="lineno"> 2021</span> </div>
-<div class="line"><a id="l02022" name="l02022"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae35254628e0bbb44a11b6b7f71a29059"> 2022</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1">CardTransactionManagerAdapter::prepareSvReload</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> amount)</div>
-<div class="line"><a id="l02023" name="l02023"></a><span class="lineno"> 2023</span>{</div>
-<div class="line"><a id="l02024" name="l02024"></a><span class="lineno"> 2024</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; zero = {0x00, 0x00};</div>
-<div class="line"><a id="l02025" name="l02025"></a><span class="lineno"> 2025</span> </div>
-<div class="line"><a id="l02026" name="l02026"></a><span class="lineno"> 2026</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1">prepareSvReload</a>(amount, zero, zero, zero);</div>
-<div class="line"><a id="l02027" name="l02027"></a><span class="lineno"> 2027</span> </div>
-<div class="line"><a id="l02028" name="l02028"></a><span class="lineno"> 2028</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l02029" name="l02029"></a><span class="lineno"> 2029</span>}</div>
-<div class="line"><a id="l02030" name="l02030"></a><span class="lineno"> 2030</span> </div>
-<div class="line"><a id="l02031" name="l02031"></a><span class="lineno"> 2031</span><span class="keywordtype">void</span> CardTransactionManagerAdapter::checkSvInsideSession()</div>
-<div class="line"><a id="l02032" name="l02032"></a><span class="lineno"> 2032</span>{</div>
-<div class="line"><a id="l02033" name="l02033"></a><span class="lineno"> 2033</span>    <span class="comment">/* CL-SV-1PCSS.1 */</span></div>
-<div class="line"><a id="l02034" name="l02034"></a><span class="lineno"> 2034</span>    <span class="keywordflow">if</span> (mIsSessionOpen) {</div>
-<div class="line"><a id="l02035" name="l02035"></a><span class="lineno"> 2035</span>        <span class="keywordflow">if</span> (!mIsSvOperationInsideSession) {</div>
-<div class="line"><a id="l02036" name="l02036"></a><span class="lineno"> 2036</span>            mIsSvOperationInsideSession = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l02037" name="l02037"></a><span class="lineno"> 2037</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l02038" name="l02038"></a><span class="lineno"> 2038</span>            <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;Only one SV operation is allowed per Secure Session.&quot;</span>);</div>
-<div class="line"><a id="l02039" name="l02039"></a><span class="lineno"> 2039</span>        }</div>
-<div class="line"><a id="l02040" name="l02040"></a><span class="lineno"> 2040</span>    }</div>
-<div class="line"><a id="l02041" name="l02041"></a><span class="lineno"> 2041</span>}</div>
-<div class="line"><a id="l02042" name="l02042"></a><span class="lineno"> 2042</span> </div>
-<div class="line"><a id="l02043" name="l02043"></a><span class="lineno"> 2043</span><span class="keywordtype">bool</span> CardTransactionManagerAdapter::isExtendedModeAllowed()<span class="keyword"> const</span></div>
-<div class="line"><a id="l02044" name="l02044"></a><span class="lineno"> 2044</span><span class="keyword"></span>{</div>
-<div class="line"><a id="l02045" name="l02045"></a><span class="lineno"> 2045</span>    std::shared_ptr&lt;CalypsoSam&gt; calypsoSam = mSecuritySetting-&gt;getControlSam();</div>
-<div class="line"><a id="l02046" name="l02046"></a><span class="lineno"> 2046</span> </div>
-<div class="line"><a id="l02047" name="l02047"></a><span class="lineno"> 2047</span>    <span class="keywordflow">return</span> mCard-&gt;isExtendedModeSupported() &amp;&amp;</div>
-<div class="line"><a id="l02048" name="l02048"></a><span class="lineno"> 2048</span>           calypsoSam-&gt;getProductType() == CalypsoSam::ProductType::SAM_C1;</div>
-<div class="line"><a id="l02049" name="l02049"></a><span class="lineno"> 2049</span>}</div>
-<div class="line"><a id="l02050" name="l02050"></a><span class="lineno"> 2050</span> </div>
-<div class="line"><a id="l02051" name="l02051"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1"> 2051</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1">CardTransactionManagerAdapter::prepareSvDebit</a>(</div>
-<div class="line"><a id="l02052" name="l02052"></a><span class="lineno"> 2052</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> amount,</div>
-<div class="line"><a id="l02053" name="l02053"></a><span class="lineno"> 2053</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; date,</div>
-<div class="line"><a id="l02054" name="l02054"></a><span class="lineno"> 2054</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; time)</div>
-<div class="line"><a id="l02055" name="l02055"></a><span class="lineno"> 2055</span>{</div>
-<div class="line"><a id="l02056" name="l02056"></a><span class="lineno"> 2056</span>    checkSvInsideSession();</div>
-<div class="line"><a id="l02057" name="l02057"></a><span class="lineno"> 2057</span> </div>
-<div class="line"><a id="l02058" name="l02058"></a><span class="lineno"> 2058</span>    <span class="keywordflow">if</span> (mSvAction == SvAction::DO &amp;&amp;</div>
-<div class="line"><a id="l02059" name="l02059"></a><span class="lineno"> 2059</span>        !mSecuritySetting-&gt;isSvNegativeBalanceAuthorized() &amp;&amp;</div>
-<div class="line"><a id="l02060" name="l02060"></a><span class="lineno"> 2060</span>        (mCard-&gt;getSvBalance() - amount) &lt; 0) {</div>
-<div class="line"><a id="l02061" name="l02061"></a><span class="lineno"> 2061</span>        <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;Negative balances not allowed.&quot;</span>);</div>
-<div class="line"><a id="l02062" name="l02062"></a><span class="lineno"> 2062</span>    }</div>
-<div class="line"><a id="l02063" name="l02063"></a><span class="lineno"> 2063</span> </div>
-<div class="line"><a id="l02064" name="l02064"></a><span class="lineno"> 2064</span>    <span class="comment">/* Create the initial command with the application data */</span></div>
-<div class="line"><a id="l02065" name="l02065"></a><span class="lineno"> 2065</span>    <span class="keyword">auto</span> command = std::make_shared&lt;CmdCardSvDebitOrUndebit&gt;(mSvAction == SvAction::DO,</div>
-<div class="line"><a id="l02066" name="l02066"></a><span class="lineno"> 2066</span>                                                             mCard-&gt;getCardClass(),</div>
-<div class="line"><a id="l02067" name="l02067"></a><span class="lineno"> 2067</span>                                                             amount,</div>
-<div class="line"><a id="l02068" name="l02068"></a><span class="lineno"> 2068</span>                                                             mCard-&gt;getSvKvc(),</div>
-<div class="line"><a id="l02069" name="l02069"></a><span class="lineno"> 2069</span>                                                             date,</div>
-<div class="line"><a id="l02070" name="l02070"></a><span class="lineno"> 2070</span>                                                             time,</div>
-<div class="line"><a id="l02071" name="l02071"></a><span class="lineno"> 2071</span>                                                             isExtendedModeAllowed());</div>
-<div class="line"><a id="l02072" name="l02072"></a><span class="lineno"> 2072</span> </div>
-<div class="line"><a id="l02073" name="l02073"></a><span class="lineno"> 2073</span>    <span class="comment">/* Create and keep the CalypsoCardCommand */</span></div>
-<div class="line"><a id="l02074" name="l02074"></a><span class="lineno"> 2074</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">addStoredValueCommand</a>(command, SvOperation::DEBIT);</div>
-<div class="line"><a id="l02075" name="l02075"></a><span class="lineno"> 2075</span> </div>
-<div class="line"><a id="l02076" name="l02076"></a><span class="lineno"> 2076</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l02077" name="l02077"></a><span class="lineno"> 2077</span>  }</div>
-<div class="line"><a id="l02078" name="l02078"></a><span class="lineno"> 2078</span> </div>
-<div class="line"><a id="l02079" name="l02079"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#adadf3ed259b00bfff87119198acf9563"> 2079</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1">CardTransactionManagerAdapter::prepareSvDebit</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> amount)</div>
-<div class="line"><a id="l02080" name="l02080"></a><span class="lineno"> 2080</span>{</div>
-<div class="line"><a id="l02081" name="l02081"></a><span class="lineno"> 2081</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; zero = {0x00, 0x00};</div>
-<div class="line"><a id="l02082" name="l02082"></a><span class="lineno"> 2082</span> </div>
-<div class="line"><a id="l02083" name="l02083"></a><span class="lineno"> 2083</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1">prepareSvDebit</a>(amount, zero, zero);</div>
+<div class="line"><a id="l01972" name="l01972"></a><span class="lineno"> 1972</span>                                  calypsoSam-&gt;getProductType() == CalypsoSam::ProductType::SAM_C1 ||</div>
+<div class="line"><a id="l01973" name="l01973"></a><span class="lineno"> 1973</span>                                  calypsoSam-&gt;getProductType() == CalypsoSam::ProductType::HSM_C1);</div>
+<div class="line"><a id="l01974" name="l01974"></a><span class="lineno"> 1974</span> </div>
+<div class="line"><a id="l01975" name="l01975"></a><span class="lineno"> 1975</span>    <span class="keywordflow">if</span> (mSecuritySetting-&gt;isSvLoadAndDebitLogEnabled() &amp;&amp; !useExtendedMode) {</div>
+<div class="line"><a id="l01976" name="l01976"></a><span class="lineno"> 1976</span> </div>
+<div class="line"><a id="l01977" name="l01977"></a><span class="lineno"> 1977</span>        <span class="comment">/*</span></div>
+<div class="line"><a id="l01978" name="l01978"></a><span class="lineno"> 1978</span><span class="comment">         * @see Calypso Layer ID 8.09/8.10 (200108): both reload and debit logs are requested</span></div>
+<div class="line"><a id="l01979" name="l01979"></a><span class="lineno"> 1979</span><span class="comment">         * for a non rev3.2 card add two SvGet commands (for RELOAD then for DEBIT).</span></div>
+<div class="line"><a id="l01980" name="l01980"></a><span class="lineno"> 1980</span><span class="comment">         * CL-SV-GETNUMBER.1</span></div>
+<div class="line"><a id="l01981" name="l01981"></a><span class="lineno"> 1981</span><span class="comment">         */</span></div>
+<div class="line"><a id="l01982" name="l01982"></a><span class="lineno"> 1982</span>        <span class="keyword">const</span> SvOperation operation1 = SvOperation::RELOAD == svOperation ? SvOperation::DEBIT :</div>
+<div class="line"><a id="l01983" name="l01983"></a><span class="lineno"> 1983</span>                                                                            SvOperation::RELOAD;</div>
+<div class="line"><a id="l01984" name="l01984"></a><span class="lineno"> 1984</span>        <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">addStoredValueCommand</a>(std::make_shared&lt;CmdCardSvGet&gt;(mCard-&gt;getCardClass(),</div>
+<div class="line"><a id="l01985" name="l01985"></a><span class="lineno"> 1985</span>                                                             operation1,</div>
+<div class="line"><a id="l01986" name="l01986"></a><span class="lineno"> 1986</span>                                                             <span class="keyword">false</span>),</div>
+<div class="line"><a id="l01987" name="l01987"></a><span class="lineno"> 1987</span>                              operation1);</div>
+<div class="line"><a id="l01988" name="l01988"></a><span class="lineno"> 1988</span>    }</div>
+<div class="line"><a id="l01989" name="l01989"></a><span class="lineno"> 1989</span> </div>
+<div class="line"><a id="l01990" name="l01990"></a><span class="lineno"> 1990</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">addStoredValueCommand</a>(std::make_shared&lt;CmdCardSvGet&gt;(mCard-&gt;getCardClass(),</div>
+<div class="line"><a id="l01991" name="l01991"></a><span class="lineno"> 1991</span>                                                         svOperation,</div>
+<div class="line"><a id="l01992" name="l01992"></a><span class="lineno"> 1992</span>                                                         useExtendedMode),</div>
+<div class="line"><a id="l01993" name="l01993"></a><span class="lineno"> 1993</span>                          svOperation);</div>
+<div class="line"><a id="l01994" name="l01994"></a><span class="lineno"> 1994</span> </div>
+<div class="line"><a id="l01995" name="l01995"></a><span class="lineno"> 1995</span>    mSvAction = svAction;</div>
+<div class="line"><a id="l01996" name="l01996"></a><span class="lineno"> 1996</span> </div>
+<div class="line"><a id="l01997" name="l01997"></a><span class="lineno"> 1997</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l01998" name="l01998"></a><span class="lineno"> 1998</span>}</div>
+<div class="line"><a id="l01999" name="l01999"></a><span class="lineno"> 1999</span> </div>
+<div class="line"><a id="l02000" name="l02000"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1"> 2000</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1">CardTransactionManagerAdapter::prepareSvReload</a>(</div>
+<div class="line"><a id="l02001" name="l02001"></a><span class="lineno"> 2001</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> amount,</div>
+<div class="line"><a id="l02002" name="l02002"></a><span class="lineno"> 2002</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; date,</div>
+<div class="line"><a id="l02003" name="l02003"></a><span class="lineno"> 2003</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; time,</div>
+<div class="line"><a id="l02004" name="l02004"></a><span class="lineno"> 2004</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; free)</div>
+<div class="line"><a id="l02005" name="l02005"></a><span class="lineno"> 2005</span>{</div>
+<div class="line"><a id="l02006" name="l02006"></a><span class="lineno"> 2006</span>    checkSvInsideSession();</div>
+<div class="line"><a id="l02007" name="l02007"></a><span class="lineno"> 2007</span> </div>
+<div class="line"><a id="l02008" name="l02008"></a><span class="lineno"> 2008</span>    <span class="comment">/* Create the initial command with the application data */</span></div>
+<div class="line"><a id="l02009" name="l02009"></a><span class="lineno"> 2009</span>    <span class="keyword">auto</span> svReloadCmdBuild = std::make_shared&lt;CmdCardSvReload&gt;(mCard-&gt;getCardClass(),</div>
+<div class="line"><a id="l02010" name="l02010"></a><span class="lineno"> 2010</span>                                                              amount,</div>
+<div class="line"><a id="l02011" name="l02011"></a><span class="lineno"> 2011</span>                                                              mCard-&gt;getSvKvc(),</div>
+<div class="line"><a id="l02012" name="l02012"></a><span class="lineno"> 2012</span>                                                              date,</div>
+<div class="line"><a id="l02013" name="l02013"></a><span class="lineno"> 2013</span>                                                              time,</div>
+<div class="line"><a id="l02014" name="l02014"></a><span class="lineno"> 2014</span>                                                              free,</div>
+<div class="line"><a id="l02015" name="l02015"></a><span class="lineno"> 2015</span>                                                              isExtendedModeAllowed());</div>
+<div class="line"><a id="l02016" name="l02016"></a><span class="lineno"> 2016</span> </div>
+<div class="line"><a id="l02017" name="l02017"></a><span class="lineno"> 2017</span>    <span class="comment">/* Create and keep the CalypsoCardCommand */</span></div>
+<div class="line"><a id="l02018" name="l02018"></a><span class="lineno"> 2018</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">addStoredValueCommand</a>(svReloadCmdBuild, SvOperation::RELOAD);</div>
+<div class="line"><a id="l02019" name="l02019"></a><span class="lineno"> 2019</span> </div>
+<div class="line"><a id="l02020" name="l02020"></a><span class="lineno"> 2020</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l02021" name="l02021"></a><span class="lineno"> 2021</span>}</div>
+<div class="line"><a id="l02022" name="l02022"></a><span class="lineno"> 2022</span> </div>
+<div class="line"><a id="l02023" name="l02023"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae35254628e0bbb44a11b6b7f71a29059"> 2023</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1">CardTransactionManagerAdapter::prepareSvReload</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> amount)</div>
+<div class="line"><a id="l02024" name="l02024"></a><span class="lineno"> 2024</span>{</div>
+<div class="line"><a id="l02025" name="l02025"></a><span class="lineno"> 2025</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; zero = {0x00, 0x00};</div>
+<div class="line"><a id="l02026" name="l02026"></a><span class="lineno"> 2026</span> </div>
+<div class="line"><a id="l02027" name="l02027"></a><span class="lineno"> 2027</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1">prepareSvReload</a>(amount, zero, zero, zero);</div>
+<div class="line"><a id="l02028" name="l02028"></a><span class="lineno"> 2028</span> </div>
+<div class="line"><a id="l02029" name="l02029"></a><span class="lineno"> 2029</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l02030" name="l02030"></a><span class="lineno"> 2030</span>}</div>
+<div class="line"><a id="l02031" name="l02031"></a><span class="lineno"> 2031</span> </div>
+<div class="line"><a id="l02032" name="l02032"></a><span class="lineno"> 2032</span><span class="keywordtype">void</span> CardTransactionManagerAdapter::checkSvInsideSession()</div>
+<div class="line"><a id="l02033" name="l02033"></a><span class="lineno"> 2033</span>{</div>
+<div class="line"><a id="l02034" name="l02034"></a><span class="lineno"> 2034</span>    <span class="comment">/* CL-SV-1PCSS.1 */</span></div>
+<div class="line"><a id="l02035" name="l02035"></a><span class="lineno"> 2035</span>    <span class="keywordflow">if</span> (mIsSessionOpen) {</div>
+<div class="line"><a id="l02036" name="l02036"></a><span class="lineno"> 2036</span>        <span class="keywordflow">if</span> (!mIsSvOperationInsideSession) {</div>
+<div class="line"><a id="l02037" name="l02037"></a><span class="lineno"> 2037</span>            mIsSvOperationInsideSession = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l02038" name="l02038"></a><span class="lineno"> 2038</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l02039" name="l02039"></a><span class="lineno"> 2039</span>            <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;Only one SV operation is allowed per Secure Session.&quot;</span>);</div>
+<div class="line"><a id="l02040" name="l02040"></a><span class="lineno"> 2040</span>        }</div>
+<div class="line"><a id="l02041" name="l02041"></a><span class="lineno"> 2041</span>    }</div>
+<div class="line"><a id="l02042" name="l02042"></a><span class="lineno"> 2042</span>}</div>
+<div class="line"><a id="l02043" name="l02043"></a><span class="lineno"> 2043</span> </div>
+<div class="line"><a id="l02044" name="l02044"></a><span class="lineno"> 2044</span><span class="keywordtype">bool</span> CardTransactionManagerAdapter::isExtendedModeAllowed()<span class="keyword"> const</span></div>
+<div class="line"><a id="l02045" name="l02045"></a><span class="lineno"> 2045</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l02046" name="l02046"></a><span class="lineno"> 2046</span>    std::shared_ptr&lt;CalypsoSam&gt; calypsoSam = mSecuritySetting-&gt;getControlSam();</div>
+<div class="line"><a id="l02047" name="l02047"></a><span class="lineno"> 2047</span> </div>
+<div class="line"><a id="l02048" name="l02048"></a><span class="lineno"> 2048</span>    <span class="keywordflow">return</span> mCard-&gt;isExtendedModeSupported() &amp;&amp;</div>
+<div class="line"><a id="l02049" name="l02049"></a><span class="lineno"> 2049</span>           (calypsoSam-&gt;getProductType() == CalypsoSam::ProductType::SAM_C1 ||</div>
+<div class="line"><a id="l02050" name="l02050"></a><span class="lineno"> 2050</span>            calypsoSam-&gt;getProductType() == CalypsoSam::ProductType::HSM_C1);</div>
+<div class="line"><a id="l02051" name="l02051"></a><span class="lineno"> 2051</span>}</div>
+<div class="line"><a id="l02052" name="l02052"></a><span class="lineno"> 2052</span> </div>
+<div class="line"><a id="l02053" name="l02053"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1"> 2053</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1">CardTransactionManagerAdapter::prepareSvDebit</a>(</div>
+<div class="line"><a id="l02054" name="l02054"></a><span class="lineno"> 2054</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> amount,</div>
+<div class="line"><a id="l02055" name="l02055"></a><span class="lineno"> 2055</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; date,</div>
+<div class="line"><a id="l02056" name="l02056"></a><span class="lineno"> 2056</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; time)</div>
+<div class="line"><a id="l02057" name="l02057"></a><span class="lineno"> 2057</span>{</div>
+<div class="line"><a id="l02058" name="l02058"></a><span class="lineno"> 2058</span>    checkSvInsideSession();</div>
+<div class="line"><a id="l02059" name="l02059"></a><span class="lineno"> 2059</span> </div>
+<div class="line"><a id="l02060" name="l02060"></a><span class="lineno"> 2060</span>    <span class="keywordflow">if</span> (mSvAction == SvAction::DO &amp;&amp;</div>
+<div class="line"><a id="l02061" name="l02061"></a><span class="lineno"> 2061</span>        !mSecuritySetting-&gt;isSvNegativeBalanceAuthorized() &amp;&amp;</div>
+<div class="line"><a id="l02062" name="l02062"></a><span class="lineno"> 2062</span>        (mCard-&gt;getSvBalance() - amount) &lt; 0) {</div>
+<div class="line"><a id="l02063" name="l02063"></a><span class="lineno"> 2063</span>        <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;Negative balances not allowed.&quot;</span>);</div>
+<div class="line"><a id="l02064" name="l02064"></a><span class="lineno"> 2064</span>    }</div>
+<div class="line"><a id="l02065" name="l02065"></a><span class="lineno"> 2065</span> </div>
+<div class="line"><a id="l02066" name="l02066"></a><span class="lineno"> 2066</span>    <span class="comment">/* Create the initial command with the application data */</span></div>
+<div class="line"><a id="l02067" name="l02067"></a><span class="lineno"> 2067</span>    <span class="keyword">auto</span> command = std::make_shared&lt;CmdCardSvDebitOrUndebit&gt;(mSvAction == SvAction::DO,</div>
+<div class="line"><a id="l02068" name="l02068"></a><span class="lineno"> 2068</span>                                                             mCard-&gt;getCardClass(),</div>
+<div class="line"><a id="l02069" name="l02069"></a><span class="lineno"> 2069</span>                                                             amount,</div>
+<div class="line"><a id="l02070" name="l02070"></a><span class="lineno"> 2070</span>                                                             mCard-&gt;getSvKvc(),</div>
+<div class="line"><a id="l02071" name="l02071"></a><span class="lineno"> 2071</span>                                                             date,</div>
+<div class="line"><a id="l02072" name="l02072"></a><span class="lineno"> 2072</span>                                                             time,</div>
+<div class="line"><a id="l02073" name="l02073"></a><span class="lineno"> 2073</span>                                                             isExtendedModeAllowed());</div>
+<div class="line"><a id="l02074" name="l02074"></a><span class="lineno"> 2074</span> </div>
+<div class="line"><a id="l02075" name="l02075"></a><span class="lineno"> 2075</span>    <span class="comment">/* Create and keep the CalypsoCardCommand */</span></div>
+<div class="line"><a id="l02076" name="l02076"></a><span class="lineno"> 2076</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">addStoredValueCommand</a>(command, SvOperation::DEBIT);</div>
+<div class="line"><a id="l02077" name="l02077"></a><span class="lineno"> 2077</span> </div>
+<div class="line"><a id="l02078" name="l02078"></a><span class="lineno"> 2078</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l02079" name="l02079"></a><span class="lineno"> 2079</span>  }</div>
+<div class="line"><a id="l02080" name="l02080"></a><span class="lineno"> 2080</span> </div>
+<div class="line"><a id="l02081" name="l02081"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#adadf3ed259b00bfff87119198acf9563"> 2081</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1">CardTransactionManagerAdapter::prepareSvDebit</a>(<span class="keyword">const</span> <span class="keywordtype">int</span> amount)</div>
+<div class="line"><a id="l02082" name="l02082"></a><span class="lineno"> 2082</span>{</div>
+<div class="line"><a id="l02083" name="l02083"></a><span class="lineno"> 2083</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; zero = {0x00, 0x00};</div>
 <div class="line"><a id="l02084" name="l02084"></a><span class="lineno"> 2084</span> </div>
-<div class="line"><a id="l02085" name="l02085"></a><span class="lineno"> 2085</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l02086" name="l02086"></a><span class="lineno"> 2086</span>}</div>
-<div class="line"><a id="l02087" name="l02087"></a><span class="lineno"> 2087</span> </div>
-<div class="line"><a id="l02088" name="l02088"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6b8496be8c59731ec81720ffc1972d1c"> 2088</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6b8496be8c59731ec81720ffc1972d1c">CardTransactionManagerAdapter::prepareSvReadAllLogs</a>()</div>
-<div class="line"><a id="l02089" name="l02089"></a><span class="lineno"> 2089</span>{</div>
-<div class="line"><a id="l02090" name="l02090"></a><span class="lineno"> 2090</span>    <span class="keywordflow">if</span> (!mCard-&gt;isSvFeatureAvailable()) {</div>
-<div class="line"><a id="l02091" name="l02091"></a><span class="lineno"> 2091</span>        <span class="keywordflow">throw</span> UnsupportedOperationException(<span class="stringliteral">&quot;Stored Value is not available for this card.&quot;</span>);</div>
-<div class="line"><a id="l02092" name="l02092"></a><span class="lineno"> 2092</span>    }</div>
-<div class="line"><a id="l02093" name="l02093"></a><span class="lineno"> 2093</span> </div>
-<div class="line"><a id="l02094" name="l02094"></a><span class="lineno"> 2094</span>    <span class="keywordflow">if</span> (mCard-&gt;getApplicationSubtype() !=</div>
-<div class="line"><a id="l02095" name="l02095"></a><span class="lineno"> 2095</span>        <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#aade2d20be04e6c59466db7366ca19050">CalypsoCardConstant::STORED_VALUE_FILE_STRUCTURE_ID</a>) {</div>
-<div class="line"><a id="l02096" name="l02096"></a><span class="lineno"> 2096</span>        <span class="keywordflow">throw</span> UnsupportedOperationException(<span class="stringliteral">&quot;The currently selected application is not an SV &quot;</span> \</div>
-<div class="line"><a id="l02097" name="l02097"></a><span class="lineno"> 2097</span>                                            <span class="stringliteral">&quot;application.&quot;</span>);</div>
-<div class="line"><a id="l02098" name="l02098"></a><span class="lineno"> 2098</span>    }</div>
-<div class="line"><a id="l02099" name="l02099"></a><span class="lineno"> 2099</span> </div>
-<div class="line"><a id="l02100" name="l02100"></a><span class="lineno"> 2100</span>    <span class="comment">/* Reset SV data in CalypsoCard if any */</span></div>
-<div class="line"><a id="l02101" name="l02101"></a><span class="lineno"> 2101</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; dummy;</div>
-<div class="line"><a id="l02102" name="l02102"></a><span class="lineno"> 2102</span>    mCard-&gt;setSvData(0, dummy, dummy, 0, 0, <span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l02103" name="l02103"></a><span class="lineno"> 2103</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a7aa51ca1995291d78f93f462557ee857">prepareReadRecords</a>(<a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#ab6b331a9a30bcfd0125feab6f85da4ec">CalypsoCardConstant::SV_RELOAD_LOG_FILE_SFI</a>,</div>
-<div class="line"><a id="l02104" name="l02104"></a><span class="lineno"> 2104</span>                       1,</div>
-<div class="line"><a id="l02105" name="l02105"></a><span class="lineno"> 2105</span>                       <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#a1ad4c14aed457372d011fcb9cdcc40e8">CalypsoCardConstant::SV_RELOAD_LOG_FILE_NB_REC</a>,</div>
-<div class="line"><a id="l02106" name="l02106"></a><span class="lineno"> 2106</span>                       <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#adf6ccacfffc81407b3c13ee4824e3118">CalypsoCardConstant::SV_LOG_FILE_REC_LENGTH</a>);</div>
-<div class="line"><a id="l02107" name="l02107"></a><span class="lineno"> 2107</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a7aa51ca1995291d78f93f462557ee857">prepareReadRecords</a>(<a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#a1704b032485b1343ec01d5692100569d">CalypsoCardConstant::SV_DEBIT_LOG_FILE_SFI</a>,</div>
-<div class="line"><a id="l02108" name="l02108"></a><span class="lineno"> 2108</span>                       1,</div>
-<div class="line"><a id="l02109" name="l02109"></a><span class="lineno"> 2109</span>                       <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#a3a7a11d83ac388f3160db4b580ce9c93">CalypsoCardConstant::SV_DEBIT_LOG_FILE_NB_REC</a>,</div>
-<div class="line"><a id="l02110" name="l02110"></a><span class="lineno"> 2110</span>                       <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#adf6ccacfffc81407b3c13ee4824e3118">CalypsoCardConstant::SV_LOG_FILE_REC_LENGTH</a>);</div>
-<div class="line"><a id="l02111" name="l02111"></a><span class="lineno"> 2111</span> </div>
-<div class="line"><a id="l02112" name="l02112"></a><span class="lineno"> 2112</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l02113" name="l02113"></a><span class="lineno"> 2113</span>}</div>
-<div class="line"><a id="l02114" name="l02114"></a><span class="lineno"> 2114</span> </div>
-<div class="line"><a id="l02115" name="l02115"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a8c4a85e00097606fa2c932119758600b"> 2115</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a8c4a85e00097606fa2c932119758600b">CardTransactionManagerAdapter::prepareInvalidate</a>()</div>
-<div class="line"><a id="l02116" name="l02116"></a><span class="lineno"> 2116</span>{</div>
-<div class="line"><a id="l02117" name="l02117"></a><span class="lineno"> 2117</span>    <span class="keywordflow">if</span> (mCard-&gt;isDfInvalidated()) {</div>
-<div class="line"><a id="l02118" name="l02118"></a><span class="lineno"> 2118</span>        <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;This card is already invalidated.&quot;</span>);</div>
-<div class="line"><a id="l02119" name="l02119"></a><span class="lineno"> 2119</span>    }</div>
-<div class="line"><a id="l02120" name="l02120"></a><span class="lineno"> 2120</span> </div>
-<div class="line"><a id="l02121" name="l02121"></a><span class="lineno"> 2121</span>    mCardCommands.push_back(std::make_shared&lt;CmdCardInvalidate&gt;(mCard-&gt;getCardClass()));</div>
+<div class="line"><a id="l02085" name="l02085"></a><span class="lineno"> 2085</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1">prepareSvDebit</a>(amount, zero, zero);</div>
+<div class="line"><a id="l02086" name="l02086"></a><span class="lineno"> 2086</span> </div>
+<div class="line"><a id="l02087" name="l02087"></a><span class="lineno"> 2087</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l02088" name="l02088"></a><span class="lineno"> 2088</span>}</div>
+<div class="line"><a id="l02089" name="l02089"></a><span class="lineno"> 2089</span> </div>
+<div class="line"><a id="l02090" name="l02090"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6b8496be8c59731ec81720ffc1972d1c"> 2090</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6b8496be8c59731ec81720ffc1972d1c">CardTransactionManagerAdapter::prepareSvReadAllLogs</a>()</div>
+<div class="line"><a id="l02091" name="l02091"></a><span class="lineno"> 2091</span>{</div>
+<div class="line"><a id="l02092" name="l02092"></a><span class="lineno"> 2092</span>    <span class="keywordflow">if</span> (!mCard-&gt;isSvFeatureAvailable()) {</div>
+<div class="line"><a id="l02093" name="l02093"></a><span class="lineno"> 2093</span>        <span class="keywordflow">throw</span> UnsupportedOperationException(<span class="stringliteral">&quot;Stored Value is not available for this card.&quot;</span>);</div>
+<div class="line"><a id="l02094" name="l02094"></a><span class="lineno"> 2094</span>    }</div>
+<div class="line"><a id="l02095" name="l02095"></a><span class="lineno"> 2095</span> </div>
+<div class="line"><a id="l02096" name="l02096"></a><span class="lineno"> 2096</span>    <span class="keywordflow">if</span> (mCard-&gt;getApplicationSubtype() !=</div>
+<div class="line"><a id="l02097" name="l02097"></a><span class="lineno"> 2097</span>        <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#aade2d20be04e6c59466db7366ca19050">CalypsoCardConstant::STORED_VALUE_FILE_STRUCTURE_ID</a>) {</div>
+<div class="line"><a id="l02098" name="l02098"></a><span class="lineno"> 2098</span>        <span class="keywordflow">throw</span> UnsupportedOperationException(<span class="stringliteral">&quot;The currently selected application is not an SV &quot;</span> \</div>
+<div class="line"><a id="l02099" name="l02099"></a><span class="lineno"> 2099</span>                                            <span class="stringliteral">&quot;application.&quot;</span>);</div>
+<div class="line"><a id="l02100" name="l02100"></a><span class="lineno"> 2100</span>    }</div>
+<div class="line"><a id="l02101" name="l02101"></a><span class="lineno"> 2101</span> </div>
+<div class="line"><a id="l02102" name="l02102"></a><span class="lineno"> 2102</span>    <span class="comment">/* Reset SV data in CalypsoCard if any */</span></div>
+<div class="line"><a id="l02103" name="l02103"></a><span class="lineno"> 2103</span>    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; dummy;</div>
+<div class="line"><a id="l02104" name="l02104"></a><span class="lineno"> 2104</span>    mCard-&gt;setSvData(0, dummy, dummy, 0, 0, <span class="keyword">nullptr</span>, <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l02105" name="l02105"></a><span class="lineno"> 2105</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a7aa51ca1995291d78f93f462557ee857">prepareReadRecords</a>(<a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#ab6b331a9a30bcfd0125feab6f85da4ec">CalypsoCardConstant::SV_RELOAD_LOG_FILE_SFI</a>,</div>
+<div class="line"><a id="l02106" name="l02106"></a><span class="lineno"> 2106</span>                       1,</div>
+<div class="line"><a id="l02107" name="l02107"></a><span class="lineno"> 2107</span>                       <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#a1ad4c14aed457372d011fcb9cdcc40e8">CalypsoCardConstant::SV_RELOAD_LOG_FILE_NB_REC</a>,</div>
+<div class="line"><a id="l02108" name="l02108"></a><span class="lineno"> 2108</span>                       <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#adf6ccacfffc81407b3c13ee4824e3118">CalypsoCardConstant::SV_LOG_FILE_REC_LENGTH</a>);</div>
+<div class="line"><a id="l02109" name="l02109"></a><span class="lineno"> 2109</span>    <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a7aa51ca1995291d78f93f462557ee857">prepareReadRecords</a>(<a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#a1704b032485b1343ec01d5692100569d">CalypsoCardConstant::SV_DEBIT_LOG_FILE_SFI</a>,</div>
+<div class="line"><a id="l02110" name="l02110"></a><span class="lineno"> 2110</span>                       1,</div>
+<div class="line"><a id="l02111" name="l02111"></a><span class="lineno"> 2111</span>                       <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#a3a7a11d83ac388f3160db4b580ce9c93">CalypsoCardConstant::SV_DEBIT_LOG_FILE_NB_REC</a>,</div>
+<div class="line"><a id="l02112" name="l02112"></a><span class="lineno"> 2112</span>                       <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_constant.html#adf6ccacfffc81407b3c13ee4824e3118">CalypsoCardConstant::SV_LOG_FILE_REC_LENGTH</a>);</div>
+<div class="line"><a id="l02113" name="l02113"></a><span class="lineno"> 2113</span> </div>
+<div class="line"><a id="l02114" name="l02114"></a><span class="lineno"> 2114</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l02115" name="l02115"></a><span class="lineno"> 2115</span>}</div>
+<div class="line"><a id="l02116" name="l02116"></a><span class="lineno"> 2116</span> </div>
+<div class="line"><a id="l02117" name="l02117"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a8c4a85e00097606fa2c932119758600b"> 2117</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a8c4a85e00097606fa2c932119758600b">CardTransactionManagerAdapter::prepareInvalidate</a>()</div>
+<div class="line"><a id="l02118" name="l02118"></a><span class="lineno"> 2118</span>{</div>
+<div class="line"><a id="l02119" name="l02119"></a><span class="lineno"> 2119</span>    <span class="keywordflow">if</span> (mCard-&gt;isDfInvalidated()) {</div>
+<div class="line"><a id="l02120" name="l02120"></a><span class="lineno"> 2120</span>        <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;This card is already invalidated.&quot;</span>);</div>
+<div class="line"><a id="l02121" name="l02121"></a><span class="lineno"> 2121</span>    }</div>
 <div class="line"><a id="l02122" name="l02122"></a><span class="lineno"> 2122</span> </div>
-<div class="line"><a id="l02123" name="l02123"></a><span class="lineno"> 2123</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l02124" name="l02124"></a><span class="lineno"> 2124</span>}</div>
-<div class="line"><a id="l02125" name="l02125"></a><span class="lineno"> 2125</span> </div>
-<div class="line"><a id="l02126" name="l02126"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aadbf9e0ffee25f821722c8e3ee8d99ac"> 2126</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aadbf9e0ffee25f821722c8e3ee8d99ac">CardTransactionManagerAdapter::prepareRehabilitate</a>()</div>
-<div class="line"><a id="l02127" name="l02127"></a><span class="lineno"> 2127</span>{</div>
-<div class="line"><a id="l02128" name="l02128"></a><span class="lineno"> 2128</span>    <span class="keywordflow">if</span> (!mCard-&gt;isDfInvalidated()) {</div>
-<div class="line"><a id="l02129" name="l02129"></a><span class="lineno"> 2129</span>        <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;This card is not invalidated.&quot;</span>);</div>
-<div class="line"><a id="l02130" name="l02130"></a><span class="lineno"> 2130</span>    }</div>
-<div class="line"><a id="l02131" name="l02131"></a><span class="lineno"> 2131</span> </div>
-<div class="line"><a id="l02132" name="l02132"></a><span class="lineno"> 2132</span>    mCardCommands.push_back(std::make_shared&lt;CmdCardRehabilitate&gt;(mCard-&gt;getCardClass()));</div>
+<div class="line"><a id="l02123" name="l02123"></a><span class="lineno"> 2123</span>    mCardCommands.push_back(std::make_shared&lt;CmdCardInvalidate&gt;(mCard-&gt;getCardClass()));</div>
+<div class="line"><a id="l02124" name="l02124"></a><span class="lineno"> 2124</span> </div>
+<div class="line"><a id="l02125" name="l02125"></a><span class="lineno"> 2125</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l02126" name="l02126"></a><span class="lineno"> 2126</span>}</div>
+<div class="line"><a id="l02127" name="l02127"></a><span class="lineno"> 2127</span> </div>
+<div class="line"><a id="l02128" name="l02128"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aadbf9e0ffee25f821722c8e3ee8d99ac"> 2128</a></span>CardTransactionManager&amp; <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aadbf9e0ffee25f821722c8e3ee8d99ac">CardTransactionManagerAdapter::prepareRehabilitate</a>()</div>
+<div class="line"><a id="l02129" name="l02129"></a><span class="lineno"> 2129</span>{</div>
+<div class="line"><a id="l02130" name="l02130"></a><span class="lineno"> 2130</span>    <span class="keywordflow">if</span> (!mCard-&gt;isDfInvalidated()) {</div>
+<div class="line"><a id="l02131" name="l02131"></a><span class="lineno"> 2131</span>        <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;This card is not invalidated.&quot;</span>);</div>
+<div class="line"><a id="l02132" name="l02132"></a><span class="lineno"> 2132</span>    }</div>
 <div class="line"><a id="l02133" name="l02133"></a><span class="lineno"> 2133</span> </div>
-<div class="line"><a id="l02134" name="l02134"></a><span class="lineno"> 2134</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l02135" name="l02135"></a><span class="lineno"> 2135</span>}</div>
-<div class="line"><a id="l02136" name="l02136"></a><span class="lineno"> 2136</span> </div>
-<div class="line"><a id="l02137" name="l02137"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4"> 2137</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">CardTransactionManagerAdapter::addStoredValueCommand</a>(</div>
-<div class="line"><a id="l02138" name="l02138"></a><span class="lineno"> 2138</span>    <span class="keyword">const</span> std::shared_ptr&lt;AbstractCardCommand&gt; command, <span class="keyword">const</span> SvOperation svOperation)</div>
-<div class="line"><a id="l02139" name="l02139"></a><span class="lineno"> 2139</span>{</div>
-<div class="line"><a id="l02140" name="l02140"></a><span class="lineno"> 2140</span>    <span class="comment">/* Check the logic of the SV command sequencing */</span></div>
-<div class="line"><a id="l02141" name="l02141"></a><span class="lineno"> 2141</span>    <span class="keywordflow">if</span> (command-&gt;getCommandRef() == <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a9a15bda5e37a8d3ffd584e5b6e979194">CalypsoCardCommand::SV_GET</a>) {</div>
-<div class="line"><a id="l02142" name="l02142"></a><span class="lineno"> 2142</span>        mSvOperation = svOperation;</div>
-<div class="line"><a id="l02143" name="l02143"></a><span class="lineno"> 2143</span> </div>
-<div class="line"><a id="l02144" name="l02144"></a><span class="lineno"> 2144</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (command-&gt;getCommandRef() == <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a2c1c4ca5e6062653897ccfb4830abba6">CalypsoCardCommand::SV_RELOAD</a> ||</div>
-<div class="line"><a id="l02145" name="l02145"></a><span class="lineno"> 2145</span>               command-&gt;getCommandRef() == <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a3e836a90170b8609a1bd0b81dad524f5">CalypsoCardCommand::SV_DEBIT</a> ||</div>
-<div class="line"><a id="l02146" name="l02146"></a><span class="lineno"> 2146</span>               command-&gt;getCommandRef() == <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#aa78e04019fa266febea2664515631cff">CalypsoCardCommand::SV_UNDEBIT</a>) {</div>
-<div class="line"><a id="l02147" name="l02147"></a><span class="lineno"> 2147</span>        <span class="comment">/*</span></div>
-<div class="line"><a id="l02148" name="l02148"></a><span class="lineno"> 2148</span><span class="comment">         * CL-SV-GETDEBIT.1</span></div>
-<div class="line"><a id="l02149" name="l02149"></a><span class="lineno"> 2149</span><span class="comment">         * CL-SV-GETRLOAD.1</span></div>
-<div class="line"><a id="l02150" name="l02150"></a><span class="lineno"> 2150</span><span class="comment">         */</span></div>
-<div class="line"><a id="l02151" name="l02151"></a><span class="lineno"> 2151</span>        <span class="keywordflow">if</span> (!mCardCommands.empty()) {</div>
-<div class="line"><a id="l02152" name="l02152"></a><span class="lineno"> 2152</span>            <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;This SV command can only be placed in the first position&quot;</span> \</div>
-<div class="line"><a id="l02153" name="l02153"></a><span class="lineno"> 2153</span>                                        <span class="stringliteral">&quot; in the list of prepared commands&quot;</span>);</div>
-<div class="line"><a id="l02154" name="l02154"></a><span class="lineno"> 2154</span>        }</div>
-<div class="line"><a id="l02155" name="l02155"></a><span class="lineno"> 2155</span> </div>
-<div class="line"><a id="l02156" name="l02156"></a><span class="lineno"> 2156</span>        <span class="keywordflow">if</span> (mSvLastCommandRef != <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a9a15bda5e37a8d3ffd584e5b6e979194">CalypsoCardCommand::SV_GET</a>) {</div>
-<div class="line"><a id="l02157" name="l02157"></a><span class="lineno"> 2157</span>            <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;This SV command must follow an SV Get command&quot;</span>);</div>
-<div class="line"><a id="l02158" name="l02158"></a><span class="lineno"> 2158</span>        }</div>
-<div class="line"><a id="l02159" name="l02159"></a><span class="lineno"> 2159</span> </div>
-<div class="line"><a id="l02160" name="l02160"></a><span class="lineno"> 2160</span>        <span class="comment">/* Here, we expect the command and the SV operation to be consistent */</span></div>
-<div class="line"><a id="l02161" name="l02161"></a><span class="lineno"> 2161</span>        <span class="keywordflow">if</span> (svOperation != mSvOperation) {</div>
-<div class="line"><a id="l02162" name="l02162"></a><span class="lineno"> 2162</span>            mLogger-&gt;error(<span class="stringliteral">&quot;Sv operation = %, current command = %\n&quot;</span>, mSvOperation, svOperation);</div>
-<div class="line"><a id="l02163" name="l02163"></a><span class="lineno"> 2163</span>            <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;Inconsistent SV operation.&quot;</span>);</div>
-<div class="line"><a id="l02164" name="l02164"></a><span class="lineno"> 2164</span>        }</div>
-<div class="line"><a id="l02165" name="l02165"></a><span class="lineno"> 2165</span> </div>
-<div class="line"><a id="l02166" name="l02166"></a><span class="lineno"> 2166</span>        mIsSvOperationComplete = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l02167" name="l02167"></a><span class="lineno"> 2167</span>        mSvLastModifyingCommand = command;</div>
-<div class="line"><a id="l02168" name="l02168"></a><span class="lineno"> 2168</span> </div>
-<div class="line"><a id="l02169" name="l02169"></a><span class="lineno"> 2169</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l02170" name="l02170"></a><span class="lineno"> 2170</span>        <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;An SV command is expected.&quot;</span>);</div>
-<div class="line"><a id="l02171" name="l02171"></a><span class="lineno"> 2171</span>    }</div>
-<div class="line"><a id="l02172" name="l02172"></a><span class="lineno"> 2172</span> </div>
-<div class="line"><a id="l02173" name="l02173"></a><span class="lineno"> 2173</span>    mSvLastCommandRef = command-&gt;getCommandRef();</div>
-<div class="line"><a id="l02174" name="l02174"></a><span class="lineno"> 2174</span>    mCardCommands.push_back(command);</div>
-<div class="line"><a id="l02175" name="l02175"></a><span class="lineno"> 2175</span>}</div>
-<div class="line"><a id="l02176" name="l02176"></a><span class="lineno"> 2176</span> </div>
-<div class="line"><a id="l02177" name="l02177"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6085918a5e438717c2699dcf1d2a1d58"> 2177</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6085918a5e438717c2699dcf1d2a1d58">CardTransactionManagerAdapter::notifyCommandsProcessed</a>()</div>
-<div class="line"><a id="l02178" name="l02178"></a><span class="lineno"> 2178</span>{</div>
-<div class="line"><a id="l02179" name="l02179"></a><span class="lineno"> 2179</span>    mCardCommands.clear();</div>
-<div class="line"><a id="l02180" name="l02180"></a><span class="lineno"> 2180</span>    mSvLastModifyingCommand = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l02181" name="l02181"></a><span class="lineno"> 2181</span>}</div>
-<div class="line"><a id="l02182" name="l02182"></a><span class="lineno"> 2182</span> </div>
-<div class="line"><a id="l02183" name="l02183"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ac1b7b561630d8445df0a3cb9969c408e"> 2183</a></span><span class="keywordtype">bool</span> <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ac1b7b561630d8445df0a3cb9969c408e">CardTransactionManagerAdapter::isSvOperationCompleteOneTime</a>()</div>
-<div class="line"><a id="l02184" name="l02184"></a><span class="lineno"> 2184</span>{</div>
-<div class="line"><a id="l02185" name="l02185"></a><span class="lineno"> 2185</span>    <span class="keyword">const</span> <span class="keywordtype">bool</span> flag = mIsSvOperationComplete;</div>
-<div class="line"><a id="l02186" name="l02186"></a><span class="lineno"> 2186</span>    mIsSvOperationComplete = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l02187" name="l02187"></a><span class="lineno"> 2187</span> </div>
-<div class="line"><a id="l02188" name="l02188"></a><span class="lineno"> 2188</span>    <span class="keywordflow">return</span> flag;</div>
-<div class="line"><a id="l02189" name="l02189"></a><span class="lineno"> 2189</span>}</div>
-<div class="line"><a id="l02190" name="l02190"></a><span class="lineno"> 2190</span> </div>
-<div class="line"><a id="l02191" name="l02191"></a><span class="lineno"> 2191</span><span class="comment">/* APDU RESPONSE ADAPTER ------------------------------------------------------------------------ */</span></div>
+<div class="line"><a id="l02134" name="l02134"></a><span class="lineno"> 2134</span>    mCardCommands.push_back(std::make_shared&lt;CmdCardRehabilitate&gt;(mCard-&gt;getCardClass()));</div>
+<div class="line"><a id="l02135" name="l02135"></a><span class="lineno"> 2135</span> </div>
+<div class="line"><a id="l02136" name="l02136"></a><span class="lineno"> 2136</span>    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a id="l02137" name="l02137"></a><span class="lineno"> 2137</span>}</div>
+<div class="line"><a id="l02138" name="l02138"></a><span class="lineno"> 2138</span> </div>
+<div class="line"><a id="l02139" name="l02139"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4"> 2139</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">CardTransactionManagerAdapter::addStoredValueCommand</a>(</div>
+<div class="line"><a id="l02140" name="l02140"></a><span class="lineno"> 2140</span>    <span class="keyword">const</span> std::shared_ptr&lt;AbstractCardCommand&gt; command, <span class="keyword">const</span> SvOperation svOperation)</div>
+<div class="line"><a id="l02141" name="l02141"></a><span class="lineno"> 2141</span>{</div>
+<div class="line"><a id="l02142" name="l02142"></a><span class="lineno"> 2142</span>    <span class="comment">/* Check the logic of the SV command sequencing */</span></div>
+<div class="line"><a id="l02143" name="l02143"></a><span class="lineno"> 2143</span>    <span class="keywordflow">if</span> (command-&gt;getCommandRef() == <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a9a15bda5e37a8d3ffd584e5b6e979194">CalypsoCardCommand::SV_GET</a>) {</div>
+<div class="line"><a id="l02144" name="l02144"></a><span class="lineno"> 2144</span>        mSvOperation = svOperation;</div>
+<div class="line"><a id="l02145" name="l02145"></a><span class="lineno"> 2145</span> </div>
+<div class="line"><a id="l02146" name="l02146"></a><span class="lineno"> 2146</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (command-&gt;getCommandRef() == <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a2c1c4ca5e6062653897ccfb4830abba6">CalypsoCardCommand::SV_RELOAD</a> ||</div>
+<div class="line"><a id="l02147" name="l02147"></a><span class="lineno"> 2147</span>               command-&gt;getCommandRef() == <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a3e836a90170b8609a1bd0b81dad524f5">CalypsoCardCommand::SV_DEBIT</a> ||</div>
+<div class="line"><a id="l02148" name="l02148"></a><span class="lineno"> 2148</span>               command-&gt;getCommandRef() == <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#aa78e04019fa266febea2664515631cff">CalypsoCardCommand::SV_UNDEBIT</a>) {</div>
+<div class="line"><a id="l02149" name="l02149"></a><span class="lineno"> 2149</span>        <span class="comment">/*</span></div>
+<div class="line"><a id="l02150" name="l02150"></a><span class="lineno"> 2150</span><span class="comment">         * CL-SV-GETDEBIT.1</span></div>
+<div class="line"><a id="l02151" name="l02151"></a><span class="lineno"> 2151</span><span class="comment">         * CL-SV-GETRLOAD.1</span></div>
+<div class="line"><a id="l02152" name="l02152"></a><span class="lineno"> 2152</span><span class="comment">         */</span></div>
+<div class="line"><a id="l02153" name="l02153"></a><span class="lineno"> 2153</span>        <span class="keywordflow">if</span> (!mCardCommands.empty()) {</div>
+<div class="line"><a id="l02154" name="l02154"></a><span class="lineno"> 2154</span>            <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;This SV command can only be placed in the first position&quot;</span> \</div>
+<div class="line"><a id="l02155" name="l02155"></a><span class="lineno"> 2155</span>                                        <span class="stringliteral">&quot; in the list of prepared commands&quot;</span>);</div>
+<div class="line"><a id="l02156" name="l02156"></a><span class="lineno"> 2156</span>        }</div>
+<div class="line"><a id="l02157" name="l02157"></a><span class="lineno"> 2157</span> </div>
+<div class="line"><a id="l02158" name="l02158"></a><span class="lineno"> 2158</span>        <span class="keywordflow">if</span> (mSvLastCommandRef != <a class="code hl_variable" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html#a9a15bda5e37a8d3ffd584e5b6e979194">CalypsoCardCommand::SV_GET</a>) {</div>
+<div class="line"><a id="l02159" name="l02159"></a><span class="lineno"> 2159</span>            <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;This SV command must follow an SV Get command&quot;</span>);</div>
+<div class="line"><a id="l02160" name="l02160"></a><span class="lineno"> 2160</span>        }</div>
+<div class="line"><a id="l02161" name="l02161"></a><span class="lineno"> 2161</span> </div>
+<div class="line"><a id="l02162" name="l02162"></a><span class="lineno"> 2162</span>        <span class="comment">/* Here, we expect the command and the SV operation to be consistent */</span></div>
+<div class="line"><a id="l02163" name="l02163"></a><span class="lineno"> 2163</span>        <span class="keywordflow">if</span> (svOperation != mSvOperation) {</div>
+<div class="line"><a id="l02164" name="l02164"></a><span class="lineno"> 2164</span>            mLogger-&gt;error(<span class="stringliteral">&quot;Sv operation = %, current command = %\n&quot;</span>, mSvOperation, svOperation);</div>
+<div class="line"><a id="l02165" name="l02165"></a><span class="lineno"> 2165</span>            <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;Inconsistent SV operation.&quot;</span>);</div>
+<div class="line"><a id="l02166" name="l02166"></a><span class="lineno"> 2166</span>        }</div>
+<div class="line"><a id="l02167" name="l02167"></a><span class="lineno"> 2167</span> </div>
+<div class="line"><a id="l02168" name="l02168"></a><span class="lineno"> 2168</span>        mIsSvOperationComplete = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l02169" name="l02169"></a><span class="lineno"> 2169</span>        mSvLastModifyingCommand = command;</div>
+<div class="line"><a id="l02170" name="l02170"></a><span class="lineno"> 2170</span> </div>
+<div class="line"><a id="l02171" name="l02171"></a><span class="lineno"> 2171</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l02172" name="l02172"></a><span class="lineno"> 2172</span>        <span class="keywordflow">throw</span> IllegalStateException(<span class="stringliteral">&quot;An SV command is expected.&quot;</span>);</div>
+<div class="line"><a id="l02173" name="l02173"></a><span class="lineno"> 2173</span>    }</div>
+<div class="line"><a id="l02174" name="l02174"></a><span class="lineno"> 2174</span> </div>
+<div class="line"><a id="l02175" name="l02175"></a><span class="lineno"> 2175</span>    mSvLastCommandRef = command-&gt;getCommandRef();</div>
+<div class="line"><a id="l02176" name="l02176"></a><span class="lineno"> 2176</span>    mCardCommands.push_back(command);</div>
+<div class="line"><a id="l02177" name="l02177"></a><span class="lineno"> 2177</span>}</div>
+<div class="line"><a id="l02178" name="l02178"></a><span class="lineno"> 2178</span> </div>
+<div class="line"><a id="l02179" name="l02179"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6085918a5e438717c2699dcf1d2a1d58"> 2179</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6085918a5e438717c2699dcf1d2a1d58">CardTransactionManagerAdapter::notifyCommandsProcessed</a>()</div>
+<div class="line"><a id="l02180" name="l02180"></a><span class="lineno"> 2180</span>{</div>
+<div class="line"><a id="l02181" name="l02181"></a><span class="lineno"> 2181</span>    mCardCommands.clear();</div>
+<div class="line"><a id="l02182" name="l02182"></a><span class="lineno"> 2182</span>    mSvLastModifyingCommand = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l02183" name="l02183"></a><span class="lineno"> 2183</span>}</div>
+<div class="line"><a id="l02184" name="l02184"></a><span class="lineno"> 2184</span> </div>
+<div class="line"><a id="l02185" name="l02185"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ac1b7b561630d8445df0a3cb9969c408e"> 2185</a></span><span class="keywordtype">bool</span> <a class="code hl_function" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ac1b7b561630d8445df0a3cb9969c408e">CardTransactionManagerAdapter::isSvOperationCompleteOneTime</a>()</div>
+<div class="line"><a id="l02186" name="l02186"></a><span class="lineno"> 2186</span>{</div>
+<div class="line"><a id="l02187" name="l02187"></a><span class="lineno"> 2187</span>    <span class="keyword">const</span> <span class="keywordtype">bool</span> flag = mIsSvOperationComplete;</div>
+<div class="line"><a id="l02188" name="l02188"></a><span class="lineno"> 2188</span>    mIsSvOperationComplete = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l02189" name="l02189"></a><span class="lineno"> 2189</span> </div>
+<div class="line"><a id="l02190" name="l02190"></a><span class="lineno"> 2190</span>    <span class="keywordflow">return</span> flag;</div>
+<div class="line"><a id="l02191" name="l02191"></a><span class="lineno"> 2191</span>}</div>
 <div class="line"><a id="l02192" name="l02192"></a><span class="lineno"> 2192</span> </div>
-<div class="line"><a id="l02193" name="l02193"></a><span class="lineno"> 2193</span>CardTransactionManagerAdapter::ApduResponseAdapter::ApduResponseAdapter(</div>
-<div class="line"><a id="l02194" name="l02194"></a><span class="lineno"> 2194</span>  <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; apdu)</div>
-<div class="line"><a id="l02195" name="l02195"></a><span class="lineno"> 2195</span>: mApdu(apdu),</div>
-<div class="line"><a id="l02196" name="l02196"></a><span class="lineno"> 2196</span>  mStatusWord(((apdu[apdu.size() - 2] &amp; 0x000000FF) &lt;&lt; 8) + (apdu[apdu.size() - 1] &amp; 0x000000FF)) {}</div>
-<div class="line"><a id="l02197" name="l02197"></a><span class="lineno"> 2197</span> </div>
-<div class="line"><a id="l02198" name="l02198"></a><span class="lineno"> 2198</span><span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; CardTransactionManagerAdapter::ApduResponseAdapter::getApdu()<span class="keyword"> const</span></div>
-<div class="line"><a id="l02199" name="l02199"></a><span class="lineno"> 2199</span><span class="keyword"></span>{</div>
-<div class="line"><a id="l02200" name="l02200"></a><span class="lineno"> 2200</span>    <span class="keywordflow">return</span> mApdu;</div>
-<div class="line"><a id="l02201" name="l02201"></a><span class="lineno"> 2201</span>}</div>
-<div class="line"><a id="l02202" name="l02202"></a><span class="lineno"> 2202</span> </div>
-<div class="line"><a id="l02203" name="l02203"></a><span class="lineno"> 2203</span><span class="keyword">const</span> std::vector&lt;uint8_t&gt; CardTransactionManagerAdapter::ApduResponseAdapter::getDataOut()<span class="keyword"> const</span></div>
-<div class="line"><a id="l02204" name="l02204"></a><span class="lineno"> 2204</span><span class="keyword"></span>{</div>
-<div class="line"><a id="l02205" name="l02205"></a><span class="lineno"> 2205</span>    <span class="keywordflow">return</span> Arrays::copyOfRange(mApdu, 0, mApdu.size() - 2);</div>
-<div class="line"><a id="l02206" name="l02206"></a><span class="lineno"> 2206</span>}</div>
-<div class="line"><a id="l02207" name="l02207"></a><span class="lineno"> 2207</span> </div>
-<div class="line"><a id="l02208" name="l02208"></a><span class="lineno"> 2208</span><span class="keywordtype">int</span> CardTransactionManagerAdapter::ApduResponseAdapter::getStatusWord()<span class="keyword"> const</span></div>
-<div class="line"><a id="l02209" name="l02209"></a><span class="lineno"> 2209</span><span class="keyword"></span>{</div>
-<div class="line"><a id="l02210" name="l02210"></a><span class="lineno"> 2210</span>    <span class="keywordflow">return</span> mStatusWord;</div>
-<div class="line"><a id="l02211" name="l02211"></a><span class="lineno"> 2211</span>}</div>
-<div class="line"><a id="l02212" name="l02212"></a><span class="lineno"> 2212</span> </div>
-<div class="line"><a id="l02213" name="l02213"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab3133a429cc79de638e6c0b72b0aff5c"> 2213</a></span>std::ostream&amp; <a class="code hl_function" href="namespacekeyple_1_1card_1_1calypso.html#af3796af96e01fb7e183088acfc6e5928">operator&lt;&lt;</a>(std::ostream&amp; os, <span class="keyword">const</span> CardTransactionManagerAdapter::ApduResponseAdapter&amp; ara)</div>
-<div class="line"><a id="l02214" name="l02214"></a><span class="lineno"> 2214</span>{</div>
-<div class="line"><a id="l02215" name="l02215"></a><span class="lineno"> 2215</span>    os &lt;&lt; <span class="stringliteral">&quot;APDU_RESPONSE_ADAPTER: {&quot;</span></div>
-<div class="line"><a id="l02216" name="l02216"></a><span class="lineno"> 2216</span>       &lt;&lt; <span class="stringliteral">&quot;APDU: &quot;</span> &lt;&lt; ara.getApdu() &lt;&lt; <span class="stringliteral">&quot;, &quot;</span></div>
-<div class="line"><a id="l02217" name="l02217"></a><span class="lineno"> 2217</span>       &lt;&lt; <span class="stringliteral">&quot;STATUS_WORD: &quot;</span> &lt;&lt; ara.getStatusWord()</div>
-<div class="line"><a id="l02218" name="l02218"></a><span class="lineno"> 2218</span>       &lt;&lt; <span class="stringliteral">&quot;}&quot;</span>;</div>
-<div class="line"><a id="l02219" name="l02219"></a><span class="lineno"> 2219</span> </div>
-<div class="line"><a id="l02220" name="l02220"></a><span class="lineno"> 2220</span>    <span class="keywordflow">return</span> os;</div>
-<div class="line"><a id="l02221" name="l02221"></a><span class="lineno"> 2221</span>}</div>
-<div class="line"><a id="l02222" name="l02222"></a><span class="lineno"> 2222</span> </div>
-<div class="line"><a id="l02223" name="l02223"></a><span class="lineno"> 2223</span> </div>
-<div class="line"><a id="l02224" name="l02224"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a0c3028efd1b217ada3084096a3f940bd"> 2224</a></span>std::ostream&amp; <a class="code hl_function" href="namespacekeyple_1_1card_1_1calypso.html#af3796af96e01fb7e183088acfc6e5928">operator&lt;&lt;</a>(std::ostream&amp; os, <span class="keyword">const</span> std::shared_ptr&lt;CardTransactionManagerAdapter::ApduResponseAdapter&gt; ara)</div>
-<div class="line"><a id="l02225" name="l02225"></a><span class="lineno"> 2225</span>{</div>
-<div class="line"><a id="l02226" name="l02226"></a><span class="lineno"> 2226</span>    <span class="keywordflow">if</span> (ara == <span class="keyword">nullptr</span>) {</div>
-<div class="line"><a id="l02227" name="l02227"></a><span class="lineno"> 2227</span>        os &lt;&lt; <span class="stringliteral">&quot;APDU_RESPONSE_ADAPTER: null&quot;</span>;</div>
-<div class="line"><a id="l02228" name="l02228"></a><span class="lineno"> 2228</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l02229" name="l02229"></a><span class="lineno"> 2229</span>        os &lt;&lt; *ara;</div>
-<div class="line"><a id="l02230" name="l02230"></a><span class="lineno"> 2230</span>    }</div>
-<div class="line"><a id="l02231" name="l02231"></a><span class="lineno"> 2231</span> </div>
-<div class="line"><a id="l02232" name="l02232"></a><span class="lineno"> 2232</span>    <span class="keywordflow">return</span> os;</div>
-<div class="line"><a id="l02233" name="l02233"></a><span class="lineno"> 2233</span>}</div>
-<div class="line"><a id="l02234" name="l02234"></a><span class="lineno"> 2234</span> </div>
+<div class="line"><a id="l02193" name="l02193"></a><span class="lineno"> 2193</span><span class="comment">/* APDU RESPONSE ADAPTER ------------------------------------------------------------------------ */</span></div>
+<div class="line"><a id="l02194" name="l02194"></a><span class="lineno"> 2194</span> </div>
+<div class="line"><a id="l02195" name="l02195"></a><span class="lineno"> 2195</span>CardTransactionManagerAdapter::ApduResponseAdapter::ApduResponseAdapter(</div>
+<div class="line"><a id="l02196" name="l02196"></a><span class="lineno"> 2196</span>  <span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; apdu)</div>
+<div class="line"><a id="l02197" name="l02197"></a><span class="lineno"> 2197</span>: mApdu(apdu),</div>
+<div class="line"><a id="l02198" name="l02198"></a><span class="lineno"> 2198</span>  mStatusWord(((apdu[apdu.size() - 2] &amp; 0x000000FF) &lt;&lt; 8) + (apdu[apdu.size() - 1] &amp; 0x000000FF)) {}</div>
+<div class="line"><a id="l02199" name="l02199"></a><span class="lineno"> 2199</span> </div>
+<div class="line"><a id="l02200" name="l02200"></a><span class="lineno"> 2200</span><span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; CardTransactionManagerAdapter::ApduResponseAdapter::getApdu()<span class="keyword"> const</span></div>
+<div class="line"><a id="l02201" name="l02201"></a><span class="lineno"> 2201</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l02202" name="l02202"></a><span class="lineno"> 2202</span>    <span class="keywordflow">return</span> mApdu;</div>
+<div class="line"><a id="l02203" name="l02203"></a><span class="lineno"> 2203</span>}</div>
+<div class="line"><a id="l02204" name="l02204"></a><span class="lineno"> 2204</span> </div>
+<div class="line"><a id="l02205" name="l02205"></a><span class="lineno"> 2205</span><span class="keyword">const</span> std::vector&lt;uint8_t&gt; CardTransactionManagerAdapter::ApduResponseAdapter::getDataOut()<span class="keyword"> const</span></div>
+<div class="line"><a id="l02206" name="l02206"></a><span class="lineno"> 2206</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l02207" name="l02207"></a><span class="lineno"> 2207</span>    <span class="keywordflow">return</span> Arrays::copyOfRange(mApdu, 0, mApdu.size() - 2);</div>
+<div class="line"><a id="l02208" name="l02208"></a><span class="lineno"> 2208</span>}</div>
+<div class="line"><a id="l02209" name="l02209"></a><span class="lineno"> 2209</span> </div>
+<div class="line"><a id="l02210" name="l02210"></a><span class="lineno"> 2210</span><span class="keywordtype">int</span> CardTransactionManagerAdapter::ApduResponseAdapter::getStatusWord()<span class="keyword"> const</span></div>
+<div class="line"><a id="l02211" name="l02211"></a><span class="lineno"> 2211</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l02212" name="l02212"></a><span class="lineno"> 2212</span>    <span class="keywordflow">return</span> mStatusWord;</div>
+<div class="line"><a id="l02213" name="l02213"></a><span class="lineno"> 2213</span>}</div>
+<div class="line"><a id="l02214" name="l02214"></a><span class="lineno"> 2214</span> </div>
+<div class="line"><a id="l02215" name="l02215"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab3133a429cc79de638e6c0b72b0aff5c"> 2215</a></span>std::ostream&amp; <a class="code hl_function" href="namespacekeyple_1_1card_1_1calypso.html#af3796af96e01fb7e183088acfc6e5928">operator&lt;&lt;</a>(std::ostream&amp; os, <span class="keyword">const</span> CardTransactionManagerAdapter::ApduResponseAdapter&amp; ara)</div>
+<div class="line"><a id="l02216" name="l02216"></a><span class="lineno"> 2216</span>{</div>
+<div class="line"><a id="l02217" name="l02217"></a><span class="lineno"> 2217</span>    os &lt;&lt; <span class="stringliteral">&quot;APDU_RESPONSE_ADAPTER: {&quot;</span></div>
+<div class="line"><a id="l02218" name="l02218"></a><span class="lineno"> 2218</span>       &lt;&lt; <span class="stringliteral">&quot;APDU: &quot;</span> &lt;&lt; ara.getApdu() &lt;&lt; <span class="stringliteral">&quot;, &quot;</span></div>
+<div class="line"><a id="l02219" name="l02219"></a><span class="lineno"> 2219</span>       &lt;&lt; <span class="stringliteral">&quot;STATUS_WORD: &quot;</span> &lt;&lt; ara.getStatusWord()</div>
+<div class="line"><a id="l02220" name="l02220"></a><span class="lineno"> 2220</span>       &lt;&lt; <span class="stringliteral">&quot;}&quot;</span>;</div>
+<div class="line"><a id="l02221" name="l02221"></a><span class="lineno"> 2221</span> </div>
+<div class="line"><a id="l02222" name="l02222"></a><span class="lineno"> 2222</span>    <span class="keywordflow">return</span> os;</div>
+<div class="line"><a id="l02223" name="l02223"></a><span class="lineno"> 2223</span>}</div>
+<div class="line"><a id="l02224" name="l02224"></a><span class="lineno"> 2224</span> </div>
+<div class="line"><a id="l02225" name="l02225"></a><span class="lineno"> 2225</span> </div>
+<div class="line"><a id="l02226" name="l02226"></a><span class="lineno"><a class="line" href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a0c3028efd1b217ada3084096a3f940bd"> 2226</a></span>std::ostream&amp; <a class="code hl_function" href="namespacekeyple_1_1card_1_1calypso.html#af3796af96e01fb7e183088acfc6e5928">operator&lt;&lt;</a>(std::ostream&amp; os, <span class="keyword">const</span> std::shared_ptr&lt;CardTransactionManagerAdapter::ApduResponseAdapter&gt; ara)</div>
+<div class="line"><a id="l02227" name="l02227"></a><span class="lineno"> 2227</span>{</div>
+<div class="line"><a id="l02228" name="l02228"></a><span class="lineno"> 2228</span>    <span class="keywordflow">if</span> (ara == <span class="keyword">nullptr</span>) {</div>
+<div class="line"><a id="l02229" name="l02229"></a><span class="lineno"> 2229</span>        os &lt;&lt; <span class="stringliteral">&quot;APDU_RESPONSE_ADAPTER: null&quot;</span>;</div>
+<div class="line"><a id="l02230" name="l02230"></a><span class="lineno"> 2230</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l02231" name="l02231"></a><span class="lineno"> 2231</span>        os &lt;&lt; *ara;</div>
+<div class="line"><a id="l02232" name="l02232"></a><span class="lineno"> 2232</span>    }</div>
+<div class="line"><a id="l02233" name="l02233"></a><span class="lineno"> 2233</span> </div>
+<div class="line"><a id="l02234" name="l02234"></a><span class="lineno"> 2234</span>    <span class="keywordflow">return</span> os;</div>
 <div class="line"><a id="l02235" name="l02235"></a><span class="lineno"> 2235</span>}</div>
-<div class="line"><a id="l02236" name="l02236"></a><span class="lineno"> 2236</span>}</div>
+<div class="line"><a id="l02236" name="l02236"></a><span class="lineno"> 2236</span> </div>
 <div class="line"><a id="l02237" name="l02237"></a><span class="lineno"> 2237</span>}</div>
+<div class="line"><a id="l02238" name="l02238"></a><span class="lineno"> 2238</span>}</div>
+<div class="line"><a id="l02239" name="l02239"></a><span class="lineno"> 2239</span>}</div>
 <div class="ttc" id="a_calypso_card_constant_8h_html"><div class="ttname"><a href="_calypso_card_constant_8h.html">CalypsoCardConstant.h</a></div></div>
 <div class="ttc" id="a_calypso_card_util_adapter_8h_html"><div class="ttname"><a href="_calypso_card_util_adapter_8h.html">CalypsoCardUtilAdapter.h</a></div></div>
 <div class="ttc" id="a_calypso_sam_command_exception_8h_html"><div class="ttname"><a href="_calypso_sam_command_exception_8h.html">CalypsoSamCommandException.h</a></div></div>
@@ -2374,31 +2376,31 @@ $(function() {
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a48be66a710428667e56966955a742cd9"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a48be66a710428667e56966955a742cd9">keyple::card::calypso::CardTransactionManagerAdapter::prepareReadRecord</a></div><div class="ttdeci">CardTransactionManager &amp; prepareReadRecord(const uint8_t sfi, const uint8_t recordNumber) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01503">CardTransactionManagerAdapter.cpp:1503</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a4d69c8fe4356beee772fab4295e2428e"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a4d69c8fe4356beee772fab4295e2428e">keyple::card::calypso::CardTransactionManagerAdapter::prepareVerifySignature</a></div><div class="ttdeci">CardTransactionManager &amp; prepareVerifySignature(const any data) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l00896">CardTransactionManagerAdapter.cpp:896</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a549710e376f9ecd6a3892f3a69164746"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a549710e376f9ecd6a3892f3a69164746">keyple::card::calypso::CardTransactionManagerAdapter::processOpening</a></div><div class="ttdeci">CardTransactionManager &amp; processOpening(const WriteAccessLevel writeAccessLevel) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l00738">CardTransactionManagerAdapter.cpp:738</a></div></div>
-<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a6085918a5e438717c2699dcf1d2a1d58"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6085918a5e438717c2699dcf1d2a1d58">keyple::card::calypso::CardTransactionManagerAdapter::notifyCommandsProcessed</a></div><div class="ttdeci">void notifyCommandsProcessed()</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02177">CardTransactionManagerAdapter.cpp:2177</a></div></div>
+<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a6085918a5e438717c2699dcf1d2a1d58"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6085918a5e438717c2699dcf1d2a1d58">keyple::card::calypso::CardTransactionManagerAdapter::notifyCommandsProcessed</a></div><div class="ttdeci">void notifyCommandsProcessed()</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02179">CardTransactionManagerAdapter.cpp:2179</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a61a6f1428e35bf6dc5c19257a1f6dd53"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a61a6f1428e35bf6dc5c19257a1f6dd53">keyple::card::calypso::CardTransactionManagerAdapter::processVerifyPin</a></div><div class="ttdeci">CardTransactionManager &amp; processVerifyPin(const std::vector&lt; uint8_t &gt; &amp;pin) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01031">CardTransactionManagerAdapter.cpp:1031</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a64624d91237626b08cc784485241c890"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a64624d91237626b08cc784485241c890">keyple::card::calypso::CardTransactionManagerAdapter::processChangeKey</a></div><div class="ttdeci">CardTransactionManager &amp; processChangeKey(const uint8_t keyIndex, const uint8_t newKif, const uint8_t newKvc, const uint8_t issuerKif, const uint8_t issuerKvc) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01156">CardTransactionManagerAdapter.cpp:1156</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a6a4feec1d267ce3f19c18452923b2a73"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6a4feec1d267ce3f19c18452923b2a73">keyple::card::calypso::CardTransactionManagerAdapter::prepareCheckPinStatus</a></div><div class="ttdeci">CardTransactionManager &amp; prepareCheckPinStatus() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01949">CardTransactionManagerAdapter.cpp:1949</a></div></div>
-<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a6b8496be8c59731ec81720ffc1972d1c"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6b8496be8c59731ec81720ffc1972d1c">keyple::card::calypso::CardTransactionManagerAdapter::prepareSvReadAllLogs</a></div><div class="ttdeci">CardTransactionManager &amp; prepareSvReadAllLogs() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02088">CardTransactionManagerAdapter.cpp:2088</a></div></div>
+<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a6b8496be8c59731ec81720ffc1972d1c"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a6b8496be8c59731ec81720ffc1972d1c">keyple::card::calypso::CardTransactionManagerAdapter::prepareSvReadAllLogs</a></div><div class="ttdeci">CardTransactionManager &amp; prepareSvReadAllLogs() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02090">CardTransactionManagerAdapter.cpp:2090</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a7aa51ca1995291d78f93f462557ee857"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a7aa51ca1995291d78f93f462557ee857">keyple::card::calypso::CardTransactionManagerAdapter::prepareReadRecords</a></div><div class="ttdeci">CardTransactionManager &amp; prepareReadRecords(const uint8_t sfi, const uint8_t fromRecordNumber, const uint8_t toRecordNumber, const uint8_t recordSize) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01532">CardTransactionManagerAdapter.cpp:1532</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a80e22cc9309a067d6b0bf0d549ed629f"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a80e22cc9309a067d6b0bf0d549ed629f">keyple::card::calypso::CardTransactionManagerAdapter::prepareReadBinary</a></div><div class="ttdeci">CardTransactionManager &amp; prepareReadBinary(const uint8_t sfi, const uint8_t offset, const uint8_t nbBytesToRead) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01658">CardTransactionManagerAdapter.cpp:1658</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a8b455afb1dff571cff88ff9ff3ceb713"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a8b455afb1dff571cff88ff9ff3ceb713">keyple::card::calypso::CardTransactionManagerAdapter::getCardReader</a></div><div class="ttdeci">const std::shared_ptr&lt; CardReader &gt; getCardReader() const override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l00131">CardTransactionManagerAdapter.cpp:131</a></div></div>
-<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a8c4a85e00097606fa2c932119758600b"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a8c4a85e00097606fa2c932119758600b">keyple::card::calypso::CardTransactionManagerAdapter::prepareInvalidate</a></div><div class="ttdeci">CardTransactionManager &amp; prepareInvalidate() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02115">CardTransactionManagerAdapter.cpp:2115</a></div></div>
+<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a8c4a85e00097606fa2c932119758600b"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a8c4a85e00097606fa2c932119758600b">keyple::card::calypso::CardTransactionManagerAdapter::prepareInvalidate</a></div><div class="ttdeci">CardTransactionManager &amp; prepareInvalidate() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02117">CardTransactionManagerAdapter.cpp:2117</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_a8fad7eaa5ae650821806bb9a0fb6c521"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#a8fad7eaa5ae650821806bb9a0fb6c521">keyple::card::calypso::CardTransactionManagerAdapter::prepareReleaseCardChannel</a></div><div class="ttdeci">CardTransactionManager &amp; prepareReleaseCardChannel() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01419">CardTransactionManagerAdapter.cpp:1419</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_aa5070155ae20276583433ab5c09e26c4"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aa5070155ae20276583433ab5c09e26c4">keyple::card::calypso::CardTransactionManagerAdapter::prepareGetData</a></div><div class="ttdeci">CardTransactionManager &amp; prepareGetData(const GetDataTag tag) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01453">CardTransactionManagerAdapter.cpp:1453</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_aac696488bd6afeef8ef7d02ef87b1cb8"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aac696488bd6afeef8ef7d02ef87b1cb8">keyple::card::calypso::CardTransactionManagerAdapter::prepareDecreaseCounter</a></div><div class="ttdeci">CardTransactionManager &amp; prepareDecreaseCounter(const uint8_t sfi, const uint8_t counterNumber, const int decValue) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01929">CardTransactionManagerAdapter.cpp:1929</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_aad80e2831d36c3315073cb640c51b084"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aad80e2831d36c3315073cb640c51b084">keyple::card::calypso::CardTransactionManagerAdapter::prepareIncreaseCounters</a></div><div class="ttdeci">CardTransactionManager &amp; prepareIncreaseCounters(const uint8_t sfi, const std::map&lt; const int, const int &gt; &amp;counterNumberToIncValueMap) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01935">CardTransactionManagerAdapter.cpp:1935</a></div></div>
-<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_aadbf9e0ffee25f821722c8e3ee8d99ac"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aadbf9e0ffee25f821722c8e3ee8d99ac">keyple::card::calypso::CardTransactionManagerAdapter::prepareRehabilitate</a></div><div class="ttdeci">CardTransactionManager &amp; prepareRehabilitate() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02126">CardTransactionManagerAdapter.cpp:2126</a></div></div>
-<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ab0b7b72de6bfcf5c2528c65ffeaa13f1"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1">keyple::card::calypso::CardTransactionManagerAdapter::prepareSvReload</a></div><div class="ttdeci">CardTransactionManager &amp; prepareSvReload(const int amount, const std::vector&lt; uint8_t &gt; &amp;date, const std::vector&lt; uint8_t &gt; &amp;time, const std::vector&lt; uint8_t &gt; &amp;free) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01999">CardTransactionManagerAdapter.cpp:1999</a></div></div>
-<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ac1b7b561630d8445df0a3cb9969c408e"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ac1b7b561630d8445df0a3cb9969c408e">keyple::card::calypso::CardTransactionManagerAdapter::isSvOperationCompleteOneTime</a></div><div class="ttdeci">bool isSvOperationCompleteOneTime()</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02183">CardTransactionManagerAdapter.cpp:2183</a></div></div>
+<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_aadbf9e0ffee25f821722c8e3ee8d99ac"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aadbf9e0ffee25f821722c8e3ee8d99ac">keyple::card::calypso::CardTransactionManagerAdapter::prepareRehabilitate</a></div><div class="ttdeci">CardTransactionManager &amp; prepareRehabilitate() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02128">CardTransactionManagerAdapter.cpp:2128</a></div></div>
+<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ab0b7b72de6bfcf5c2528c65ffeaa13f1"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ab0b7b72de6bfcf5c2528c65ffeaa13f1">keyple::card::calypso::CardTransactionManagerAdapter::prepareSvReload</a></div><div class="ttdeci">CardTransactionManager &amp; prepareSvReload(const int amount, const std::vector&lt; uint8_t &gt; &amp;date, const std::vector&lt; uint8_t &gt; &amp;time, const std::vector&lt; uint8_t &gt; &amp;free) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02000">CardTransactionManagerAdapter.cpp:2000</a></div></div>
+<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ac1b7b561630d8445df0a3cb9969c408e"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ac1b7b561630d8445df0a3cb9969c408e">keyple::card::calypso::CardTransactionManagerAdapter::isSvOperationCompleteOneTime</a></div><div class="ttdeci">bool isSvOperationCompleteOneTime()</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02185">CardTransactionManagerAdapter.cpp:2185</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ac6aeede9069b412003b1beaf96bc7c9a"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ac6aeede9069b412003b1beaf96bc7c9a">keyple::card::calypso::CardTransactionManagerAdapter::prepareReadCounter</a></div><div class="ttdeci">CardTransactionManager &amp; prepareReadCounter(const uint8_t sfi, const uint8_t nbCountersToRead) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01707">CardTransactionManagerAdapter.cpp:1707</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ac72019026869308629e7c439e3870e27"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ac72019026869308629e7c439e3870e27">keyple::card::calypso::CardTransactionManagerAdapter::processCancel</a></div><div class="ttdeci">CardTransactionManager &amp; processCancel() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l00990">CardTransactionManagerAdapter.cpp:990</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ad436779cb2b2b940da454bd368f2f547"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ad436779cb2b2b940da454bd368f2f547">keyple::card::calypso::CardTransactionManagerAdapter::prepareReadRecordsPartially</a></div><div class="ttdeci">CardTransactionManager &amp; prepareReadRecordsPartially(const uint8_t sfi, const uint8_t fromRecordNumber, const uint8_t toRecordNumber, const uint8_t offset, const uint8_t nbBytesToRead) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01605">CardTransactionManagerAdapter.cpp:1605</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ad692d503fea7c3d677b07e42df8324dd"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ad692d503fea7c3d677b07e42df8324dd">keyple::card::calypso::CardTransactionManagerAdapter::prepareSetCounter</a></div><div class="ttdeci">CardTransactionManager &amp; prepareSetCounter(const uint8_t sfi, const uint8_t counterNumber, const int newValue) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l00299">CardTransactionManagerAdapter.cpp:299</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ad8c468984d0e84f701922e76cfd286c7"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ad8c468984d0e84f701922e76cfd286c7">keyple::card::calypso::CardTransactionManagerAdapter::prepareComputeSignature</a></div><div class="ttdeci">CardTransactionManager &amp; prepareComputeSignature(const any data) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l00887">CardTransactionManagerAdapter.cpp:887</a></div></div>
-<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ada87d263dc4222623b8405ca20104ae1"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1">keyple::card::calypso::CardTransactionManagerAdapter::prepareSvDebit</a></div><div class="ttdeci">CardTransactionManager &amp; prepareSvDebit(const int amount, const std::vector&lt; uint8_t &gt; &amp;date, const std::vector&lt; uint8_t &gt; &amp;time) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02051">CardTransactionManagerAdapter.cpp:2051</a></div></div>
+<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ada87d263dc4222623b8405ca20104ae1"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ada87d263dc4222623b8405ca20104ae1">keyple::card::calypso::CardTransactionManagerAdapter::prepareSvDebit</a></div><div class="ttdeci">CardTransactionManager &amp; prepareSvDebit(const int amount, const std::vector&lt; uint8_t &gt; &amp;date, const std::vector&lt; uint8_t &gt; &amp;time) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02053">CardTransactionManagerAdapter.cpp:2053</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ae0414629680f21117788bc1596ac9821"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae0414629680f21117788bc1596ac9821">keyple::card::calypso::CardTransactionManagerAdapter::processClosing</a></div><div class="ttdeci">CardTransactionManager &amp; processClosing() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l00924">CardTransactionManagerAdapter.cpp:924</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ae12febc49f19e50ef850e30c50e0963b"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae12febc49f19e50ef850e30c50e0963b">keyple::card::calypso::CardTransactionManagerAdapter::processCommands</a></div><div class="ttdeci">CardTransactionManager &amp; processCommands() override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l00906">CardTransactionManagerAdapter.cpp:906</a></div></div>
-<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ae3cef80424700676b5c7dd296f9ad6d4"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">keyple::card::calypso::CardTransactionManagerAdapter::addStoredValueCommand</a></div><div class="ttdeci">void addStoredValueCommand(const std::shared_ptr&lt; AbstractCardCommand &gt; command, const SvOperation svOperation)</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02137">CardTransactionManagerAdapter.cpp:2137</a></div></div>
+<div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ae3cef80424700676b5c7dd296f9ad6d4"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae3cef80424700676b5c7dd296f9ad6d4">keyple::card::calypso::CardTransactionManagerAdapter::addStoredValueCommand</a></div><div class="ttdeci">void addStoredValueCommand(const std::shared_ptr&lt; AbstractCardCommand &gt; command, const SvOperation svOperation)</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l02139">CardTransactionManagerAdapter.cpp:2139</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ae435084688b8d8de7d413e63d376c998"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae435084688b8d8de7d413e63d376c998">keyple::card::calypso::CardTransactionManagerAdapter::prepareWriteBinary</a></div><div class="ttdeci">CardTransactionManager &amp; prepareWriteBinary(const uint8_t sfi, const uint8_t offset, const std::vector&lt; uint8_t &gt; &amp;data) final</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01827">CardTransactionManagerAdapter.cpp:1827</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_ae68427ff6551104bea13bd1e56fa03fc"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#ae68427ff6551104bea13bd1e56fa03fc">keyple::card::calypso::CardTransactionManagerAdapter::prepareDecreaseCounters</a></div><div class="ttdeci">CardTransactionManager &amp; prepareDecreaseCounters(const uint8_t sfi, const std::map&lt; const int, const int &gt; &amp;counterNumberToDecValueMap) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01942">CardTransactionManagerAdapter.cpp:1942</a></div></div>
 <div class="ttc" id="aclasskeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter_html_aee9e500ad3595c77b75efa6543a48ceb"><div class="ttname"><a href="classkeyple_1_1card_1_1calypso_1_1_card_transaction_manager_adapter.html#aee9e500ad3595c77b75efa6543a48ceb">keyple::card::calypso::CardTransactionManagerAdapter::prepareReadCounterFile</a></div><div class="ttdeci">CardTransactionManager &amp; prepareReadCounterFile(const uint8_t sfi, const uint8_t countersNumber) override</div><div class="ttdef"><b>Definition:</b> <a href="_card_transaction_manager_adapter_8cpp_source.html#l01497">CardTransactionManagerAdapter.cpp:1497</a></div></div>

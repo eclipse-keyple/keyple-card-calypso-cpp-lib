@@ -76,6 +76,7 @@ $(function() {
 <div class="textblock"><code>#include &quot;<a class="el" href="_card_control_sam_transaction_manager_adapter_8h_source.html">CardControlSamTransactionManagerAdapter.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_cmd_sam_digest_authenticate_8h_source.html">CmdSamDigestAuthenticate.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_cmd_sam_digest_update_8h_source.html">CmdSamDigestUpdate.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="_cmd_sam_digest_update_multiple_8h_source.html">CmdSamDigestUpdateMultiple.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_cmd_sam_digest_init_8h_source.html">CmdSamDigestInit.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_cmd_sam_give_random_8h_source.html">CmdSamGiveRandom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_cmd_sam_sv_check_8h_source.html">CmdSamSvCheck.h</a>&quot;</code><br />
@@ -83,61 +84,62 @@ $(function() {
 <code>#include &quot;Arrays.h&quot;</code><br />
 <code>#include &quot;IllegalStateException.h&quot;</code><br />
 <code>#include &quot;KeypleStd.h&quot;</code><br />
+<code>#include &quot;System.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for CardControlSamTransactionManagerAdapter.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="_card_control_sam_transaction_manager_adapter_8cpp__incl.png" border="0" usemap="#a_2github_2workspace_2src_2main_2_card_control_sam_transaction_manager_adapter_8cpp" alt=""/></div>
 <map name="a_2github_2workspace_2src_2main_2_card_control_sam_transaction_manager_adapter_8cpp" id="a_2github_2workspace_2src_2main_2_card_control_sam_transaction_manager_adapter_8cpp">
-<area shape="rect" title=" " alt="" coords="3722,5,3943,61"/>
-<area shape="rect" href="_card_control_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="2384,109,2569,151"/>
-<area shape="rect" title=" " alt="" coords="1547,377,1617,404"/>
-<area shape="rect" title=" " alt="" coords="1691,377,1782,404"/>
-<area shape="rect" href="_cmd_sam_digest_authenticate_8h.html" title=" " alt="" coords="4335,295,4531,322"/>
-<area shape="rect" href="_cmd_sam_digest_update_8h.html" title=" " alt="" coords="3797,295,3962,322"/>
-<area shape="rect" href="_cmd_sam_digest_init_8h.html" title=" " alt="" coords="3437,295,3578,322"/>
-<area shape="rect" href="_cmd_sam_give_random_8h.html" title=" " alt="" coords="4149,295,4311,322"/>
-<area shape="rect" href="_cmd_sam_sv_check_8h.html" title=" " alt="" coords="3986,295,4125,322"/>
-<area shape="rect" title=" " alt="" coords="3997,117,4079,143"/>
-<area shape="rect" title=" " alt="" coords="4103,117,4256,143"/>
-<area shape="rect" title=" " alt="" coords="745,377,883,404"/>
-<area shape="rect" href="_calypso_card_adapter_8h.html" title=" " alt="" coords="519,377,669,404"/>
-<area shape="rect" href="_card_security_setting_adapter_8h.html" title=" " alt="" coords="1171,295,1363,322"/>
-<area shape="rect" href="_cmd_sam_card_cipher_pin_8h.html" title=" " alt="" coords="3603,295,3772,322"/>
-<area shape="rect" href="_cmd_sam_card_generate_key_8h.html" title=" " alt="" coords="3224,295,3412,322"/>
-<area shape="rect" href="_cmd_sam_digest_close_8h.html" title=" " alt="" coords="2843,295,2999,322"/>
-<area shape="rect" href="_cmd_sam_get_challenge_8h.html" title=" " alt="" coords="2395,295,2559,322"/>
-<area shape="rect" href="_cmd_sam_sv_prepare_debit_or_undebit_8h.html" title=" " alt="" coords="2583,295,2819,322"/>
-<area shape="rect" href="_cmd_sam_sv_prepare_load_8h.html" title=" " alt="" coords="3023,295,3199,322"/>
-<area shape="rect" href="_cmd_card_sv_reload_8h.html" title=" " alt="" coords="1951,295,2093,322"/>
-<area shape="rect" href="_cmd_card_sv_debit_or_undebit_8h.html" title=" " alt="" coords="2180,295,2371,322"/>
-<area shape="rect" href="_common_control_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="1467,199,1678,240"/>
-<area shape="rect" title=" " alt="" coords="2639,527,2701,553"/>
-<area shape="rect" title=" " alt="" coords="1047,601,1115,628"/>
-<area shape="rect" title=" " alt="" coords="727,601,797,628"/>
-<area shape="rect" title=" " alt="" coords="2015,527,2069,553"/>
-<area shape="rect" title=" " alt="" coords="3033,601,3091,628"/>
-<area shape="rect" title=" " alt="" coords="472,452,577,479"/>
-<area shape="rect" title=" " alt="" coords="602,452,727,479"/>
-<area shape="rect" title=" " alt="" coords="271,527,389,553"/>
-<area shape="rect" title=" " alt="" coords="1851,527,1990,553"/>
-<area shape="rect" title=" " alt="" coords="752,452,865,479"/>
-<area shape="rect" href="_calypso_card_class_8h.html" title=" " alt="" coords="1745,452,1883,479"/>
-<area shape="rect" href="_elementary_file_adapter_8h.html" title=" " alt="" coords="285,452,447,479"/>
-<area shape="rect" href="_keyple_card_calypso_export_8h.html" title=" " alt="" coords="5,601,185,628"/>
-<area shape="rect" title=" " alt="" coords="1194,452,1309,479"/>
-<area shape="rect" title=" " alt="" coords="3545,527,3592,553"/>
-<area shape="rect" title=" " alt="" coords="3417,377,3523,404"/>
-<area shape="rect" title=" " alt="" coords="958,377,1105,404"/>
-<area shape="rect" title=" " alt="" coords="1129,377,1229,404"/>
-<area shape="rect" href="_common_security_setting_adapter_8h.html" title=" " alt="" coords="1305,377,1523,404"/>
-<area shape="rect" href="_abstract_sam_command_8h.html" title=" " alt="" coords="3547,377,3713,404"/>
-<area shape="rect" href="_abstract_apdu_command_8h.html" title=" " alt="" coords="2209,452,2379,479"/>
-<area shape="rect" href="_calypso_sam_command_8h.html" title=" " alt="" coords="2759,452,2923,479"/>
-<area shape="rect" href="_apdu_request_adapter_8h.html" title=" " alt="" coords="1118,527,1273,553"/>
-<area shape="rect" href="_calypso_apdu_command_exception_8h.html" title=" " alt="" coords="2144,527,2367,553"/>
-<area shape="rect" href="_card_command_8h.html" title=" " alt="" coords="2395,601,2513,628"/>
-<area shape="rect" href="_abstract_card_command_8h.html" title=" " alt="" coords="2060,377,2227,404"/>
-<area shape="rect" href="_common_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="1517,288,1735,329"/>
+<area shape="rect" title=" " alt="" coords="4184,5,4405,61"/>
+<area shape="rect" href="_card_control_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="2774,109,2959,151"/>
+<area shape="rect" title=" " alt="" coords="5,377,75,404"/>
+<area shape="rect" title=" " alt="" coords="99,377,189,404"/>
+<area shape="rect" href="_cmd_sam_digest_authenticate_8h.html" title=" " alt="" coords="4502,295,4698,322"/>
+<area shape="rect" href="_cmd_sam_digest_update_8h.html" title=" " alt="" coords="4312,295,4477,322"/>
+<area shape="rect" href="_cmd_sam_digest_update_multiple_8h.html" title=" " alt="" coords="4723,295,4933,322"/>
+<area shape="rect" href="_cmd_sam_digest_init_8h.html" title=" " alt="" coords="3984,295,4125,322"/>
+<area shape="rect" href="_cmd_sam_give_random_8h.html" title=" " alt="" coords="4957,295,5118,322"/>
+<area shape="rect" href="_cmd_sam_sv_check_8h.html" title=" " alt="" coords="4149,295,4288,322"/>
+<area shape="rect" title=" " alt="" coords="4459,117,4541,143"/>
+<area shape="rect" title=" " alt="" coords="4565,117,4718,143"/>
+<area shape="rect" title=" " alt="" coords="4742,117,4818,143"/>
+<area shape="rect" title=" " alt="" coords="1760,377,1899,404"/>
+<area shape="rect" href="_calypso_card_adapter_8h.html" title=" " alt="" coords="1154,295,1305,322"/>
+<area shape="rect" href="_card_security_setting_adapter_8h.html" title=" " alt="" coords="1935,295,2127,322"/>
+<area shape="rect" href="_cmd_sam_card_cipher_pin_8h.html" title=" " alt="" coords="3578,295,3747,322"/>
+<area shape="rect" href="_cmd_sam_card_generate_key_8h.html" title=" " alt="" coords="3771,295,3959,322"/>
+<area shape="rect" href="_cmd_sam_digest_close_8h.html" title=" " alt="" coords="3210,295,3366,322"/>
+<area shape="rect" href="_cmd_sam_get_challenge_8h.html" title=" " alt="" coords="3390,295,3554,322"/>
+<area shape="rect" href="_cmd_sam_sv_prepare_debit_or_undebit_8h.html" title=" " alt="" coords="2749,295,2985,322"/>
+<area shape="rect" href="_cmd_sam_sv_prepare_load_8h.html" title=" " alt="" coords="3009,295,3185,322"/>
+<area shape="rect" href="_cmd_card_sv_reload_8h.html" title=" " alt="" coords="2367,295,2510,322"/>
+<area shape="rect" href="_cmd_card_sv_debit_or_undebit_8h.html" title=" " alt="" coords="2534,295,2725,322"/>
+<area shape="rect" href="_common_control_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="341,199,552,240"/>
+<area shape="rect" title=" " alt="" coords="3291,527,3352,553"/>
+<area shape="rect" title=" " alt="" coords="1665,527,1733,553"/>
+<area shape="rect" title=" " alt="" coords="1459,452,1528,479"/>
+<area shape="rect" title=" " alt="" coords="2195,527,2250,553"/>
+<area shape="rect" title=" " alt="" coords="3587,377,3645,404"/>
+<area shape="rect" title=" " alt="" coords="747,377,853,404"/>
+<area shape="rect" title=" " alt="" coords="877,377,1003,404"/>
+<area shape="rect" title=" " alt="" coords="1216,452,1333,479"/>
+<area shape="rect" title=" " alt="" coords="1940,527,2079,553"/>
+<area shape="rect" title=" " alt="" coords="1027,377,1141,404"/>
+<area shape="rect" href="_calypso_card_class_8h.html" title=" " alt="" coords="2320,377,2459,404"/>
+<area shape="rect" href="_elementary_file_adapter_8h.html" title=" " alt="" coords="1267,377,1429,404"/>
+<area shape="rect" href="_keyple_card_calypso_export_8h.html" title=" " alt="" coords="1555,377,1735,404"/>
+<area shape="rect" title=" " alt="" coords="264,377,379,404"/>
+<area shape="rect" title=" " alt="" coords="3766,527,3813,553"/>
+<area shape="rect" title=" " alt="" coords="4014,377,4119,404"/>
+<area shape="rect" title=" " alt="" coords="2149,377,2296,404"/>
+<area shape="rect" title=" " alt="" coords="2025,377,2125,404"/>
+<area shape="rect" href="_common_security_setting_adapter_8h.html" title=" " alt="" coords="403,377,621,404"/>
+<area shape="rect" href="_abstract_sam_command_8h.html" title=" " alt="" coords="3771,377,3938,404"/>
+<area shape="rect" href="_abstract_apdu_command_8h.html" title=" " alt="" coords="2871,452,3041,479"/>
+<area shape="rect" href="_calypso_sam_command_8h.html" title=" " alt="" coords="3486,452,3650,479"/>
+<area shape="rect" href="_card_command_8h.html" title=" " alt="" coords="3009,527,3127,553"/>
+<area shape="rect" href="_abstract_card_command_8h.html" title=" " alt="" coords="2737,377,2903,404"/>
+<area shape="rect" href="_common_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="264,288,483,329"/>
 </map>
 </div>
 </div>

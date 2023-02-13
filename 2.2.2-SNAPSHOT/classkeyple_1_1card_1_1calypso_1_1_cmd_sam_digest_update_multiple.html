@@ -99,8 +99,8 @@ Collaboration diagram for keyple::card::calypso::CmdSamDigestUpdateMultiple:</di
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a4c1729dd343d484212be6d7f144edf51"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_digest_update_multiple.html#a4c1729dd343d484212be6d7f144edf51">CmdSamDigestUpdateMultiple</a> (const CalypsoSam::ProductType productType, const bool encryptedSession, const std::vector&lt; uint8_t &gt; &amp;digestData)</td></tr>
-<tr class="separator:a4c1729dd343d484212be6d7f144edf51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a441c04e55c97d4f99e9c19cd2d33e9f9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_digest_update_multiple.html#a441c04e55c97d4f99e9c19cd2d33e9f9">CmdSamDigestUpdateMultiple</a> (const CalypsoSam::ProductType productType, const std::vector&lt; uint8_t &gt; &amp;digestData)</td></tr>
+<tr class="separator:a441c04e55c97d4f99e9c19cd2d33e9f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d38a34eaafcb6dcb2dca0c47042d0da"><td class="memItemLeft" align="right" valign="top">const std::map&lt; const int, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command_1_1_status_properties.html">StatusProperties</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_digest_update_multiple.html#a8d38a34eaafcb6dcb2dca0c47042d0da">getStatusTable</a> () const override</td></tr>
 <tr class="separator:a8d38a34eaafcb6dcb2dca0c47042d0da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html">keyple::card::calypso::AbstractSamCommand</a></td></tr>
@@ -150,8 +150,8 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="_cmd_sam_digest_update_multiple_8h_source.html#l00038">38</a> of file <a class="el" href="_cmd_sam_digest_update_multiple_8h_source.html">CmdSamDigestUpdateMultiple.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a4c1729dd343d484212be6d7f144edf51" name="a4c1729dd343d484212be6d7f144edf51"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c1729dd343d484212be6d7f144edf51">&#9670;&nbsp;</a></span>CmdSamDigestUpdateMultiple()</h2>
+<a id="a441c04e55c97d4f99e9c19cd2d33e9f9" name="a441c04e55c97d4f99e9c19cd2d33e9f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a441c04e55c97d4f99e9c19cd2d33e9f9">&#9670;&nbsp;</a></span>CmdSamDigestUpdateMultiple()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -161,12 +161,6 @@ Additional Inherited Members</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const CalypsoSam::ProductType&#160;</td>
           <td class="paramname"><em>productType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const bool&#160;</td>
-          <td class="paramname"><em>encryptedSession</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -186,12 +180,13 @@ Additional Inherited Members</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">productType</td><td>the product type. </td></tr>
-    <tr><td class="paramname">encryptedSession</td><td>the encrypted session flag, true if encrypted. </td></tr>
     <tr><td class="paramname">digestData</td><td>the digest data. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_cmd_sam_digest_update_multiple_8cpp_source.html#l00039">39</a> of file <a class="el" href="_cmd_sam_digest_update_multiple_8cpp_source.html">CmdSamDigestUpdateMultiple.cpp</a>.</p>
 
 </div>
 </div>
@@ -227,10 +222,13 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html#ab37975f30bbb11d5b887d11589b001fd">keyple::card::calypso::AbstractSamCommand</a>.</p>
 
+<p class="definition">Definition at line <a class="el" href="_cmd_sam_digest_update_multiple_8cpp_source.html#l00080">80</a> of file <a class="el" href="_cmd_sam_digest_update_multiple_8cpp_source.html">CmdSamDigestUpdateMultiple.cpp</a>.</p>
+
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>/github/workspace/src/main/<a class="el" href="_cmd_sam_digest_update_multiple_8h_source.html">CmdSamDigestUpdateMultiple.h</a></li>
+<li>/github/workspace/src/main/<a class="el" href="_cmd_sam_digest_update_multiple_8cpp_source.html">CmdSamDigestUpdateMultiple.cpp</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
