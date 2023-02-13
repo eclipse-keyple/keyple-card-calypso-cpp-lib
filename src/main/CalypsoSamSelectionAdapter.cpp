@@ -159,6 +159,7 @@ const std::string CalypsoSamSelectionAdapter::buildAtrRegex(
     if (productType != CalypsoSam::ProductType::UNKNOWN) {
         switch (productType) {
         case CalypsoSam::ProductType::SAM_C1:
+        case CalypsoSam::ProductType::HSM_C1:
             applicationTypeMask = "C1";
             break;
         case CalypsoSam::ProductType::SAM_S1DX:
@@ -175,7 +176,7 @@ const std::string CalypsoSamSelectionAdapter::buildAtrRegex(
             throw IllegalArgumentException("Unknown SAM subtype.");
         }
 
-        atrRegex = "3B(.{6}|.{10})805A..80" + applicationTypeMask + "20.{4}" + snRegex + "829000";
+        atrRegex = "3B(.{6}|.{10})805A..80" + applicationTypeMask + ".{6}" + snRegex + "829000";
     } else {
         /* Match any ATR */
         atrRegex = ".*";

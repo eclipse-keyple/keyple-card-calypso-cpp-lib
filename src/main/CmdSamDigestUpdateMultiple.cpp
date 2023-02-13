@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -10,7 +10,7 @@
  * SPDX-License-Identifier: EPL-2.0                                                               *
  **************************************************************************************************/
 
-#include "CmdSamDigestUpdateMuliple.h"
+#include "CmdSamDigestUpdateMultiple.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoSamIllegalParameterException.h"
@@ -30,20 +30,19 @@ namespace calypso {
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp::exception;
 
-const CalypsoSamCommand CmdSamDigestUpdateMuliple::mCommand = 
+const CalypsoSamCommand CmdSamDigestUpdateMultiple::mCommand =
     CalypsoSamCommand::DIGEST_UPDATE_MULTIPLE;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
-    CmdSamDigestUpdateMuliple::STATUS_TABLE = initStatusTable();
+    CmdSamDigestUpdateMultiple::STATUS_TABLE = initStatusTable();
 
-CmdSamDigestUpdateMuliple::CmdSamDigestUpdateMuliple(const CalypsoSam::ProductType productType,
-                                                     const bool encryptedSession,
+CmdSamDigestUpdateMultiple::CmdSamDigestUpdateMultiple(const CalypsoSam::ProductType productType,
                                                      const std::vector<uint8_t>& digestData)
 : AbstractSamCommand(mCommand, 0)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    const uint8_t p1 = 0x00;
-    const uint8_t p2 = encryptedSession ? 0x80 : 0x00;
+    const uint8_t p1 = 0x80;
+    const uint8_t p2 = 0x00;
 
     if (digestData.empty() || digestData.size() > 255) {
         throw IllegalArgumentException("Digest data null or too long!");
@@ -55,7 +54,7 @@ CmdSamDigestUpdateMuliple::CmdSamDigestUpdateMuliple(const CalypsoSam::ProductTy
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
-    CmdSamDigestUpdate::initStatusTable()
+    CmdSamDigestUpdateMultiple::initStatusTable()
 {
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
         AbstractSamCommand::STATUS_TABLE;
@@ -78,7 +77,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>&
-    CmdSamDigestUpdate::getStatusTable() const
+    CmdSamDigestUpdateMultiple::getStatusTable() const
 {
     return STATUS_TABLE;
 }

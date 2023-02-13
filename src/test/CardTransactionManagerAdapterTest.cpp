@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -102,6 +102,7 @@ static const std::string SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2_WITH_STORE
 static const std::string SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED =
     "6F238409315449432E49434131A516BF0C13C708000000001122334453070A3C20051410016283";
 static const std::string SAM_C1_POWER_ON_DATA = "3B3F9600805A4880C120501711223344829000";
+static const std::string HSM_C1_POWER_ON_DATA = "3B3F9600805A4880C108501711223344829000";
 static const std::string FCI_REV10 =
     "6F228408315449432E494341A516BF0C13C708   0000000011223344 5307060A01032003119000";
 static const std::string FCI_REV24 =
@@ -123,8 +124,8 @@ static const std::string PIN_5_DIGITS = "12345";
 //static const uint8_t PIN_CIPHERING_KEY_KIF = 0x11;
 //static const uint8_t PIN_CIPHERING_KEY_KVC = 0x22;
 
-//static const uint8_t FILE7 = 0x07;
-//static const uint8_t FILE8 = 0x08;
+static const uint8_t FILE7 = 0x07;
+static const uint8_t FILE8 = 0x08;
 //static const uint8_t FILE9 = 0x09;
 //static const uint8_t FILE10 = 0x10;
 //static const uint8_t FILE11 = 0x11;
@@ -388,11 +389,13 @@ static const std::string SAM_DIGEST_INIT_OPEN_SECURE_SESSION_SFI7_REC1_CMD =
 static const std::string SAM_DIGEST_INIT_OPEN_SECURE_SESSION_CMD =
     "808A00FF0A30790304909800307900";
 static const std::string SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_CMD = "808C00000500B2013C00";
-static const std::string SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_L29_CMD = "808C00000500B2013C1D";
+static const std::string SAM_DIGEST_UPDATE_MULTIPLE_READ_REC_SFI7_REC1_L29_CMD =
+    std::string("808C8000") + "26" + "05" + "00B2013C1D" + "1F" + FILE7_REC1_29B + SW1SW2_OK;
 static const std::string SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_RSP_CMD =
     "808C00001F\" + FILE7_REC1_29B+ \"9000";
 static const std::string SAM_DIGEST_UPDATE_READ_REC_SFI8_REC1_RSP_CMD =
     "808C00001F" + FILE8_REC1_29B + "9000";
+static const std::string SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_L29_CMD = "808C00000500B2013C1D";
 static const std::string SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_RSP =
     "808C00001F" + FILE7_REC1_29B + SW1SW2_OK;
 static const std::string SAM_DIGEST_UPDATE_READ_REC_SFI8_REC1_CMD = "808C00000500B2014400";
@@ -572,24 +575,8 @@ TEST(CardTransactionManagerAdapterTest,
     std::shared_ptr<CardResponseApi> cardCardResponse =
         createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
 
-    // EXPECT_CALL(*samReader,
-    //             transmitCardRequest(std::make_shared<CardRequestMatcher>(samCardRequest),_))
-    //     .thenReturn(samCardResponse);
-
-    // when(cardReader.transmitCardRequest(
-    //         argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-    //     .thenReturn(cardCardResponse);
-    // cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
-    // InOrder inOrder = inOrder(cardReader, samReader);
-    // inOrder
-    //     .verify(samReader)
-    //     .transmitCardRequest(
-    //         argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-    // inOrder
-    //     .verify(cardReader)
-    //     .transmitCardRequest(
-    //         argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-    // verifyNoMoreInteractions(samReader, cardReader);
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
     tearDown();
 }
@@ -619,64 +606,53 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test
-//   public void processOpening_whenOneReadRecordIsPrepared_shouldExchangeApduWithCardAndSam()
-//       throws Exception {
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD);
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_OPEN_SECURE_SESSION_SFI7_REC1_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_OPEN_SECURE_SESSION_SFI7_REC1_RSP);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareReadRecord(FILE7, 1);
-//     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
-//     InOrder inOrder = inOrder(cardReader, samReader);
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     processOpening_whenOneReadRecordIsPrepared_shouldExchangeApduWithCardAndSam)
+{
+    setUp();
 
-//   @Test
-//   public void processOpening_whenTwoReadRecordIsPrepared_shouldExchangeApduWithCardAndSam()
-//       throws Exception {
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD);
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_OPEN_SECURE_SESSION_SFI7_REC1_CMD, CARD_READ_REC_SFI8_REC1_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_OPEN_SECURE_SESSION_SFI7_REC1_RSP, CARD_READ_REC_SFI8_REC1_RSP);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareReadRecord(FILE7, 1);
-//     cardTransactionManager.prepareReadRecord(FILE8, 1);
-//     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
-//     InOrder inOrder = inOrder(cardReader, samReader);
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_SFI7_REC1_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_SFI7_REC1_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareReadRecord(FILE7, 1);
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
+
+    tearDown();
+}
+
+
+TEST(CardTransactionManagerAdapterTest,
+     processOpening_whenTwoReadRecordIsPrepared_shouldExchangeApduWithCardAndSam)
+{
+    setUp();
+
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_SFI7_REC1_CMD, CARD_READ_REC_SFI8_REC1_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_SFI7_REC1_RSP, CARD_READ_REC_SFI8_REC1_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareReadRecord(FILE7, 1);
+    cardTransactionManager->prepareReadRecord(FILE8, 1);
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
+
+    tearDown();
+}
 
 //   @Test(expected = UnauthorizedKeyException.class)
 //   public void processOpening_whenKeyNotAuthorized_shouldThrowUnauthorizedKeyException()
@@ -751,90 +727,129 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.processClosing();
 //   }
 
-//   @Test
-//   public void processClosing_whenASessionIsOpen_shouldExchangeApduWithCardAndSam()
-//       throws Exception {
-//     // open sesion
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD);
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_OPEN_SECURE_SESSION_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_OPEN_SECURE_SESSION_RSP);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
+TEST(CardTransactionManagerAdapterTest,
+     processClosing_whenASessionIsOpenAndNotSamC1_shouldExchangeApduWithCardAndSamWithoutDigestUpdateMultiple)
+{
+    setUp();
 
-//     InOrder inOrder = inOrder(samReader, cardReader);
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
+    /* HSM */
+    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
+    EXPECT_CALL(*samCardSelectionResponse, getPowerOnData()).WillOnce(ReturnRef(HSM_C1_POWER_ON_DATA));
 
-//     samCardRequest =
-//         createCardRequest(
-//             SAM_DIGEST_INIT_OPEN_SECURE_SESSION_CMD,
-//             SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_L29_CMD,
-//             SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_RSP,
-//             SAM_DIGEST_CLOSE_CMD);
-//     CardRequestSpi cardCardRequestRead = createCardRequest(CARD_READ_REC_SFI7_REC1_L29_CMD);
-//     CardRequestSpi cardCardRequestClose = createCardRequest(CARD_CLOSE_SECURE_SESSION_CMD);
+    calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
+    cardSecuritySetting = CalypsoExtensionService::getInstance()
+                             ->createCardSecuritySetting();
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam);
+    cardTransactionManager = CalypsoExtensionService::getInstance()
+                                 ->createCardTransaction(cardReader,
+                                                         calypsoCard,
+                                                         cardSecuritySetting);
 
-//     samCardResponse =
-//         createCardResponse(SW1SW2_OK_RSP, SW1SW2_OK_RSP, SW1SW2_OK_RSP, SAM_DIGEST_CLOSE_RSP);
-//     CardResponseApi cardCardResponseRead = createCardResponse(CARD_READ_REC_SFI7_REC1_RSP);
-//     CardResponseApi cardCardResponseClose = createCardResponse(CARD_CLOSE_SECURE_SESSION_RSP);
+    /* Open session */
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
 
-//     CardRequestSpi samCardRequest2 = createCardRequest(SAM_DIGEST_AUTHENTICATE_CMD);
-//     CardResponseApi samCardResponse2 = createCardResponse(SW1SW2_OK_RSP);
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequestRead)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponseRead);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequestClose)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponseClose);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest2)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse2);
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
+    samCardRequest = createCardRequest({SAM_DIGEST_INIT_OPEN_SECURE_SESSION_CMD,
+                                        SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_L29_CMD,
+                                        SAM_DIGEST_UPDATE_READ_REC_SFI7_REC1_RSP,
+                                        SAM_DIGEST_CLOSE_CMD});
 
-//     cardTransactionManager.prepareReadRecords(FILE7, 1, 1, 29);
+    std::shared_ptr<CardRequestSpi> cardCardRequestRead =
+        createCardRequest({CARD_READ_REC_SFI7_REC1_L29_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequestClose =
+        createCardRequest({CARD_CLOSE_SECURE_SESSION_CMD});
 
-//     cardTransactionManager.processClosing();
-//     inOrder = inOrder(samReader, cardReader);
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequestRead)), any(ChannelControl.class));
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequestClose)), any(ChannelControl.class));
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest2)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    samCardResponse = createCardResponse({SW1SW2_OK_RSP,
+                                          SW1SW2_OK_RSP,
+                                          SW1SW2_OK_RSP,
+                                          SAM_DIGEST_CLOSE_RSP});
+
+    std::shared_ptr<CardResponseApi> cardCardResponseRead =
+        createCardResponse({CARD_READ_REC_SFI7_REC1_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponseClose =
+        createCardResponse({CARD_CLOSE_SECURE_SESSION_RSP});
+
+    std::shared_ptr<CardRequestSpi> samCardRequest2 =
+        createCardRequest({SAM_DIGEST_AUTHENTICATE_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse2 =
+        createCardResponse({SW1SW2_OK_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponseRead));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponseClose));
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse2));
+
+    cardTransactionManager->prepareReadRecords(FILE7, 1, 1, 29);
+    cardTransactionManager->processClosing();
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     processClosing_whenASessionIsOpenAndSamC1_shouldExchangeApduWithCardAndSamWithDigestUpdateMultiple)
+{
+    setUp();
+
+    /* Open session */
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
+    samCardRequest = createCardRequest({SAM_DIGEST_INIT_OPEN_SECURE_SESSION_CMD,
+                                        SAM_DIGEST_UPDATE_MULTIPLE_READ_REC_SFI7_REC1_L29_CMD,
+                                        SAM_DIGEST_CLOSE_CMD});
+
+    std::shared_ptr<CardRequestSpi> cardCardRequestRead =
+        createCardRequest({CARD_READ_REC_SFI7_REC1_L29_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequestClose =
+        createCardRequest({CARD_CLOSE_SECURE_SESSION_CMD});
+
+    samCardResponse = createCardResponse({SW1SW2_OK_RSP, SW1SW2_OK_RSP, SAM_DIGEST_CLOSE_RSP});
+
+    std::shared_ptr<CardResponseApi> cardCardResponseRead =
+        createCardResponse({CARD_READ_REC_SFI7_REC1_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponseClose =
+        createCardResponse({CARD_CLOSE_SECURE_SESSION_RSP});
+
+    std::shared_ptr<CardRequestSpi> samCardRequest2 =
+        createCardRequest({ SAM_DIGEST_AUTHENTICATE_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse2 =
+        createCardResponse({SW1SW2_OK_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponseRead));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponseClose));
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse2));
+
+    cardTransactionManager->prepareReadRecords(FILE7, 1, 1, 29);
+    cardTransactionManager->processClosing();
+
+    tearDown();
+}
 
 //   @Test(expected = UnexpectedCommandStatusException.class)
 //   public void processClosing_whenCloseSessionFails_shouldThrowUCSE()
 //       throws Exception {
-//     // open sesion
+//     // open session
 //     CardRequestSpi samCardRequest =
 //         createCardRequest(SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD);
 //     CardRequestSpi cardCardRequest = createCardRequest(CARD_OPEN_SECURE_SESSION_CMD);

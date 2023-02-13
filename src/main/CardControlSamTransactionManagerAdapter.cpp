@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -15,6 +15,7 @@
 /* Keyple Card Calypso */
 #include "CmdSamDigestAuthenticate.h"
 #include "CmdSamDigestUpdate.h"
+#include "CmdSamDigestUpdateMultiple.h"
 #include "CmdSamDigestInit.h"
 #include "CmdSamGiveRandom.h"
 #include "CmdSamSvCheck.h"
@@ -24,6 +25,7 @@
 #include "Arrays.h"
 #include "IllegalStateException.h"
 #include "KeypleStd.h"
+#include "System.h"
 
 namespace keyple {
 namespace card {
@@ -339,15 +341,52 @@ void CardControlSamTransactionManagerAdapter::DigestManager::prepareDigestInit()
 
 void CardControlSamTransactionManagerAdapter::DigestManager::prepareDigestUpdate()
 {
-    /*
-     * CL-SAM-DUPDATE.1
-     * TODO optimization with the use of "Digest Update Multiple" whenever possible.
-     */
-    for (const auto& cardApdu : mCardApdus) {
-        mParent->getSamCommands().push_back(std::make_shared<CmdSamDigestUpdate>(
-                                                mParent->mControlSam->getProductType(),
-                                                mIsSessionEncrypted,
-                                                cardApdu));
+    if (mCardApdus.empty()) {
+        return;
+    }
+
+    /* CL-SAM-DUPDATE.1 */
+    if (mParent->mControlSam->getProductType() == CalypsoSam::ProductType::SAM_C1) {
+
+        /*
+         * Digest Update Multiple
+         * Construct list of DataIn
+         */
+        std::vector<std::vector<uint8_t>> digestDataList(1);
+        std::vector<uint8_t> buffer(255);
+        int i = 0;
+
+        for (const auto& cardApdu : mCardApdus) {
+            if (static_cast<int>(i + cardApdu.size()) > 254) {
+                /* Copy buffer to digestDataList and reset buffer */
+                digestDataList.push_back(Arrays::copyOf(buffer, i));
+                i = 0;
+            }
+
+            /* Add [length][apdu] to current buffer */
+            buffer[i++] = static_cast<uint8_t>(cardApdu.size());
+            System::arraycopy(cardApdu, 0, buffer, i, cardApdu.size());
+            i += cardApdu.size();
+        }
+
+        /* Copy buffer to digestDataList */
+        digestDataList.push_back(Arrays::copyOf(buffer, i));
+
+        /* Add commands */
+        for (const auto& dataIn : digestDataList) {
+            mParent->getSamCommands().push_back(
+                std::make_shared<CmdSamDigestUpdateMultiple>(mParent->mControlSam->getProductType(),
+                                                             dataIn));
+        }
+
+    } else {
+        /* Digest Update (simple) */
+        for (const auto& cardApdu : mCardApdus) {
+            mParent->getSamCommands().push_back(
+                std::make_shared<CmdSamDigestUpdate>(mParent->mControlSam->getProductType(),
+                                                     mIsSessionEncrypted,
+                                                     cardApdu));
+        }
     }
 }
 

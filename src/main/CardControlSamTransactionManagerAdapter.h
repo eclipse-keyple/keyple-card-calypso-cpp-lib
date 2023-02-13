@@ -334,7 +334,7 @@ private:
     /**
      *
      */
-    const std::shared_ptr<CalypsoSamAdapter> mControlSam = nullptr;
+    std::shared_ptr<CalypsoSamAdapter> mControlSam = nullptr;
 
     /**
      *

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -42,12 +42,10 @@ public:
      * Instantiates a new CmdSamDigestUpdateMultiple.
      *
      * @param productType the product type.
-     * @param encryptedSession the encrypted session flag, true if encrypted.
      * @param digestData the digest data.
      * @since 2.0.1
      */
     CmdSamDigestUpdateMultiple(const CalypsoSam::ProductType productType,
-                               const bool encryptedSession,
                                const std::vector<uint8_t>& digestData);
 
     /**

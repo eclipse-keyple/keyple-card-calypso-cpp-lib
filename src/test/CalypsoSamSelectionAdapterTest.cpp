@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -79,7 +79,7 @@ TEST(CalypsoSamSelectionAdapterTest,
     const std::shared_ptr<CardSelectorSpi> cardSelector =
         samSelection->getCardSelectionRequest()->getCardSelector();
 
-    ASSERT_TRUE(StringUtils::contains(cardSelector->getPowerOnDataRegex(), "80C120"));
+    ASSERT_TRUE(StringUtils::contains(cardSelector->getPowerOnDataRegex(), "80C1.{6}"));
 
     tearDown();
 }

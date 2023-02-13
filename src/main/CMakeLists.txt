@@ -75,6 +75,7 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestClose.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestInit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestUpdate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamDigestUpdateMultiple.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGetChallenge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamGiveRandom.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CmdSamPsoComputeSignature.cpp

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -53,11 +53,14 @@ CalypsoSamAdapter::CalypsoSamAdapter(
         mPlatform = atrSubElements[0];
         mApplicationType = atrSubElements[1];
         mApplicationSubType = atrSubElements[2];
+        mSoftwareIssuer = atrSubElements[3];
+        mSoftwareVersion = atrSubElements[4];
+        mSoftwareRevision = atrSubElements[5];
 
         /* Determine SAM product type from Application Subtype */
         switch (mApplicationSubType) {
         case 0xC1:
-            mSamProductType = ProductType::SAM_C1;
+            mSamProductType = mSoftwareIssuer == 0x08 ? ProductType::HSM_C1 : ProductType::SAM_C1;
             break;
         case 0xD0:
         case 0xD1:
@@ -72,9 +75,7 @@ CalypsoSamAdapter::CalypsoSamAdapter(
             break;
         }
 
-        mSoftwareIssuer = atrSubElements[3];
-        mSoftwareVersion = atrSubElements[4];
-        mSoftwareRevision = atrSubElements[5];
+
         System::arraycopy(atrSubElements, 6, mSerialNumber, 0, 4);
 
         std::stringstream ss;
@@ -119,6 +120,7 @@ int CalypsoSamAdapter::getMaxDigestDataLength() const
 {
     switch (mSamProductType) {
     case CalypsoSam::ProductType::SAM_C1:
+    case CalypsoSam::ProductType::HSM_C1:
         return 255;
     case CalypsoSam::ProductType::SAM_S1DX:
         return 70;

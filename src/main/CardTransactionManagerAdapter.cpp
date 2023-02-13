@@ -1969,7 +1969,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvGet(const SvOper
     std::shared_ptr<CalypsoSam> calypsoSam = mSecuritySetting->getControlSam();
     const bool useExtendedMode = mCard->isExtendedModeSupported() &&
                                  (calypsoSam == nullptr ||
-                                  calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1);
+                                  calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1 ||
+                                  calypsoSam->getProductType() == CalypsoSam::ProductType::HSM_C1);
 
     if (mSecuritySetting->isSvLoadAndDebitLogEnabled() && !useExtendedMode) {
 
@@ -2045,7 +2046,8 @@ bool CardTransactionManagerAdapter::isExtendedModeAllowed() const
     std::shared_ptr<CalypsoSam> calypsoSam = mSecuritySetting->getControlSam();
 
     return mCard->isExtendedModeSupported() &&
-           calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1;
+           (calypsoSam->getProductType() == CalypsoSam::ProductType::SAM_C1 ||
+            calypsoSam->getProductType() == CalypsoSam::ProductType::HSM_C1);
 }
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareSvDebit(
