@@ -1,0 +1,5 @@
+<map id="keyple::card::calypso::CmdCardReadRecordMultiple" name="keyple::card::calypso::CmdCardReadRecordMultiple">
+<area shape="rect" id="node1" title=" " alt="" coords="5,184,204,225"/>
+<area shape="rect" id="node2" href="$classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html" title=" " alt="" coords="23,95,186,136"/>
+<area shape="rect" id="node3" href="$classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html" title=" " alt="" coords="21,5,188,47"/>
+</map>
