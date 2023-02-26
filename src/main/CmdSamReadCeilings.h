@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -21,6 +21,7 @@
 
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "CalypsoSamAdapter.h"
 
 namespace keyple {
 namespace card {
@@ -40,38 +41,30 @@ public:
      * Ceiling operation type
      */
     enum class CeilingsOperationType {
-        /** 
-         * Ceiling record
-         */
-        CEILING_RECORD,
-      
         /**
          * Single ceiling
          */
-        SINGLE_CEILING
+        READ_SINGLE_CEILING,
+
+        /**
+         * Ceiling record
+         */
+        READ_CEILING_RECORD,
     };
 
     /**
      * (package-private)<br>
      * Instantiates a new CmdSamReadCeilings.
      *
-     * @param productType the SAM product type.
-     * @param operationType the counter operation type.
-     * @param index the counter index.
+     * @param sam the SAM.
+     * @param ceilingsOperationType the ceiling operation type.
+     * @param target the ceiling index (0-26) if READ_SINGLE_CEILING, the record index (1-3) if
+     *        READ_CEILING_RECORD.
      * @since 2.0.1
      */
-    CmdSamReadCeilings(const CalypsoSam::ProductType productType, 
-                       const CeilingsOperationType operationType,
-                       const int index);
-
-    /**
-     * (package-private)<br>
-     * Gets the key parameters.
-     *
-     * @return The ceiling data (Value or Record)
-     * @since 2.0.1
-     */
-    const std::vector<uint8_t> getCeilingsData() const;
+    CmdSamReadCeilings(std::shared_ptr<CalypsoSamAdapter> sam,
+                       const CeilingsOperationType ceilingsOperationType,
+                       const int target);
 
     /**
      * {@inheritDoc}
@@ -81,6 +74,14 @@ public:
     const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() const
         override;
 
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.0.1
+     * @since 2.2.3
+     */
+    AbstractSamCommand& setApduResponse(std::shared_ptr<ApduResponseApi> apduResponse) override;
+
 private:
     /**
      * The command
@@ -88,20 +89,24 @@ private:
     static const CalypsoSamCommand mCommand;
 
     /**
-     * 
+     *
      */
-    static const int MAX_CEILING_NUMB;
-
-    /**
-     * 
-     */
-
-    static const int MAX_CEILING_REC_NUMB;
+    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
 
     /**
      *
      */
-    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
+    std::shared_ptr<CalypsoSamAdapter> mSam;
+
+    /**
+     *
+     */
+    const CeilingsOperationType mCeilingsOperationType;
+
+    /**
+     *
+     */
+    const int mFirstEventCeilingNumber;
 
     /**
      *

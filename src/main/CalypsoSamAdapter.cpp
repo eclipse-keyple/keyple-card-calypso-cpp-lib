@@ -191,6 +191,46 @@ uint8_t CalypsoSamAdapter::getSoftwareRevision() const
     return mSoftwareRevision;
 }
 
+void CalypsoSamAdapter::putEventCounter(const int eventCounterNumber, const int eventCounterValue)
+{
+    mEventCounters.insert({eventCounterNumber, eventCounterValue});
+}
+
+void CalypsoSamAdapter::putEventCeiling(const int eventCeilingNumber, const int eventCeilingValue)
+{
+    mEventCeilings.insert({eventCeilingNumber, eventCeilingValue});
+}
+
+std::shared_ptr<int> CalypsoSamAdapter::getEventCounter(const int eventCounterNumber) const
+{
+    const auto it = mEventCounters.find(eventCounterNumber);
+    if (it != mEventCounters.end()) {
+        return std::make_shared<int>(it->second);
+    } else {
+        return nullptr;
+    }
+}
+
+const std::map<int, int>& CalypsoSamAdapter::getEventCounters() const
+{
+    return mEventCounters;
+}
+
+std::shared_ptr<int> CalypsoSamAdapter::getEventCeiling(const int eventCeilingNumber) const
+{
+    const auto it = mEventCeilings.find(eventCeilingNumber);
+    if (it != mEventCeilings.end()) {
+        return std::make_shared<int>(it->second);
+    } else {
+        return nullptr;
+    }
+}
+
+const std::map<int, int>& CalypsoSamAdapter::getEventCeilings() const
+{
+    return mEventCeilings;
+}
+
 }
 }
 }

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -56,6 +56,7 @@
 #include "KeypleStd.h"
 #include "LoggerFactory.h"
 #include "StringUtils.h"
+#include "UnsupportedOperationException.h"
 
 namespace keyple {
 namespace card {
@@ -63,6 +64,7 @@ namespace calypso {
 
 using namespace calypsonet::terminal::card;
 using namespace keyple::core::util::cpp;
+using namespace keyple::core::util::cpp::exception;
 
 /**
  * (package-private)<br>
@@ -560,6 +562,70 @@ protected:
             prepareSelectDiversifier();
         }
     }
+
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // SamTransactionManager& prepareReadEventCounter(const int eventCounterNumber) override
+    // {
+    //     throw UnsupportedOperationException("prepareReadEventCounter");
+    // }
+
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // SamTransactionManager& prepareReadEventCounters(const int fromEventCounterNumber,
+    //                                                 const int toEventCounterNumber) override
+    // {
+    //     throw UnsupportedOperationException("prepareReadEventCounters");
+    // }
+
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // SamTransactionManager& prepareReadEventCeiling(const int eventCeilingNumber) override
+    // {
+    //     throw UnsupportedOperationException("prepareReadEventCeiling");
+    // }
+
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // SamTransactionManager& prepareReadEventCeilings(const int fromEventCeilingNumber,
+    //                                                 const int toEventCeilingNumber) override
+    // {
+    //     throw UnsupportedOperationException("prepareReadEventCeilings");
+    // }
+
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // SamTransactionManager& prepareWriteEventCeiling(const int eventCeilingNumber,
+    //                                                 const int newValue) override
+    // {
+    //     throw UnsupportedOperationException("prepareWriteEventCeiling");
+    // }
+
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // SamTransactionManager& prepareWriteEventCeilings(const int fromEventCeilingNumber,
+    //                                                  const std::vector<int>& newValues) override
+    // {
+    //     throw UnsupportedOperationException("prepareWriteEventCeilings");
+    // }
 
 private:
     /**

@@ -19,6 +19,7 @@
 
 /* Keyple Core Util */
 #include "ApduUtil.h"
+#include "ByteArrayUtil.h"
 #include "IllegalArgumentException.h"
 
 namespace keyple {
@@ -29,39 +30,27 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp::exception;
 
 const CalypsoSamCommand CmdSamReadEventCounter::mCommand = CalypsoSamCommand::READ_EVENT_COUNTER;
-const int CmdSamReadEventCounter::MAX_COUNTER_NUMB = 26;
-const int CmdSamReadEventCounter::MAX_COUNTER_REC_NUMB = 3;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamReadEventCounter::STATUS_TABLE = initStatusTable();
 
-CmdSamReadEventCounter::CmdSamReadEventCounter(const CalypsoSam::ProductType productType, 
-                                               const SamEventCounterOperationType operationType,
-                                               const int index)
-: AbstractSamCommand(mCommand, 0)
+CmdSamReadEventCounter::CmdSamReadEventCounter(std::shared_ptr<CalypsoSamAdapter> sam,
+                                               const CounterOperationType counterOperationType,
+                                               const int target)
+: AbstractSamCommand(mCommand, 48),
+  mSam(sam),
+  mCounterOperationType(counterOperationType),
+  mFirstEventCounterNumber(counterOperationType == CounterOperationType::READ_SINGLE_COUNTER ?
+                           target : (target - 1) * 9)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    
+    const uint8_t cla = SamUtilAdapter::getClassByte(sam->getProductType());
+
     uint8_t p2;
 
-    if (operationType == SamEventCounterOperationType::COUNTER_RECORD) {
-        if (index < 1 || index > MAX_COUNTER_REC_NUMB) {
-            throw IllegalArgumentException("Record Number must be between 1 and " + 
-                                           std::to_string(MAX_COUNTER_REC_NUMB) + 
-                                           ".");
-        }
-
-        p2 = static_cast<uint8_t>(0xE0 + index);
-    
+    if (counterOperationType == CounterOperationType::READ_SINGLE_COUNTER) {
+        p2 = static_cast<uint8_t>(0x81 + target);
     } else {
-        /* SINGLE_COUNTER */
-        if (index < 0 || index > MAX_COUNTER_NUMB) {
-            throw IllegalArgumentException("Counter Number must be between 0 and " + 
-                                           std::to_string(MAX_COUNTER_NUMB) + 
-                                           ".");
-        }
-
-        p2 = static_cast<uint8_t>(0x80 + index);
+        p2 = static_cast<uint8_t>(0xE0 + target);
     }
 
     setApduRequest(
@@ -88,15 +77,30 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     return m;
 }
 
-const std::vector<uint8_t> CmdSamReadEventCounter::getCounterData() const
-{
-    return isSuccessful() ? getApduResponse()->getDataOut() : std::vector<uint8_t>();
-}
-
 const std::map<const int, const std::shared_ptr<StatusProperties>>&
     CmdSamReadEventCounter::getStatusTable() const
 {
     return STATUS_TABLE;
+}
+
+AbstractSamCommand& CmdSamReadEventCounter::setApduResponse(
+    std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractSamCommand::setApduResponse(apduResponse);
+
+    if (isSuccessful()) {
+        const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+        if (mCounterOperationType == CounterOperationType::READ_SINGLE_COUNTER) {
+            mSam->putEventCounter(dataOut[8], ByteArrayUtil::extractInt(dataOut, 9, 3, false));
+        } else {
+            for (int i = 0; i < 9; i++) {
+                mSam->putEventCounter(mFirstEventCounterNumber + i,
+                                      ByteArrayUtil::extractInt(dataOut, 8 + (3 * i), 3, false));
+            }
+        }
+    }
+
+    return *this;
 }
 
 }

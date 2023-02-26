@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -54,6 +54,21 @@ public:
     const std::shared_ptr<SamSecuritySetting> getSecuritySetting() const override;
 
 private:
+
+    /**
+     * Constants
+     */
+    static const int MIN_EVENT_COUNTER_NUMBER;
+    static const int MAX_EVENT_COUNTER_NUMBER;
+    static const int MIN_EVENT_CEILING_NUMBER;
+    static const int MAX_EVENT_CEILING_NUMBER;
+    static const int FIRST_COUNTER_REC1;
+    static const int LAST_COUNTER_REC1;
+    static const int FIRST_COUNTER_REC2;
+    static const int LAST_COUNTER_REC2;
+    static const int FIRST_COUNTER_REC3;
+    static const int LAST_COUNTER_REC3;
+
     /**
      *
      */

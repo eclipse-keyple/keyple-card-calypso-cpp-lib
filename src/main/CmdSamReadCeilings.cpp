@@ -19,6 +19,7 @@
 
 /* Keyple Core Util */
 #include "ApduUtil.h"
+#include "ByteArrayUtil.h"
 #include "IllegalArgumentException.h"
 
 namespace keyple {
@@ -29,42 +30,30 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp::exception;
 
 const CalypsoSamCommand CmdSamReadCeilings::mCommand = CalypsoSamCommand::READ_CEILINGS;
-const int CmdSamReadCeilings::MAX_CEILING_NUMB = 26;
-const int CmdSamReadCeilings::MAX_CEILING_REC_NUMB = 3;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamReadCeilings::STATUS_TABLE = initStatusTable();
 
-CmdSamReadCeilings::CmdSamReadCeilings(const CalypsoSam::ProductType productType, 
-                                       const CeilingsOperationType operationType,
-                                       const int index)
-: AbstractSamCommand(mCommand, 0)
+CmdSamReadCeilings::CmdSamReadCeilings(std::shared_ptr<CalypsoSamAdapter> sam,
+                                       const CeilingsOperationType ceilingsOperationType,
+                                       const int target)
+: AbstractSamCommand(mCommand, 48),
+  mSam(sam),
+  mCeilingsOperationType(ceilingsOperationType),
+  mFirstEventCeilingNumber(ceilingsOperationType == CeilingsOperationType::READ_SINGLE_CEILING ?
+                           target : (target - 1) * 9)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    
+    const uint8_t cla = SamUtilAdapter::getClassByte(sam->getProductType());
+
     uint8_t p1;
     uint8_t p2;
 
-    if (operationType == CeilingsOperationType::CEILING_RECORD) {
-        if (index < 0 || index > MAX_CEILING_REC_NUMB) {
-            throw IllegalArgumentException("Record Number must be between 1 and " + 
-                                           std::to_string(MAX_CEILING_REC_NUMB) + 
-                                           ".");
-        }
-
-        p1 = 0x00;
-        p2 = static_cast<uint8_t>(0xB0 + index);
-    
-    } else {
-        /* SINGLE_CEILING */
-        if (index < 0 || index > MAX_CEILING_NUMB) {
-            throw IllegalArgumentException("Counter Number must be between 0 and " + 
-                                           std::to_string(MAX_CEILING_NUMB) + 
-                                           ".");
-        }
-
-        p1 = static_cast<uint8_t>(index);
+    if (ceilingsOperationType == CeilingsOperationType::READ_SINGLE_CEILING) {
+        p1 = target;
         p2 = 0xB8;
+    } else {
+        p1 = 0x00;
+        p2 = static_cast<uint8_t>(0xB0 + target);
     }
 
     setApduRequest(
@@ -91,15 +80,30 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     return m;
 }
 
-const std::vector<uint8_t> CmdSamReadCeilings::getCeilingsData() const
-{
-    return isSuccessful() ? getApduResponse()->getDataOut() : std::vector<uint8_t>();
-}
-
 const std::map<const int, const std::shared_ptr<StatusProperties>>&
     CmdSamReadCeilings::getStatusTable() const
 {
     return STATUS_TABLE;
+}
+
+AbstractSamCommand& CmdSamReadCeilings::setApduResponse(
+    std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractSamCommand::setApduResponse(apduResponse);
+
+    if (isSuccessful()) {
+        const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+        if (mCeilingsOperationType == CeilingsOperationType::READ_SINGLE_CEILING) {
+            mSam->putEventCeiling(dataOut[8], ByteArrayUtil::extractInt(dataOut, 9, 3, false));
+        } else {
+            for (int i = 0; i < 9; i++) {
+            mSam->putEventCeiling(mFirstEventCeilingNumber + i,
+                                  ByteArrayUtil::extractInt(dataOut, 8 + (3 * i), 3, false));
+            }
+        }
+    }
+
+    return *this;
 }
 
 }

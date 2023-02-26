@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -21,6 +21,7 @@
 
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "CalypsoSamAdapter.h"
 
 namespace keyple {
 namespace card {
@@ -39,39 +40,31 @@ public:
     /**
      * Event counter operation type
      */
-    enum SamEventCounterOperationType {
-        /**
-         * Counter record
-         */
-        COUNTER_RECORD,
-        
+    enum CounterOperationType {
         /**
          * Single counter
          */
-        SINGLE_COUNTER
+        READ_SINGLE_COUNTER,
+
+        /**
+         * Counter record
+         */
+        READ_COUNTER_RECORD
     };
 
     /**
      * (package-private)<br>
      * Instantiate a new CmdSamReadEventCounter
      *
-     * @param productType the SAM product type.
-     * @param operationType the counter operation type.
-     * @param index the counter index.
+     * @param sam the SAM.
+     * @param counterOperationType the counter operation type.
+     * @param target the counter index (0-26) if READ_SINGLE_COUNTER, the record index (1-3) if
+     *        READ_COUNTER_RECORD.
      * @since 2.0.1
      */
-    CmdSamReadEventCounter(const CalypsoSam::ProductType productType, 
-                           const SamEventCounterOperationType operationType,
-                           const int index);
-
-    /**
-   * (package-private)<br>
-   * Gets the key parameters.
-   *
-   * @return the counter data (Value or Record)
-   * @since 2.0.1
-   */
-    const std::vector<uint8_t> getCounterData() const;
+    CmdSamReadEventCounter(std::shared_ptr<CalypsoSamAdapter> sam,
+                           const CounterOperationType counterOperationType,
+                           const int target);
 
     /**
      * {@inheritDoc}
@@ -81,6 +74,13 @@ public:
     const std::map<const int, const std::shared_ptr<StatusProperties>>& getStatusTable() const
         override;
 
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    AbstractSamCommand& setApduResponse(std::shared_ptr<ApduResponseApi> apduResponse) override;
+
 private:
     /**
      * The command
@@ -88,20 +88,24 @@ private:
     static const CalypsoSamCommand mCommand;
 
     /**
-     * 
+     *
      */
-    static const int MAX_COUNTER_NUMB;
-
-    /**
-     * 
-     */
-
-    static const int MAX_COUNTER_REC_NUMB;
+    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
 
     /**
      *
      */
-    static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
+    std::shared_ptr<CalypsoSamAdapter> mSam;
+
+    /**
+     *
+     */
+    const CounterOperationType mCounterOperationType;
+
+    /**
+     *
+     */
+    const int mFirstEventCounterNumber;
 
     /**
      *

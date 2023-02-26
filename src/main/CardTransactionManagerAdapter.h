@@ -1038,7 +1038,7 @@ private:
 
     /**
      * (private)<br>
-     * Process the eventually prepared SAM commands if control SAM is set.
+     * Process any prepared SAM commands if control SAM is set.
      */
     void processSamPreparedCommands();
 

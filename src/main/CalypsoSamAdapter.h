@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -101,7 +101,7 @@ public:
      *
      * @since 2.0.0
      */
-    CalypsoSam::ProductType getProductType() const final;
+    CalypsoSam::ProductType getProductType() const;
 
     /**
      * Gets textual information about the SAM.
@@ -115,49 +115,97 @@ public:
      *
      * @since 2.0.0
      */
-    const std::vector<uint8_t>& getSerialNumber() const final;
+    const std::vector<uint8_t>& getSerialNumber() const;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getPlatform() const final;
+    uint8_t getPlatform() const;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getApplicationType() const final;
+    uint8_t getApplicationType() const;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getApplicationSubType() const final;
+    uint8_t getApplicationSubType() const;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getSoftwareIssuer() const final;
+    uint8_t getSoftwareIssuer() const;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getSoftwareVersion() const final;
+    uint8_t getSoftwareVersion() const;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getSoftwareRevision() const final;
+    uint8_t getSoftwareRevision() const;
+
+    /**
+     * (package-private)<br>
+     * Adds or replace an event counter.
+     *
+     * @param eventCounterNumber The number of the counter.
+     * @param eventCounterValue The counter value.
+     * @since 2.2.3
+     */
+    void putEventCounter(const int eventCounterNumber, const int eventCounterValue);
+
+    /**
+     * (package-private)<br>
+     * Adds or replace an event counter.
+     *
+     * @param eventCeilingNumber The number of the ceiling.
+     * @param eventCeilingValue The ceiling value.
+     * @since 2.2.3
+     */
+    void putEventCeiling(const int eventCeilingNumber, const int eventCeilingValue);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    std::shared_ptr<int> getEventCounter(const int eventCounterNumber) const; // override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    const std::map<int, int>& getEventCounters() const; // override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    std::shared_ptr<int> getEventCeiling(const int eventCeilingNumber) const; // override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    const std::map<int, int>& getEventCeilings() const; // override;
 
 private:
     /**
@@ -209,6 +257,16 @@ private:
      *
      */
     uint8_t mSoftwareRevision;
+
+    /**
+     *
+     */
+    std::map<int, int> mEventCounters;
+
+    /**
+     *
+     */
+    std::map<int, int> mEventCeilings;
 };
 
 }
