@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -128,10 +128,10 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     return STATUS_TABLE;
 }
 
-CmdCardReadRecordMultiple& CmdCardReadRecordMultiple::setApduResponse(
+void CmdCardReadRecordMultiple::parseApduResponse(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractCardCommand::setApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     if (apduResponse->getDataOut().size() > 0) {
         const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
@@ -141,8 +141,6 @@ CmdCardReadRecordMultiple& CmdCardReadRecordMultiple::setApduResponse(
                              Arrays::copyOfRange(dataOut, i * mLength, (i + 1) * mLength)});
         }
     }
-
-    return *this;
 }
 
 uint8_t CmdCardReadRecordMultiple::getSfi() const
@@ -155,7 +153,7 @@ uint8_t CmdCardReadRecordMultiple::getOffset() const
     return mOffset;
 }
 
-const std::map<const uint8_t, const std::vector<uint8_t>>& CmdCardReadRecordMultiple::getResults() 
+const std::map<const uint8_t, const std::vector<uint8_t>>& CmdCardReadRecordMultiple::getResults()
     const
 {
     return mResults;

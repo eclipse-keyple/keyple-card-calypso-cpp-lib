@@ -965,6 +965,8 @@ CardTransactionManager& CardTransactionManagerAdapter::processClosing()
             } else {
                 isAtLeastOneReadCommand = true;
             }
+
+            cardAtomicCommands.push_back(command);
         }
 
         if (isAtLeastOneReadCommand) {
@@ -1007,7 +1009,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processCancel()
         transmitCardRequest(cardRequest, mChannelControl);
 
     try {
-        cmdCardCloseSession->setApduResponse(cardResponse->getApduResponses()[0]).checkStatus();
+        cmdCardCloseSession->parseApduResponse(cardResponse->getApduResponses()[0]);
     } catch (const CardCommandException& e) {
         throw UnexpectedCommandStatusException(MSG_CARD_COMMAND_ERROR +
                                                "while processing the response to close session: " +

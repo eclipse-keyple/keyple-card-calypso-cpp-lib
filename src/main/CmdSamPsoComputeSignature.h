@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -59,8 +59,7 @@ public:
      *
      * @since 2.2.0
      */
-    AbstractSamCommand& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
-        override;
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
 
 private:

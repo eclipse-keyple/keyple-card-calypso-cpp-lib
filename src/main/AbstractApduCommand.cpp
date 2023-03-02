@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -88,12 +88,11 @@ const std::shared_ptr<ApduRequestAdapter> AbstractApduCommand::getApduRequest() 
     return mApduRequest;
 }
 
-AbstractApduCommand& AbstractApduCommand::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
+void AbstractApduCommand::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
     mApduResponse = apduResponse;
 
-    return *this;
+    checkStatus();
 }
 
 const std::shared_ptr<ApduResponseApi> AbstractApduCommand::getApduResponse() const
@@ -120,8 +119,8 @@ bool AbstractApduCommand::isSuccessful() const
 {
     const std::shared_ptr<StatusProperties> props = getStatusWordProperties();
 
-    return props != nullptr && 
-           props->isSuccessful() && 
+    return props != nullptr &&
+           props->isSuccessful() &&
            /* CL-CSS-RESPLE.1 */
            (mLe == 0 || static_cast<int>(mApduResponse->getDataOut().size()) == mLe);
 }
@@ -135,10 +134,10 @@ void AbstractApduCommand::checkStatus()
         if (mLe != 0 && static_cast<int>(mApduResponse->getDataOut().size()) != mLe) {
             throw buildUnexpectedResponseLengthException(
                 StringUtils::format("Incorrect APDU response length (expected: %d, actual: %d)",
-                                    mLe, 
+                                    mLe,
                                     mApduResponse->getDataOut().size()));
         }
-      
+
         /* SW and response length are correct */
         return;
     }

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -116,10 +116,9 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     return STATUS_TABLE;
 }
 
-AbstractSamCommand& CmdSamDataCipher::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdSamDataCipher::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractSamCommand::setApduResponse(apduResponse);
+    AbstractSamCommand::parseApduResponse(apduResponse);
 
     if (apduResponse->getDataOut().size() > 0) {
         if (mSignatureComputationData != nullptr) {
@@ -136,17 +135,10 @@ AbstractSamCommand& CmdSamDataCipher::setApduResponse(
             mSignatureVerificationData->setSignatureValid(
                 Arrays::equals(computedSignature, mSignatureVerificationData->getSignature()));
         }
-    }
 
-    return *this;
-}
-
-void CmdSamDataCipher::checkStatus()
-{
-    AbstractSamCommand::checkStatus();
-
-    if (mSignatureVerificationData != nullptr && !mSignatureVerificationData->isSignatureValid()) {
-        throw CalypsoSamSecurityDataException("Incorrect signature.", getCommandRef(), 0);
+        if (mSignatureVerificationData != nullptr && !mSignatureVerificationData->isSignatureValid()) {
+            throw CalypsoSamSecurityDataException("Incorrect signature.", getCommandRef(), 0);
+        }
     }
 }
 

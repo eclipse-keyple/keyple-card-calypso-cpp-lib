@@ -81,7 +81,7 @@ const std::shared_ptr<SmartCardSpi> CalypsoSamSelectionAdapter::parse(
 
         /* Check the SAM response to the unlock command */
         try {
-            mUnlockCommand->setApduResponse(apduResponse).checkStatus();
+            mUnlockCommand->parseApduResponse(apduResponse);
         } catch (const CalypsoSamAccessForbiddenException& e) {
             (void)e;
             mLogger->warn("SAM not locked or already unlocked\n");

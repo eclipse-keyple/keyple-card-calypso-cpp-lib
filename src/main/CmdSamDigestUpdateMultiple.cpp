@@ -37,7 +37,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamDigestUpdateMultiple::STATUS_TABLE = initStatusTable();
 
 CmdSamDigestUpdateMultiple::CmdSamDigestUpdateMultiple(const CalypsoSam::ProductType productType,
-                                                     const std::vector<uint8_t>& digestData)
+                                                       const std::vector<uint8_t>& digestData)
 : AbstractSamCommand(mCommand, 0)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);

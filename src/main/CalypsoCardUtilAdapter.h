@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -20,6 +20,7 @@
 /* Keyple Card Calypso */
 #include "AbstractCardCommand.h"
 #include "CalypsoCardAdapter.h"
+#include "CardDataAccessException.h"
 #include "CmdCardAppendRecord.h"
 #include "CmdCardChangePin.h"
 #include "CmdCardChangeKey.h"
@@ -155,7 +156,9 @@ private:
      * @throw CardCommandException If needed.
      */
     static void checkResponseStatusForStrictAndBestEffortMode(
-        const std::shared_ptr<AbstractCardCommand> command, const bool isSessionOpen);
+        const std::shared_ptr<AbstractCardCommand> command,
+        const bool isSessionOpen,
+        const CardDataAccessException& e);
 
     /**
      * (private)<br>

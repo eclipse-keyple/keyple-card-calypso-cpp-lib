@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -73,9 +73,9 @@ bool CmdCardSvGet::isSessionBufferUsed() const
     return false;
 }
 
-CmdCardSvGet& CmdCardSvGet::setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdCardSvGet::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractCardCommand::setApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     const std::vector<uint8_t> cardResponse = apduResponse->getDataOut();
 
@@ -114,8 +114,6 @@ CmdCardSvGet& CmdCardSvGet::setApduResponse(const std::shared_ptr<ApduResponseAp
     default:
         throw IllegalStateException("Incorrect data length in response to SVGet");
     }
-
-    return *this;
 }
 
 const std::vector<uint8_t>& CmdCardSvGet::getSvGetCommandHeader() const

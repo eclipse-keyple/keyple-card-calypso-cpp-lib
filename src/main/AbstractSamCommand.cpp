@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -73,16 +73,10 @@ const CalypsoApduCommandException AbstractSamCommand::buildUnexpectedResponseLen
                std::make_shared<int>(getApduResponse()->getStatusWord()));
 }
 
-AbstractSamCommand& AbstractSamCommand::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
-{
-    return dynamic_cast<AbstractSamCommand&>(AbstractApduCommand::setApduResponse(apduResponse));
-}
-
-void AbstractSamCommand::checkStatus()
+void AbstractSamCommand::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
     try {
-        AbstractApduCommand::checkStatus();
+        AbstractApduCommand::parseApduResponse(apduResponse);
     } catch (const CalypsoApduCommandException& e) {
         throw static_cast<const CalypsoSamCommandException&>(e);
     }

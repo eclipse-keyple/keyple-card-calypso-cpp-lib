@@ -86,24 +86,19 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     return STATUS_TABLE;
 }
 
-AbstractSamCommand& CmdSamReadCeilings::setApduResponse(
-    std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdSamReadCeilings::parseApduResponse(std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractSamCommand::setApduResponse(apduResponse);
+    AbstractSamCommand::parseApduResponse(apduResponse);
 
-    if (isSuccessful()) {
-        const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
-        if (mCeilingsOperationType == CeilingsOperationType::READ_SINGLE_CEILING) {
-            mSam->putEventCeiling(dataOut[8], ByteArrayUtil::extractInt(dataOut, 9, 3, false));
-        } else {
-            for (int i = 0; i < 9; i++) {
+    const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+    if (mCeilingsOperationType == CeilingsOperationType::READ_SINGLE_CEILING) {
+        mSam->putEventCeiling(dataOut[8], ByteArrayUtil::extractInt(dataOut, 9, 3, false));
+    } else {
+        for (int i = 0; i < 9; i++) {
             mSam->putEventCeiling(mFirstEventCeilingNumber + i,
                                   ByteArrayUtil::extractInt(dataOut, 8 + (3 * i), 3, false));
-            }
         }
     }
-
-    return *this;
 }
 
 }

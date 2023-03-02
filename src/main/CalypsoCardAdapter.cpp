@@ -139,20 +139,20 @@ void CalypsoCardAdapter::initializeWithFci(
      * CL-SEL-TLVSTRUC.1
      */
     auto cardGetDataFci = std::make_shared<CmdCardGetDataFci>();
-    const auto& cmdCardGetDataFci = cardGetDataFci->setApduResponse(selectApplicationResponse);
+    cardGetDataFci->parseApduResponse(selectApplicationResponse);
 
-    if (!cmdCardGetDataFci.isValidCalypsoFCI()) {
+    if (!cardGetDataFci->isValidCalypsoFCI()) {
         throw IllegalArgumentException("Bad FCI format.");
     }
 
-    mIsDfInvalidated = cmdCardGetDataFci.isDfInvalidated();
+    mIsDfInvalidated = cardGetDataFci->isDfInvalidated();
 
     /* CL-SEL-DATA.1 */
-    mDfName = cmdCardGetDataFci.getDfName();
-    mCalypsoSerialNumber = cmdCardGetDataFci.getApplicationSerialNumber();
+    mDfName = cardGetDataFci->getDfName();
+    mCalypsoSerialNumber = cardGetDataFci->getApplicationSerialNumber();
 
     /* CL-SI-OTHER.1 */
-    mStartupInfo = cmdCardGetDataFci.getDiscretionaryData();
+    mStartupInfo = cardGetDataFci->getDiscretionaryData();
 
     /*
      * CL-SI-ATRFU.1

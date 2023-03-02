@@ -453,8 +453,8 @@ public:
      * @param content the content (should be not empty).
      * @since 2.0.0
      */
-    void setContent(const uint8_t sfi, 
-                    const uint8_t numRecord, 
+    void setContent(const uint8_t sfi,
+                    const uint8_t numRecord,
                     const std::vector<uint8_t>& content);
 
     /**
@@ -632,7 +632,7 @@ public:
     /**
      *
      */
-    friend KEYPLECARDCALYPSO_API std::ostream& operator<<(std::ostream& os, 
+    friend KEYPLECARDCALYPSO_API std::ostream& operator<<(std::ostream& os,
                                                           const CalypsoCardAdapter& cca);
 
     /**
@@ -788,7 +788,7 @@ private:
     std::shared_ptr<bool> mIsDfRatified;
 
     /**
-     * 
+     *
      */
     std::shared_ptr<int> mTransactionCounter = nullptr;
 

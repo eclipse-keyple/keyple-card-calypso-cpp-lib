@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -88,10 +88,9 @@ bool CmdCardCloseSession::isSessionBufferUsed() const
     return false;
 }
 
-CmdCardCloseSession& CmdCardCloseSession::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdCardCloseSession::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractCardCommand::setApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     const std::vector<uint8_t> responseData = getApduResponse()->getDataOut();
 
@@ -146,8 +145,6 @@ CmdCardCloseSession& CmdCardCloseSession::setApduResponse(
             mPostponedData = std::vector<uint8_t>(0);
         }
     }
-
-    return *this;
 }
 
 const std::vector<uint8_t>& CmdCardCloseSession::getSignatureLo() const

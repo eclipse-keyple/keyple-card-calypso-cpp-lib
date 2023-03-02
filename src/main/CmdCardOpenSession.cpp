@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -252,10 +252,9 @@ uint8_t CmdCardOpenSession::getRecordNumber() const
     return mRecordNumber;
 }
 
-CmdCardOpenSession& CmdCardOpenSession::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdCardOpenSession::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractCardCommand::setApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     const std::vector<uint8_t> dataOut = getApduResponse()->getDataOut();
     if (dataOut.size() > 0) {
@@ -270,8 +269,6 @@ CmdCardOpenSession& CmdCardOpenSession::setApduResponse(
                 parseRev3(dataOut);
         }
     }
-
-    return *this;
 }
 
 void CmdCardOpenSession::parseRev3(const std::vector<uint8_t>& apduResponseData)

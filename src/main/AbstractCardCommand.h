@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -32,7 +32,7 @@ public:
      * (package-private)<br>
      * Constructor dedicated for the building of referenced Calypso commands
      *
-     * @param commandRef a command reference from the Calypso command table. 
+     * @param commandRef a command reference from the Calypso command table.
      * @param le The value of the LE field.
      * @since 2.0.1
      */
@@ -77,15 +77,7 @@ public:
      *
      * @since 2.0.1
      */
-    AbstractCardCommand& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
-        override;
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.0.1
-     */
-    void checkStatus() override;
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 };
 
 }

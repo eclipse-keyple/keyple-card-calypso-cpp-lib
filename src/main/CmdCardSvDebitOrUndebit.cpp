@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -147,17 +147,14 @@ bool CmdCardSvDebitOrUndebit::isSessionBufferUsed() const
     return true;
 }
 
-CmdCardSvDebitOrUndebit& CmdCardSvDebitOrUndebit::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdCardSvDebitOrUndebit::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractCardCommand::setApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
     if (dataOut.size() != 0 && dataOut.size() != 3 && dataOut.size() != 6) {
         throw IllegalStateException("Bad length in response to SV Debit/Undebit command.");
     }
-
-    return *this;
 }
 
 const std::vector<uint8_t> CmdCardSvDebitOrUndebit::getSignatureLo() const

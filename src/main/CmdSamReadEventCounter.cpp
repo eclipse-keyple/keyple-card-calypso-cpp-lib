@@ -83,10 +83,9 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     return STATUS_TABLE;
 }
 
-AbstractSamCommand& CmdSamReadEventCounter::setApduResponse(
-    std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdSamReadEventCounter::parseApduResponse(std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractSamCommand::setApduResponse(apduResponse);
+    AbstractSamCommand::parseApduResponse(apduResponse);
 
     if (isSuccessful()) {
         const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
@@ -99,8 +98,6 @@ AbstractSamCommand& CmdSamReadEventCounter::setApduResponse(
             }
         }
     }
-
-    return *this;
 }
 
 }

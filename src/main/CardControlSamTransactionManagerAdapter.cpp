@@ -352,7 +352,7 @@ void CardControlSamTransactionManagerAdapter::DigestManager::prepareDigestUpdate
          * Digest Update Multiple
          * Construct list of DataIn
          */
-        std::vector<std::vector<uint8_t>> digestDataList(1);
+        std::vector<std::vector<uint8_t>> digestDataList;
         std::vector<uint8_t> buffer(255);
         int i = 0;
 

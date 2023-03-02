@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -142,7 +142,7 @@ public:
      * (package-private)<br>
      * Appends a string to the current name.
      *
-     * <p>The sub name completes the name of the current command. This method must therefore 
+     * <p>The sub name completes the name of the current command. This method must therefore
      * only be invoked conditionally (log level &gt;= debug).
      *
      * @param subName The string to append.
@@ -189,13 +189,14 @@ public:
 
     /**
      * (package-private)<br>
-     * Sets the command {@link ApduResponseApi}.
+     * Parses the response ApduResponseApi and check the status word.
      *
      * @param apduResponse The APDU response.
-     * @return The current instance.
+     * @throw CalypsoApduCommandException if status is not successful or if the length of the
+     *        response is not equal to the LE field in the request.
      * @since 2.0.1
      */
-    virtual AbstractApduCommand& setApduResponse(
+    virtual void parseApduResponse(
         const std::shared_ptr<ApduResponseApi> apduResponse);
 
     /**
@@ -220,7 +221,7 @@ public:
     /**
      * (package-private)<br>
      * Builds a specific APDU command exception.
-     * 
+     *
      * @param message The message.
      * @return A not null reference.
      * @return A not null value
@@ -252,18 +253,6 @@ public:
 
     /**
      * (package-private)<br>
-     * This method check the status word and if the length of the response is equal to the LE field
-     * in the request.<br>
-     * If status word is not referenced, then status is considered unsuccessful.
-     *
-     * @throw CalypsoApduCommandException if status is not successful or if the length of the
-     *        response is not equal to the LE field in the request.
-     * @since 2.0.1
-     */
-    virtual void checkStatus();
-
-    /**
-     * (package-private)<br>
      * Gets the ASCII message from the statusTable for the current status word.
      *
      * @return A nullable value
@@ -278,7 +267,7 @@ private:
     const CardCommand& mCommandRef;
 
     /**
-     * 
+     *
      */
     const int mLe;
 
@@ -304,6 +293,17 @@ private:
      * @throws NullPointerException If the response is not set.
      */
     virtual const std::shared_ptr<StatusProperties> getStatusWordProperties() const;
+
+    /**
+     * (private)<br>
+     * This method check the status word and if the length of the response is equal to the LE field
+     * in the request.<br>
+     * If status word is not referenced, then status is considered unsuccessful.
+     *
+     * @throw CalypsoApduCommandException if status is not successful or if the length of the
+     *        response is not equal to the LE field in the request.
+     */
+    virtual void checkStatus();
 };
 
 }

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -112,10 +112,9 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     return STATUS_TABLE;
 }
 
-CmdCardReadRecords& CmdCardReadRecords::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdCardReadRecords::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractCardCommand::setApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     if (apduResponse->getDataOut().size() > 0) {
         if (mReadMode == CmdCardReadRecords::ReadMode::ONE_RECORD) {
@@ -133,8 +132,6 @@ CmdCardReadRecords& CmdCardReadRecords::setApduResponse(
             }
         }
     }
-
-    return *this;
 }
 
 uint8_t CmdCardReadRecords::getSfi() const

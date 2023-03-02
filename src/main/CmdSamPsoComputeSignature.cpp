@@ -49,7 +49,7 @@ CmdSamPsoComputeSignature::CmdSamPsoComputeSignature(
     /* DataIn */
     const int messageOffset = data->isSamTraceabilityMode() ? 6 : 4;
     const int messageSize = static_cast<int>(data->getData().size());
-    std::vector<uint8_t> dataIn(static_cast<uint64_t>(messageOffset) + 
+    std::vector<uint8_t> dataIn(static_cast<uint64_t>(messageOffset) +
                                 static_cast<uint64_t>(messageSize));
 
     /* SignKeyNum: Selection of the key by KIF and KVC given in the incoming data */
@@ -98,10 +98,10 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     return STATUS_TABLE;
 }
 
-AbstractSamCommand& CmdSamPsoComputeSignature::setApduResponse(
-        const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdSamPsoComputeSignature::parseApduResponse(
+    const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractSamCommand::setApduResponse(apduResponse);
+    AbstractSamCommand::parseApduResponse(apduResponse);
 
     if (static_cast<int>(apduResponse->getDataOut().size()) > 0) {
         if (mData->isSamTraceabilityMode()) {
@@ -117,8 +117,6 @@ AbstractSamCommand& CmdSamPsoComputeSignature::setApduResponse(
                 apduResponse->getDataOut().size() - mData->getSignatureSize(),
                 apduResponse->getDataOut().size()));
     }
-
-    return *this;
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

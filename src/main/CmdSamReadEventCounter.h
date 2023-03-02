@@ -79,7 +79,7 @@ public:
      *
      * @since 2.2.3
      */
-    AbstractSamCommand& setApduResponse(std::shared_ptr<ApduResponseApi> apduResponse) override;
+    void parseApduResponse(std::shared_ptr<ApduResponseApi> apduResponse) override;
 
 private:
     /**

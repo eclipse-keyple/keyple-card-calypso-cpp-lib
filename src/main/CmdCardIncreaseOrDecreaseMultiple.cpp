@@ -1,6 +1,6 @@
 
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -42,7 +42,7 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
   const uint8_t sfi,
   const std::map<const int, const int> counterNumberToIncDecValueMap)
 : AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE_MULTIPLE :
-                                          CalypsoCardCommand::INCREASE_MULTIPLE, 
+                                          CalypsoCardCommand::INCREASE_MULTIPLE,
                       0),
   mSfi(sfi),
   mCounterNumberToIncDecValueMap(counterNumberToIncDecValueMap)
@@ -133,10 +133,10 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     return STATUS_TABLE;
 }
 
-CmdCardIncreaseOrDecreaseMultiple& CmdCardIncreaseOrDecreaseMultiple::setApduResponse(
+void CmdCardIncreaseOrDecreaseMultiple::parseApduResponse(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractCardCommand::setApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     if (apduResponse->getDataOut().size() > 0) {
         const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
@@ -146,8 +146,6 @@ CmdCardIncreaseOrDecreaseMultiple& CmdCardIncreaseOrDecreaseMultiple::setApduRes
                                      Arrays::copyOfRange(dataOut, (i * 4) + 1, (i * 4) + 4)});
         }
     }
-
-    return *this;
 }
 
 uint8_t CmdCardIncreaseOrDecreaseMultiple::getSfi() const

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -40,7 +40,7 @@ const CalypsoCardCommand& AbstractCardCommand::getCommandRef() const
 }
 
 const CalypsoApduCommandException AbstractCardCommand::buildCommandException(
-    const std::type_info& exceptionClass, const std::string& message) const 
+    const std::type_info& exceptionClass, const std::string& message) const
 {
     const auto& command = getCommandRef();
     const auto statusWord = std::make_shared<int>(getApduResponse()->getStatusWord());
@@ -74,24 +74,14 @@ const CalypsoApduCommandException AbstractCardCommand::buildUnexpectedResponseLe
     const std::string& message) const
 {
     return CardUnexpectedResponseLengthException(
-               message, 
-               getCommandRef(), 
+               message,
+               getCommandRef(),
                std::make_shared<int>(getApduResponse()->getStatusWord()));
   }
 
-AbstractCardCommand& AbstractCardCommand::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
+void AbstractCardCommand::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    return dynamic_cast<AbstractCardCommand&>(AbstractApduCommand::setApduResponse(apduResponse));
-}
-
-void AbstractCardCommand::checkStatus()
-{
-    try {
-        AbstractApduCommand::checkStatus();
-    } catch (CalypsoApduCommandException& e) {
-        throw reinterpret_cast<CardCommandException&>(e);
-    }
+    AbstractApduCommand::parseApduResponse(apduResponse);
 }
 
 }

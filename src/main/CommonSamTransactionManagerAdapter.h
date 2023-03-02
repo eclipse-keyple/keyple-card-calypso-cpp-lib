@@ -422,7 +422,7 @@ public:
             */
             for (int i = 0; i < static_cast<int>(apduResponses.size()); i++) {
                 try {
-                    mSamCommands[i]->setApduResponse(apduResponses[i]).checkStatus();
+                    mSamCommands[i]->parseApduResponse(apduResponses[i]);
 
                 } catch (const Exception& ex) {
                     /*

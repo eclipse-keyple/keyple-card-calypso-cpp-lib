@@ -578,6 +578,8 @@ TEST(CardTransactionManagerAdapterTest,
     EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
+
     tearDown();
 }
 
@@ -784,10 +786,12 @@ TEST(CardTransactionManagerAdapterTest,
     std::shared_ptr<CardResponseApi> samCardResponse2 =
         createCardResponse({SW1SW2_OK_RSP});
 
-    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
-    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponseRead));
-    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponseClose));
-    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse2));
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _))
+        .WillOnce(Return(samCardResponse))
+        .WillOnce(Return(samCardResponse2));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _))
+        .WillOnce(Return(cardCardResponseRead))
+        .WillOnce(Return(cardCardResponseClose));
 
     cardTransactionManager->prepareReadRecords(FILE7, 1, 1, 29);
     cardTransactionManager->processClosing();
@@ -831,14 +835,16 @@ TEST(CardTransactionManagerAdapterTest,
         createCardResponse({CARD_CLOSE_SECURE_SESSION_RSP});
 
     std::shared_ptr<CardRequestSpi> samCardRequest2 =
-        createCardRequest({ SAM_DIGEST_AUTHENTICATE_CMD});
+        createCardRequest({SAM_DIGEST_AUTHENTICATE_CMD});
     std::shared_ptr<CardResponseApi> samCardResponse2 =
         createCardResponse({SW1SW2_OK_RSP});
 
-    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
-    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponseRead));
-    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponseClose));
-    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse2));
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _))
+        .WillOnce(Return(samCardResponse))
+        .WillOnce(Return(samCardResponse2));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _))
+        .WillOnce(Return(cardCardResponseRead))
+        .WillOnce(Return(cardCardResponseClose));
 
     cardTransactionManager->prepareReadRecords(FILE7, 1, 1, 29);
     cardTransactionManager->processClosing();

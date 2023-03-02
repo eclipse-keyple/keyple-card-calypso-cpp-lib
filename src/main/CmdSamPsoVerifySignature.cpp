@@ -50,8 +50,8 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
     const int messageOffset = data->isSamTraceabilityMode() ? 6 : 4;
     const int messageSize = static_cast<int>(data->getData().size());
     const int signatureSize = static_cast<int>(data->getSignature().size());
-    std::vector<uint8_t> dataIn(static_cast<uint64_t>(messageOffset) + 
-                                static_cast<uint64_t>(messageSize) + 
+    std::vector<uint8_t> dataIn(static_cast<uint64_t>(messageOffset) +
+                                static_cast<uint64_t>(messageSize) +
                                 static_cast<uint64_t>(signatureSize));
 
     /* SignKeyNum: Selection of the key by KIF and KVC given in the incoming data */
@@ -101,18 +101,16 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
     setApduRequest(std::make_shared<ApduRequestAdapter>(ApduUtil::build(cla, ins, p1, p2, dataIn)));
 }
 
-AbstractSamCommand& CmdSamPsoVerifySignature::setApduResponse(
-        const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdSamPsoVerifySignature::parseApduResponse(
+    const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractSamCommand::setApduResponse(apduResponse);
-
-    if (isSuccessful()) {
+    try {
+        AbstractSamCommand::parseApduResponse(apduResponse);
         mData->setSignatureValid(true);
-    } else if (apduResponse->getStatusWord() == 0x6988) {
+    } catch(const CalypsoSamSecurityDataException& e) {
         mData->setSignatureValid(false);
+        throw static_cast<const CalypsoSamCommandException&>(e);
     }
-
-    return *this;
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>&

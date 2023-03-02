@@ -55,10 +55,9 @@ bool CmdCardGetDataFci::isSessionBufferUsed() const
     return false;
 }
 
-CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
-    const std::shared_ptr<ApduResponseApi> apduResponse)
+void CmdCardGetDataFci::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    AbstractCardCommand::setApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     /*
      * Check the command status to determine if the DF has been invalidated
@@ -86,7 +85,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
         auto it = tags.find(TAG_DF_NAME);
         if (it == tags.end()) {
             mLogger->error("DF name tag (84h) not found\n");
-            return *this;
+            return;
         }
 
         mDfName = it->second;
@@ -94,7 +93,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
         if (mDfName.size() < 5 || mDfName.size() > 16) {
             mLogger->error("Invalid DF name length: %. Should be between 5 and 16\n",
                            mDfName.size());
-            return *this;
+            return;
         }
 
         mLogger->debug("DF name = %\n", HexUtil::toHex(mDfName));
@@ -102,7 +101,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
         it = tags.find(TAG_APPLICATION_SERIAL_NUMBER);
         if (it == tags.end()) {
             mLogger->error("Serial Number tag (C7h) not found\n");
-            return *this;
+            return;
         }
 
         mApplicationSN = it->second;
@@ -111,7 +110,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
         if (mApplicationSN.size() != 8) {
             mLogger->error("Invalid application serial number length: %. Should be 8\n",
                            mApplicationSN.size());
-            return *this;
+            return;
         }
 
         mLogger->debug("Application Serial Number = %\n", HexUtil::toHex(mApplicationSN));
@@ -119,7 +118,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
         it = tags.find(TAG_DISCRETIONARY_DATA);
         if (it == tags.end()) {
             mLogger->error("Discretionary data tag (53h) not found\n");
-            return *this;
+            return;
         }
 
         mDiscretionaryData = it->second;
@@ -127,7 +126,7 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
         if (mDiscretionaryData.size() < 7) {
             mLogger->error("Invalid startup info length: %. Should be >= 7\n",
                            mDiscretionaryData.size());
-            return *this;
+            return;
         }
 
         mLogger->debug("Discretionary Data = %\n", HexUtil::toHex(mDiscretionaryData));
@@ -139,8 +138,6 @@ CmdCardGetDataFci& CmdCardGetDataFci::setApduResponse(
         /* Silently ignore problems decoding TLV structure. Just log. */
         mLogger->debug("Error while parsing the FCI BER-TLV data structure (%)\n", e.getMessage());
     }
-
-    return *this;
 }
 
 bool CmdCardGetDataFci::isValidCalypsoFCI() const

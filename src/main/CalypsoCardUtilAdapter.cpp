@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -215,7 +215,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardOpenSession(
     std::shared_ptr<CmdCardOpenSession> cmdCardOpenSession,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardOpenSession->setApduResponse(apduResponse).checkStatus();
+    cmdCardOpenSession->parseApduResponse(apduResponse);
 
     /* CL-CSS-INFORAT.1 */
     calypsoCard->setDfRatified(cmdCardOpenSession->wasRatified());
@@ -235,7 +235,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardCloseSession(
     std::shared_ptr<CmdCardCloseSession> cmdCardCloseSession,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardCloseSession->setApduResponse(apduResponse).checkStatus();
+    cmdCardCloseSession->parseApduResponse(apduResponse);
 }
 
 void CalypsoCardUtilAdapter::updateCalypsoCardReadRecords(
@@ -244,8 +244,11 @@ void CalypsoCardUtilAdapter::updateCalypsoCardReadRecords(
     const std::shared_ptr<ApduResponseApi> apduResponse,
     const bool isSessionOpen)
 {
-    cmdCardReadRecords->setApduResponse(apduResponse);
-    checkResponseStatusForStrictAndBestEffortMode(cmdCardReadRecords, isSessionOpen);
+    try {
+        cmdCardReadRecords->parseApduResponse(apduResponse);
+    } catch (const CardDataAccessException& e) {
+        checkResponseStatusForStrictAndBestEffortMode(cmdCardReadRecords, isSessionOpen, e);
+    }
 
     /* Iterate over read records to fill the CalypsoCard */
     for (const auto& entry : cmdCardReadRecords->getRecords()) {
@@ -254,22 +257,20 @@ void CalypsoCardUtilAdapter::updateCalypsoCardReadRecords(
 }
 
 void CalypsoCardUtilAdapter::checkResponseStatusForStrictAndBestEffortMode(
-    const std::shared_ptr<AbstractCardCommand> command, const bool isSessionOpen)
+    const std::shared_ptr<AbstractCardCommand> command,
+    const bool isSessionOpen,
+    const CardDataAccessException& e)
 {
     if (isSessionOpen) {
-        command->checkStatus();
+        throw e;
     } else {
-        try {
-            command->checkStatus();
-        } catch (const CardDataAccessException& e) {
-            /*
-             * Best effort mode, do not throw exception for "file not found" and "record not found"
-             * errors.
-             */
-            if (command->getApduResponse()->getStatusWord() != 0x6A82 &&
-                command->getApduResponse()->getStatusWord() != 0x6A83) {
-                throw e;
-            }
+        /*
+         * Best effort mode, do not throw exception for "file not found" and "record not found"
+         * errors.
+         */
+        if (command->getApduResponse()->getStatusWord() != 0x6A82 &&
+            command->getApduResponse()->getStatusWord() != 0x6A83) {
+            throw e;
         }
     }
 }
@@ -281,8 +282,13 @@ void CalypsoCardUtilAdapter::updateCalypsoCardSearchRecordMultiple(
     const bool isSessionOpen)
 {
 
-    cmdCardSearchRecordMultiple->setApduResponse(apduResponse);
-    checkResponseStatusForStrictAndBestEffortMode(cmdCardSearchRecordMultiple, isSessionOpen);
+    try {
+        cmdCardSearchRecordMultiple->parseApduResponse(apduResponse);
+    } catch (const CardDataAccessException& e) {
+        checkResponseStatusForStrictAndBestEffortMode(cmdCardSearchRecordMultiple,
+                                                      isSessionOpen,
+                                                      e);
+    }
 
     if (cmdCardSearchRecordMultiple->getFirstMatchingRecordContent().size() > 0) {
         calypsoCard->setContent(
@@ -298,8 +304,11 @@ void CalypsoCardUtilAdapter::updateCalypsoCardReadRecordMultiple(
     const std::shared_ptr<ApduResponseApi> apduResponse,
     const bool isSessionOpen)
 {
-    cmdCardReadRecordMultiple->setApduResponse(apduResponse);
-    checkResponseStatusForStrictAndBestEffortMode(cmdCardReadRecordMultiple, isSessionOpen);
+    try {
+        cmdCardReadRecordMultiple->parseApduResponse(apduResponse);
+    } catch (const CardDataAccessException& e) {
+        checkResponseStatusForStrictAndBestEffortMode(cmdCardReadRecordMultiple, isSessionOpen, e);
+    }
 
     for (const auto& entry : cmdCardReadRecordMultiple->getResults()) {
         calypsoCard->setContent(cmdCardReadRecordMultiple->getSfi(),
@@ -316,8 +325,11 @@ void CalypsoCardUtilAdapter::updateCalypsoCardReadBinary(
     const bool isSessionOpen)
 {
 
-    cmdCardReadBinary->setApduResponse(apduResponse);
-    checkResponseStatusForStrictAndBestEffortMode(cmdCardReadBinary, isSessionOpen);
+    try {
+        cmdCardReadBinary->parseApduResponse(apduResponse);
+    } catch (const CardDataAccessException& e) {
+        checkResponseStatusForStrictAndBestEffortMode(cmdCardReadBinary, isSessionOpen, e);
+    }
 
     calypsoCard->setContent(cmdCardReadBinary->getSfi(),
                             1,
@@ -331,7 +343,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardWithFcp(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
 
-    command->setApduResponse(apduResponse).checkStatus();
+    command->parseApduResponse(apduResponse);
 
     std::vector<uint8_t> proprietaryInformation;
     if (command->getCommandRef() == CalypsoCardCommand::SELECT_FILE) {
@@ -363,7 +375,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardWithEfList(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
 
-    command->setApduResponse(apduResponse).checkStatus();
+    command->parseApduResponse(apduResponse);
 
     const std::map<const std::shared_ptr<FileHeaderAdapter>, const uint8_t> fileHeaderToSfiMap =
         command->getEfHeaders();
@@ -379,7 +391,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardWithTraceabilityInformation(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
 
-    command->setApduResponse(apduResponse).checkStatus();
+    command->parseApduResponse(apduResponse);
 
     calypsoCard->setTraceabilityInformation(apduResponse->getDataOut());
 }
@@ -389,7 +401,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardUpdateRecord(
     std::shared_ptr<CmdCardUpdateRecord> cmdCardUpdateRecord,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardUpdateRecord->setApduResponse(apduResponse).checkStatus();
+    cmdCardUpdateRecord->parseApduResponse(apduResponse);
 
     calypsoCard->setContent(cmdCardUpdateRecord->getSfi(),
                             cmdCardUpdateRecord->getRecordNumber(),
@@ -402,7 +414,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardWriteRecord(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
 
-    cmdCardWriteRecord->setApduResponse(apduResponse).checkStatus();
+    cmdCardWriteRecord->parseApduResponse(apduResponse);
 
     calypsoCard->fillContent(cmdCardWriteRecord->getSfi(),
                              cmdCardWriteRecord->getRecordNumber(),
@@ -415,7 +427,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardUpdateBinary(
     std::shared_ptr<CmdCardUpdateOrWriteBinary> cmdCardUpdateBinary,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardUpdateBinary->setApduResponse(apduResponse).checkStatus();
+    cmdCardUpdateBinary->parseApduResponse(apduResponse);
 
     calypsoCard->setContent(cmdCardUpdateBinary->getSfi(),
                             1,
@@ -428,7 +440,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardWriteBinary(
     std::shared_ptr<CmdCardUpdateOrWriteBinary> cmdCardWriteBinary,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardWriteBinary->setApduResponse(apduResponse).checkStatus();
+    cmdCardWriteBinary->parseApduResponse(apduResponse);
 
     calypsoCard->fillContent(cmdCardWriteBinary->getSfi(),
                              1,
@@ -441,7 +453,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardAppendRecord(
     std::shared_ptr<CmdCardAppendRecord> cmdCardAppendRecord,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardAppendRecord->setApduResponse(apduResponse).checkStatus();
+    cmdCardAppendRecord->parseApduResponse(apduResponse);
 
     calypsoCard->addCyclicContent(cmdCardAppendRecord->getSfi(), cmdCardAppendRecord->getData());
 }
@@ -452,7 +464,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardIncreaseOrDecrease(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
 
-    cmdCardIncreaseOrDecrease->setApduResponse(apduResponse).checkStatus();
+    cmdCardIncreaseOrDecrease->parseApduResponse(apduResponse);
 
     calypsoCard->setCounter(cmdCardIncreaseOrDecrease->getSfi(),
                             cmdCardIncreaseOrDecrease->getCounterNumber(),
@@ -465,7 +477,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardIncreaseOrDecreaseMultiple(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
 
-    cmdCardIncreaseOrDecreaseMultiple->setApduResponse(apduResponse).checkStatus();
+    cmdCardIncreaseOrDecreaseMultiple->parseApduResponse(apduResponse);
 
     for (const auto& entry : cmdCardIncreaseOrDecreaseMultiple->getNewCounterValues()) {
         calypsoCard->setCounter(cmdCardIncreaseOrDecreaseMultiple->getSfi(),
@@ -479,7 +491,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardGetChallenge(
     std::shared_ptr<CmdCardGetChallenge> cmdCardGetChallenge,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardGetChallenge->setApduResponse(apduResponse).checkStatus();
+    cmdCardGetChallenge->parseApduResponse(apduResponse);
     calypsoCard->setCardChallenge(cmdCardGetChallenge->getCardChallenge());
 }
 
@@ -488,34 +500,38 @@ void CalypsoCardUtilAdapter::updateCalypsoVerifyPin(
     std::shared_ptr<CmdCardVerifyPin> cmdCardVerifyPin,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardVerifyPin->setApduResponse(apduResponse);
-    calypsoCard->setPinAttemptRemaining(cmdCardVerifyPin->getRemainingAttemptCounter());
-
     try {
-        cmdCardVerifyPin->checkStatus();
+        cmdCardVerifyPin->parseApduResponse(apduResponse);
+
     } catch (const CardPinException& ex) {
         /*
-         * Forward the exception if the operation do not target the reading of the attempt counter.
-         * Catch it silently otherwise
-         */
+            * Forward the exception if the operation do not target the reading of the attempt
+            * counter.
+            * Catch it silently otherwise
+            * */
         if (!cmdCardVerifyPin->isReadCounterOnly()) {
             throw ex;
         }
+    } catch (const Exception& e) {
+        /* Do nothing, go to finally */
     }
+
+    /* Finally */
+    calypsoCard->setPinAttemptRemaining(cmdCardVerifyPin->getRemainingAttemptCounter());
 }
 
 void CalypsoCardUtilAdapter::updateCalypsoChangePin(
     std::shared_ptr<CmdCardChangePin> cmdCardChangePin,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardChangePin->setApduResponse(apduResponse).checkStatus();
+    cmdCardChangePin->parseApduResponse(apduResponse);
 }
 
 void CalypsoCardUtilAdapter::updateCalypsoChangeKey(
     std::shared_ptr<CmdCardChangeKey> cmdCardChangeKey,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardChangeKey->setApduResponse(apduResponse).checkStatus();
+    cmdCardChangeKey->parseApduResponse(apduResponse);
 }
 
 void CalypsoCardUtilAdapter::updateCalypsoCardSvGet(
@@ -523,7 +539,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardSvGet(
     std::shared_ptr<CmdCardSvGet> cmdCardSvGet,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardSvGet->setApduResponse(apduResponse).checkStatus();
+    cmdCardSvGet->parseApduResponse(apduResponse);
 
     calypsoCard->setSvData(cmdCardSvGet->getCurrentKVC(),
                            cmdCardSvGet->getSvGetCommandHeader(),
@@ -539,7 +555,7 @@ void CalypsoCardUtilAdapter::updateCalypsoCardSvOperation(
     std::shared_ptr<AbstractCardCommand> cmdCardSvOperation,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardSvOperation->setApduResponse(apduResponse).checkStatus();
+    cmdCardSvOperation->parseApduResponse(apduResponse);
     calypsoCard->setSvOperationSignature(cmdCardSvOperation->getApduResponse()->getDataOut());
 }
 
@@ -547,7 +563,7 @@ void CalypsoCardUtilAdapter::updateCalypsoInvalidateRehabilitate(
     std::shared_ptr<AbstractCardCommand> cmdCardInvalidateRehabilitate,
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    cmdCardInvalidateRehabilitate->setApduResponse(apduResponse).checkStatus();
+    cmdCardInvalidateRehabilitate->parseApduResponse(apduResponse);
 }
 
 const std::shared_ptr<DirectoryHeader> CalypsoCardUtilAdapter::createDirectoryHeader(

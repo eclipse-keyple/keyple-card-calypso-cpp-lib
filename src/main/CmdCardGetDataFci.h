@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -74,12 +74,12 @@ public:
      * {@inheritDoc}
      *
      * <p>The expected FCI structure of a Calypso card follows this scheme: <code>
-     * T=6F L=XX (C)                FCI Template
-     *      T=84 L=XX (P)           DF Name
-     *      T=A5 L=22 (C)           FCI Proprietary Template
-     *           T=BF0C L=19 (C)    FCI Issuer Discretionary Data
-     *                T=C7 L=8 (P)  Application Serial Number
-     *                T=53 L=7 (P)  Discretionary Data (Startup Information)
+     * T=6F L=XX (C)    FCI Template
+     * T=84 L=XX (P)    DF Name
+     * T=A5 L=22 (C)    FCI Proprietary Template
+     * T=BF0C L=19 (C)  FCI Issuer Discretionary Data
+     * T=C7 L=8 (P)     Application Serial Number
+     * T=53 L=7 (P)     Discretionary Data (Startup Information)
      * </code>
      *
      * <p>The ApduResponseApi provided in argument is parsed according to the above expected
@@ -94,8 +94,7 @@ public:
      *
      * @since 2.0.1
      */
-    CmdCardGetDataFci& setApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
-        override;
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
      * (package-private)<br>
