@@ -100,19 +100,19 @@ Collaboration diagram for keyple::card::calypso::CmdSamReadEventCounter:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:ada0e5c56672fffac342d9522da57e86d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#ada0e5c56672fffac342d9522da57e86d">SamEventCounterOperationType</a> { <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#ada0e5c56672fffac342d9522da57e86da66f34897d6ec1aa23398184261fe84f1">COUNTER_RECORD</a>
-, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#ada0e5c56672fffac342d9522da57e86daac7216531f27b79229f69db963d703b4">SINGLE_COUNTER</a>
+<tr class="memitem:a1ce4a88122a1686d9d5152b4fa3a7454"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a1ce4a88122a1686d9d5152b4fa3a7454">CounterOperationType</a> { <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a1ce4a88122a1686d9d5152b4fa3a7454a98dba8caae0607d3e8a3a357f0beea7c">READ_SINGLE_COUNTER</a>
+, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a1ce4a88122a1686d9d5152b4fa3a7454a76662bc9cb24e234cecf0c5891ba5939">READ_COUNTER_RECORD</a>
  }</td></tr>
-<tr class="separator:ada0e5c56672fffac342d9522da57e86d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a1ce4a88122a1686d9d5152b4fa3a7454"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a893561100924652468d201fb2f34fa0d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a893561100924652468d201fb2f34fa0d">CmdSamReadEventCounter</a> (const CalypsoSam::ProductType productType, const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#ada0e5c56672fffac342d9522da57e86d">SamEventCounterOperationType</a> operationType, const int index)</td></tr>
-<tr class="separator:a893561100924652468d201fb2f34fa0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:add01be95434e92a697dc30c01ffd9c07"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#add01be95434e92a697dc30c01ffd9c07">getCounterData</a> () const</td></tr>
-<tr class="separator:add01be95434e92a697dc30c01ffd9c07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a4905b02a01d5d599e3cc314c1bfc5e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a4a4905b02a01d5d599e3cc314c1bfc5e">CmdSamReadEventCounter</a> (std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_sam_adapter.html">CalypsoSamAdapter</a> &gt; sam, const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a1ce4a88122a1686d9d5152b4fa3a7454">CounterOperationType</a> counterOperationType, const int target)</td></tr>
+<tr class="separator:a4a4905b02a01d5d599e3cc314c1bfc5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a522fe7d7801549e17f6e65da78b90628"><td class="memItemLeft" align="right" valign="top">const std::map&lt; const int, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command_1_1_status_properties.html">StatusProperties</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a522fe7d7801549e17f6e65da78b90628">getStatusTable</a> () const override</td></tr>
 <tr class="separator:a522fe7d7801549e17f6e65da78b90628"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2279f956133ddf4fb4c12ef5c8e91ea5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a2279f956133ddf4fb4c12ef5c8e91ea5">parseApduResponse</a> (std::shared_ptr&lt; ApduResponseApi &gt; apduResponse) override</td></tr>
+<tr class="separator:a2279f956133ddf4fb4c12ef5c8e91ea5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html">keyple::card::calypso::AbstractSamCommand</a></td></tr>
 <tr class="memitem:aa9b8cfe8897bbca9d7b59f3ab2a53b41 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html#aa9b8cfe8897bbca9d7b59f3ab2a53b41">AbstractSamCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_sam_command.html">CalypsoSamCommand</a> &amp;commandRef, const int le)</td></tr>
 <tr class="separator:aa9b8cfe8897bbca9d7b59f3ab2a53b41 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -122,10 +122,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0e14bca45691f504756ca6110634d9f2 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1430d2c81eb17fa7b3df841c6fc542bd inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_apdu_command_exception.html">CalypsoApduCommandException</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html#a1430d2c81eb17fa7b3df841c6fc542bd">buildUnexpectedResponseLengthException</a> (const std::string &amp;message) const final</td></tr>
 <tr class="separator:a1430d2c81eb17fa7b3df841c6fc542bd inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a0f122318bae34dcf601488ab27ae75 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html">AbstractSamCommand</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html#a1a0f122318bae34dcf601488ab27ae75">setApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse) override</td></tr>
-<tr class="separator:a1a0f122318bae34dcf601488ab27ae75 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a2d594c9e715310932d4bab68c338e2 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html#a3a2d594c9e715310932d4bab68c338e2">checkStatus</a> () override</td></tr>
-<tr class="separator:a3a2d594c9e715310932d4bab68c338e2 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html">keyple::card::calypso::AbstractApduCommand</a></td></tr>
 <tr class="memitem:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a4b11901db3fff8eb5555f395c8934b11">AbstractApduCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_card_command.html">CardCommand</a> &amp;commandRef, const int le)</td></tr>
 <tr class="separator:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -158,34 +154,34 @@ Additional Inherited Members</h2></td></tr>
  Builds the Read Event Counter APDU command.</p>
 <dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8h_source.html#l00037">37</a> of file <a class="el" href="_cmd_sam_read_event_counter_8h_source.html">CmdSamReadEventCounter.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8h_source.html#l00038">38</a> of file <a class="el" href="_cmd_sam_read_event_counter_8h_source.html">CmdSamReadEventCounter.h</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
-<a id="ada0e5c56672fffac342d9522da57e86d" name="ada0e5c56672fffac342d9522da57e86d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ada0e5c56672fffac342d9522da57e86d">&#9670;&nbsp;</a></span>SamEventCounterOperationType</h2>
+<a id="a1ce4a88122a1686d9d5152b4fa3a7454" name="a1ce4a88122a1686d9d5152b4fa3a7454"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ce4a88122a1686d9d5152b4fa3a7454">&#9670;&nbsp;</a></span>CounterOperationType</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#ada0e5c56672fffac342d9522da57e86d">keyple::card::calypso::CmdSamReadEventCounter::SamEventCounterOperationType</a></td>
+          <td class="memname">enum <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a1ce4a88122a1686d9d5152b4fa3a7454">keyple::card::calypso::CmdSamReadEventCounter::CounterOperationType</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p >Event counter operation type </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ada0e5c56672fffac342d9522da57e86da66f34897d6ec1aa23398184261fe84f1" name="ada0e5c56672fffac342d9522da57e86da66f34897d6ec1aa23398184261fe84f1"></a>COUNTER_RECORD&#160;</td><td class="fielddoc"><p >Counter record </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a1ce4a88122a1686d9d5152b4fa3a7454a98dba8caae0607d3e8a3a357f0beea7c" name="a1ce4a88122a1686d9d5152b4fa3a7454a98dba8caae0607d3e8a3a357f0beea7c"></a>READ_SINGLE_COUNTER&#160;</td><td class="fielddoc"><p >Single counter </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ada0e5c56672fffac342d9522da57e86daac7216531f27b79229f69db963d703b4" name="ada0e5c56672fffac342d9522da57e86daac7216531f27b79229f69db963d703b4"></a>SINGLE_COUNTER&#160;</td><td class="fielddoc"><p >Single counter </p>
+<tr><td class="fieldname"><a id="a1ce4a88122a1686d9d5152b4fa3a7454a76662bc9cb24e234cecf0c5891ba5939" name="a1ce4a88122a1686d9d5152b4fa3a7454a76662bc9cb24e234cecf0c5891ba5939"></a>READ_COUNTER_RECORD&#160;</td><td class="fielddoc"><p >Counter record </p>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8h_source.html#l00042">42</a> of file <a class="el" href="_cmd_sam_read_event_counter_8h_source.html">CmdSamReadEventCounter.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8h_source.html#l00043">43</a> of file <a class="el" href="_cmd_sam_read_event_counter_8h_source.html">CmdSamReadEventCounter.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a893561100924652468d201fb2f34fa0d" name="a893561100924652468d201fb2f34fa0d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a893561100924652468d201fb2f34fa0d">&#9670;&nbsp;</a></span>CmdSamReadEventCounter()</h2>
+<a id="a4a4905b02a01d5d599e3cc314c1bfc5e" name="a4a4905b02a01d5d599e3cc314c1bfc5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a4905b02a01d5d599e3cc314c1bfc5e">&#9670;&nbsp;</a></span>CmdSamReadEventCounter()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -193,20 +189,20 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">keyple::card::calypso::CmdSamReadEventCounter::CmdSamReadEventCounter </td>
           <td>(</td>
-          <td class="paramtype">const CalypsoSam::ProductType&#160;</td>
-          <td class="paramname"><em>productType</em>, </td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_sam_adapter.html">CalypsoSamAdapter</a> &gt;&#160;</td>
+          <td class="paramname"><em>sam</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#ada0e5c56672fffac342d9522da57e86d">SamEventCounterOperationType</a>&#160;</td>
-          <td class="paramname"><em>operationType</em>, </td>
+          <td class="paramtype">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html#a1ce4a88122a1686d9d5152b4fa3a7454">CounterOperationType</a>&#160;</td>
+          <td class="paramname"><em>counterOperationType</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const int&#160;</td>
-          <td class="paramname"><em>index</em>&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -219,42 +215,19 @@ Additional Inherited Members</h2></td></tr>
  Instantiate a new <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_event_counter.html">CmdSamReadEventCounter</a></p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">productType</td><td>the SAM product type. </td></tr>
-    <tr><td class="paramname">operationType</td><td>the counter operation type. </td></tr>
-    <tr><td class="paramname">index</td><td>the counter index. </td></tr>
+    <tr><td class="paramname">sam</td><td>the SAM. </td></tr>
+    <tr><td class="paramname">counterOperationType</td><td>the counter operation type. </td></tr>
+    <tr><td class="paramname">target</td><td>the counter index (0-26) if READ_SINGLE_COUNTER, the record index (1-3) if READ_COUNTER_RECORD. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html#l00038">38</a> of file <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html">CmdSamReadEventCounter.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html#l00037">37</a> of file <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html">CmdSamReadEventCounter.cpp</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="add01be95434e92a697dc30c01ffd9c07" name="add01be95434e92a697dc30c01ffd9c07"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#add01be95434e92a697dc30c01ffd9c07">&#9670;&nbsp;</a></span>getCounterData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::vector&lt; uint8_t &gt; keyple::card::calypso::CmdSamReadEventCounter::getCounterData </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets the key parameters.</p>
-<dl class="section return"><dt>Returns</dt><dd>the counter data (Value or Record) </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html#l00091">91</a> of file <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html">CmdSamReadEventCounter.cpp</a>.</p>
-
-</div>
-</div>
 <a id="a522fe7d7801549e17f6e65da78b90628" name="a522fe7d7801549e17f6e65da78b90628"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a522fe7d7801549e17f6e65da78b90628">&#9670;&nbsp;</a></span>getStatusTable()</h2>
 
@@ -286,7 +259,54 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html#ab37975f30bbb11d5b887d11589b001fd">keyple::card::calypso::AbstractSamCommand</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html#l00097">97</a> of file <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html">CmdSamReadEventCounter.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html#l00081">81</a> of file <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html">CmdSamReadEventCounter.cpp</a>.</p>
+
+</div>
+</div>
+<a id="a2279f956133ddf4fb4c12ef5c8e91ea5" name="a2279f956133ddf4fb4c12ef5c8e91ea5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2279f956133ddf4fb4c12ef5c8e91ea5">&#9670;&nbsp;</a></span>parseApduResponse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void keyple::card::calypso::CmdSamReadEventCounter::parseApduResponse </td>
+          <td>(</td>
+          <td class="paramtype">std::shared_ptr&lt; ApduResponseApi &gt;&#160;</td>
+          <td class="paramname"><em>apduResponse</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p >(package-private)<br  />
+ Parses the response ApduResponseApi and check the status word.<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">apduResponse</td><td>The APDU response. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_apdu_command_exception.html">CalypsoApduCommandException</a></td><td>if status is not successful or if the length of the response is not equal to the LE field in the request. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section since"><dt>Since</dt><dd>2.0.1</dd></dl>
+<dl class="section since"><dt>Since</dt><dd>2.0.1</dd></dl>
+</p>
+<dl class="section since"><dt>Since</dt><dd>2.2.3 </dd></dl>
+
+<p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_sam_command.html#af4bcf3ea93707abaa9c3607923653f71">keyple::card::calypso::AbstractSamCommand</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html#l00086">86</a> of file <a class="el" href="_cmd_sam_read_event_counter_8cpp_source.html">CmdSamReadEventCounter.cpp</a>.</p>
 
 </div>
 </div>

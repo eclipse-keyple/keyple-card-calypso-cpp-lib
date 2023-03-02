@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['multiple_5frecord_0',['MULTIPLE_RECORD',['../classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_records.html#ac08a3745d101e1fff37293f9c902a4ada58d314507b9b6e635bf6110dbf0c27f9',1,'keyple::card::calypso::CmdCardReadRecords']]]
+  ['next_0',['NEXT',['../classkeyple_1_1card_1_1calypso_1_1_cmd_sam_read_key_parameters.html#a0df9f0c59a5dda2fcab58d26d41daf11a47559fb833ff58321570e5e877b467f6',1,'keyple::card::calypso::CmdSamReadKeyParameters']]]
 ];

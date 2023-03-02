@@ -154,7 +154,7 @@ $(function() {
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>        <span class="comment">/* Check the SAM response to the unlock command */</span></div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        <span class="keywordflow">try</span> {</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>            mUnlockCommand-&gt;setApduResponse(apduResponse).checkStatus();</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>            mUnlockCommand-&gt;parseApduResponse(apduResponse);</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        } <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code hl_class" href="classkeyple_1_1card_1_1calypso_1_1_calypso_sam_access_forbidden_exception.html">CalypsoSamAccessForbiddenException</a>&amp; e) {</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>            (void)e;</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>            mLogger-&gt;warn(<span class="stringliteral">&quot;SAM not locked or already unlocked\n&quot;</span>);</div>
