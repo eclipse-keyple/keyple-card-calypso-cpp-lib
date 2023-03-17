@@ -34,13 +34,13 @@ const CalypsoSamCommand CmdSamGetChallenge::mCommand = CalypsoSamCommand::GET_CH
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamGetChallenge::STATUS_TABLE = initStatusTable();
 
-CmdSamGetChallenge::CmdSamGetChallenge(const CalypsoSam::ProductType productType,
+CmdSamGetChallenge::CmdSamGetChallenge(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                        const int expectedResponseLength)
-: AbstractSamCommand(mCommand, expectedResponseLength)
+: AbstractSamCommand(mCommand, expectedResponseLength, calypsoSam)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(SamUtilAdapter::getClassByte(productType),
+            ApduUtil::build(SamUtilAdapter::getClassByte(calypsoSam->getProductType()),
                             mCommand.getInstructionByte(),
                             0,
                             0,

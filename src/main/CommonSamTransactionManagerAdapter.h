@@ -172,6 +172,7 @@ public:
     {
         /* C++: careful, code is a little bit different from Java because of any_cast flow */
         try {
+
             /* Basic signature */
             auto dataAdapter =
                 any_cast<std::shared_ptr<BasicSignatureComputationDataAdapter>>(data);
@@ -193,16 +194,17 @@ public:
                                          MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
             prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
-            mSamCommands.push_back(std::make_shared<CmdSamDataCipher>(mSam->getProductType(),
-                                                                      dataAdapter,
-                                                                      nullptr));
+            mSamCommands.push_back(std::make_shared<CmdSamDataCipher>(mSam, dataAdapter, nullptr));
+
             return *this;
 
         } catch (const std::exception& e) {
+
             (void)e;
         }
 
         try {
+
             /* Traceable signature */
             auto dataAdapter =
                 any_cast<std::shared_ptr<TraceableSignatureComputationDataAdapter>>(data);
@@ -232,13 +234,13 @@ public:
                                         MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
                 prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
-                mSamCommands.push_back(std::make_shared<CmdSamPsoComputeSignature>(
-                                        mSam->getProductType(),
-                                        dataAdapter));
+                mSamCommands.push_back(
+                    std::make_shared<CmdSamPsoComputeSignature>(mSam, dataAdapter));
 
                 return *this;
 
         } catch (const std::exception& e) {
+
             (void)e;
         }
 
@@ -256,6 +258,7 @@ public:
     {
         /* C++: careful, code is a little bit different from Java because of any_cast flow */
         try {
+
             /* Basic signature */
             auto dataAdapter =
                 any_cast<std::shared_ptr<BasicSignatureVerificationDataAdapter>>(data);
@@ -277,17 +280,18 @@ public:
                                          MSG_KEY_DIVERSIFIER_SIZE_IS_IN_RANGE_1_8);
 
             prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
-            mSamCommands.push_back(std::make_shared<CmdSamDataCipher>(mSam->getProductType(),
-                                                                    nullptr,
-                                                                    dataAdapter));
+            mSamCommands.push_back(
+                std::make_shared<CmdSamDataCipher>(mSam, nullptr, dataAdapter));
 
             return *this;
 
         } catch (const std::exception& e) {
+
             (void)e;
         }
 
         try {
+
             /* Traceable signature */
             auto dataAdapter =
                 any_cast<std::shared_ptr<TraceableSignatureVerificationDataAdapter>>(data);
@@ -318,6 +322,7 @@ public:
 
             /* Check SAM revocation status if requested. */
             if (dataAdapter->isSamRevocationStatusVerificationRequested()) {
+
                 Assert::getInstance().notNull(mSecuritySetting, "security settings")
                                      .notNull(mSecuritySetting->getSamRevocationServiceSpi(),
                                              "SAM revocation service");
@@ -342,6 +347,7 @@ public:
                 /* Is SAM revoked ? */
                 if (mSecuritySetting->getSamRevocationServiceSpi()
                                     ->isSamRevoked(samSerialNumber, samCounterValue)) {
+
                     throw SamRevokedException(
                             StringUtils::format("SAM with serial number '%s' and counter value '%d' " \
                                                 "is revoked.",
@@ -352,15 +358,17 @@ public:
 
             prepareSelectDiversifierIfNeeded(dataAdapter->getKeyDiversifier());
             mSamCommands.push_back(
-                std::make_shared<CmdSamPsoVerifySignature>(mSam->getProductType(), dataAdapter));
+                std::make_shared<CmdSamPsoVerifySignature>(mSam, dataAdapter));
 
                 return *this;
 
         } catch (const std::bad_cast& e) {
+
             /* C++: Fall through... */
             (void)e;
 
         } catch (const Exception& e) {
+
             /* C++: rethrow since we are in a try/catch block */
             (void)e;
             throw;
@@ -701,7 +709,7 @@ private:
      */
     virtual void prepareSelectDiversifier()
     {
-        mSamCommands.push_back(std::make_shared<CmdSamSelectDiversifier>(mSam->getProductType(),
+        mSamCommands.push_back(std::make_shared<CmdSamSelectDiversifier>(mSam,
                                                                          mCurrentKeyDiversifier));
     }
 };

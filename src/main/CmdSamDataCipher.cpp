@@ -71,14 +71,14 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 }
 
 CmdSamDataCipher::CmdSamDataCipher(
-  const CalypsoSam::ProductType productType,
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const std::shared_ptr<BasicSignatureComputationDataAdapter> signatureComputationData,
   const std::shared_ptr<BasicSignatureVerificationDataAdapter> signatureVerificationData)
-: AbstractSamCommand(CalypsoSamCommand::DATA_CIPHER, 0),
+: AbstractSamCommand(CalypsoSamCommand::DATA_CIPHER, 0, calypsoSam),
   mSignatureComputationData(signatureComputationData),
   mSignatureVerificationData(signatureVerificationData)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t ins = getCommandRef().getInstructionByte();
     const uint8_t p1 = 0x40; /* TODO implement the other modes (cipher, decipher) */
     const uint8_t p2 = 0x00;

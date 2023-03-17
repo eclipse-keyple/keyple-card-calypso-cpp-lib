@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,17 +16,13 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "CalypsoSamAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -46,7 +42,7 @@ public:
      *
      * <p>In the case of a PIN update, the current and new PINs must be provided.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param cipheringKif the KIF of the key used to encipher the PIN data.
      * @param cipheringKvc the KVC of the key used to encipher the PIN data.
      * @param currentPin the current PIN (a 4-byte byte array).
@@ -54,7 +50,7 @@ public:
      *     null if the operation in progress is a PIN verification)
      * @since 2.0.1
      */
-    CmdSamCardCipherPin(const CalypsoSam::ProductType productType,
+    CmdSamCardCipherPin(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                         const uint8_t cipheringKif,
                         const uint8_t cipheringKvc,
                         const std::vector<uint8_t>& currentPin,

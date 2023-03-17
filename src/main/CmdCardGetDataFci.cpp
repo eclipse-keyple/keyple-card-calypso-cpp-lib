@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -35,8 +35,19 @@ const CalypsoCardCommand CmdCardGetDataFci::mCommand = CalypsoCardCommand::GET_D
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardGetDataFci::STATUS_TABLE = initStatusTable();
 
+CmdCardGetDataFci::CmdCardGetDataFci(const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
+{
+    buildCommand(calypsoCard->getCardClass());
+}
+
 CmdCardGetDataFci::CmdCardGetDataFci(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0), mIsDfInvalidated(false), mIsValidCalypsoFCI(false)
+: AbstractCardCommand(mCommand, 0, nullptr)
+{
+    buildCommand(calypsoCardClass);
+}
+
+void CmdCardGetDataFci::buildCommand(const CalypsoCardClass calypsoCardClass)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
@@ -46,9 +57,6 @@ CmdCardGetDataFci::CmdCardGetDataFci(const CalypsoCardClass calypsoCardClass)
                             0x6F,
                             0x00)));
 }
-
-CmdCardGetDataFci::CmdCardGetDataFci()
-: AbstractCardCommand(mCommand, 0), mIsDfInvalidated(false), mIsValidCalypsoFCI(false) {}
 
 bool CmdCardGetDataFci::isSessionBufferUsed() const
 {
@@ -135,9 +143,12 @@ void CmdCardGetDataFci::parseApduResponse(const std::shared_ptr<ApduResponseApi>
         mIsValidCalypsoFCI = true;
 
     } catch (const Exception& e) {
+
         /* Silently ignore problems decoding TLV structure. Just log. */
         mLogger->debug("Error while parsing the FCI BER-TLV data structure (%)\n", e.getMessage());
     }
+
+    getCalypsoCard()->initializeWithFci(shared_from_this());
 }
 
 bool CmdCardGetDataFci::isValidCalypsoFCI() const

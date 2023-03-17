@@ -36,12 +36,12 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardReadRecordMultiple::STATUS_TABLE = initStatusTable();
 
 CmdCardReadRecordMultiple::CmdCardReadRecordMultiple(
-    const CalypsoCardClass calypsoCardClass,
-    const uint8_t sfi,
-    const uint8_t recordNumber,
-    const uint8_t offset,
-    const uint8_t length)
-: AbstractCardCommand(CalypsoCardCommand::READ_RECORD_MULTIPLE, 0),
+  std::shared_ptr<CalypsoCardAdapter> calypsoCard,
+  const uint8_t sfi,
+  const uint8_t recordNumber,
+  const uint8_t offset,
+  const uint8_t length)
+: AbstractCardCommand(CalypsoCardCommand::READ_RECORD_MULTIPLE, 0, calypsoCard),
   mSfi(sfi),
   mRecordNumber(recordNumber),
   mOffset(offset),
@@ -52,7 +52,7 @@ CmdCardReadRecordMultiple::CmdCardReadRecordMultiple(
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(calypsoCardClass.getValue(),
+            ApduUtil::build(calypsoCard->getCardClass().getValue(),
                             getCommandRef().getInstructionByte(),
                             recordNumber,
                             p2,
@@ -133,30 +133,19 @@ void CmdCardReadRecordMultiple::parseApduResponse(
 {
     AbstractCardCommand::parseApduResponse(apduResponse);
 
+    const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+    const uint8_t nbRecords = static_cast<uint8_t>(dataOut.size() / mLength);
+
     if (apduResponse->getDataOut().size() > 0) {
-        const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
-        const uint8_t nbRecords = static_cast<uint8_t>(dataOut.size() / mLength);
+
         for (int i = 0; i < nbRecords; i++) {
-            mResults.insert({static_cast<uint8_t>(mRecordNumber + i),
-                             Arrays::copyOfRange(dataOut, i * mLength, (i + 1) * mLength)});
+
+            getCalypsoCard()->setContent(mSfi,
+                                         static_cast<uint8_t>(mRecordNumber + i),
+                                         Arrays::copyOfRange(dataOut, i * mLength, (i+1) * mLength),
+                                         mOffset);
         }
     }
-}
-
-uint8_t CmdCardReadRecordMultiple::getSfi() const
-{
-    return mSfi;
-}
-
-uint8_t CmdCardReadRecordMultiple::getOffset() const
-{
-    return mOffset;
-}
-
-const std::map<const uint8_t, const std::vector<uint8_t>>& CmdCardReadRecordMultiple::getResults()
-    const
-{
-    return mResults;
 }
 
 }

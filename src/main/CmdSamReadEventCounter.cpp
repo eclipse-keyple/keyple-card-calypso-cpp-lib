@@ -34,22 +34,24 @@ const CalypsoSamCommand CmdSamReadEventCounter::mCommand = CalypsoSamCommand::RE
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamReadEventCounter::STATUS_TABLE = initStatusTable();
 
-CmdSamReadEventCounter::CmdSamReadEventCounter(std::shared_ptr<CalypsoSamAdapter> sam,
+CmdSamReadEventCounter::CmdSamReadEventCounter(std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                                const CounterOperationType counterOperationType,
                                                const int target)
-: AbstractSamCommand(mCommand, 48),
-  mSam(sam),
+: AbstractSamCommand(mCommand, 48, calypsoSam),
   mCounterOperationType(counterOperationType),
   mFirstEventCounterNumber(counterOperationType == CounterOperationType::READ_SINGLE_COUNTER ?
                            target : (target - 1) * 9)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(sam->getProductType());
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 
     uint8_t p2;
 
     if (counterOperationType == CounterOperationType::READ_SINGLE_COUNTER) {
+
         p2 = static_cast<uint8_t>(0x81 + target);
+
     } else {
+
         p2 = static_cast<uint8_t>(0xE0 + target);
     }
 
@@ -88,13 +90,21 @@ void CmdSamReadEventCounter::parseApduResponse(std::shared_ptr<ApduResponseApi> 
     AbstractSamCommand::parseApduResponse(apduResponse);
 
     if (isSuccessful()) {
+
         const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+
         if (mCounterOperationType == CounterOperationType::READ_SINGLE_COUNTER) {
-            mSam->putEventCounter(dataOut[8], ByteArrayUtil::extractInt(dataOut, 9, 3, false));
+
+            getCalypsoSam()->putEventCounter(dataOut[8],
+                                             ByteArrayUtil::extractInt(dataOut, 9, 3, false));
+
         } else {
+
             for (int i = 0; i < 9; i++) {
-                mSam->putEventCounter(mFirstEventCounterNumber + i,
-                                      ByteArrayUtil::extractInt(dataOut, 8 + (3 * i), 3, false));
+
+                getCalypsoSam()->putEventCounter(
+                    mFirstEventCounterNumber + i,
+                    ByteArrayUtil::extractInt(dataOut, 8 + (3 * i), 3, false));
             }
         }
     }

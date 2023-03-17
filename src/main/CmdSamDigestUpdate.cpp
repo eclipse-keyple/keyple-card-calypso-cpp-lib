@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -35,12 +35,12 @@ const CalypsoSamCommand CmdSamDigestUpdate::mCommand = CalypsoSamCommand::DIGEST
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamDigestUpdate::STATUS_TABLE = initStatusTable();
 
-CmdSamDigestUpdate::CmdSamDigestUpdate(const CalypsoSam::ProductType productType,
+CmdSamDigestUpdate::CmdSamDigestUpdate(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                        const bool encryptedSession,
                                        const std::vector<uint8_t>& digestData)
-: AbstractSamCommand(mCommand, 0)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t p1 = 0x00;
     const uint8_t p2 = encryptedSession ? 0x80 : 0x00;
 

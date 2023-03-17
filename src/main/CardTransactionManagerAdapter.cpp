@@ -35,19 +35,38 @@
 
 /* Keyple Card Calypso */
 #include "CalypsoCardConstant.h"
-#include "CalypsoCardUtilAdapter.h"
 #include "CalypsoSamCommandException.h"
 #include "CalypsoSamSecurityDataException.h"
 #include "CardCommandException.h"
+#include "CardDataAccessException.h"
 #include "CardRequestAdapter.h"
 #include "CardSecurityDataException.h"
 #include "CardSecuritySettingAdapter.h"
+#include "CmdCardAppendRecord.h"
+#include "CmdCardChangeKey.h"
+#include "CmdCardChangePin.h"
+#include "CmdCardCloseSession.h"
+#include "CmdCardGetChallenge.h"
+#include "CmdCardGetDataEfList.h"
 #include "CmdCardGetDataFci.h"
 #include "CmdCardGetDataFcp.h"
+#include "CmdCardGetDataTraceabilityInformation.h"
+#include "CmdCardIncreaseOrDecrease.h"
+#include "CmdCardIncreaseOrDecreaseMultiple.h"
 #include "CmdCardInvalidate.h"
+#include "CmdCardOpenSession.h"
+#include "CmdCardReadBinary.h"
+#include "CmdCardReadRecordMultiple.h"
 #include "CmdCardReadRecords.h"
 #include "CmdCardRehabilitate.h"
+#include "CmdCardSearchRecordMultiple.h"
 #include "CmdCardSelectFile.h"
+#include "CmdCardSvGet.h"
+#include "CmdCardUpdateOrWriteBinary.h"
+#include "CmdCardUpdateRecord.h"
+#include "CmdCardVerifyPin.h"
+#include "CmdCardWriteRecord.h"
+#include "SearchCommandDataAdapter.h"
 
 /* Keyple Core Util */
 #include "Arrays.h"
@@ -60,7 +79,6 @@
 #include "MapUtils.h"
 #include "System.h"
 #include "UnsupportedOperationException.h"
-
 
 namespace keyple {
 namespace card {
@@ -179,6 +197,7 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     uint8_t recordNumber = 0;
 
     if (!cardCommands.empty()) {
+
         const auto cardCommand = std::dynamic_pointer_cast<AbstractCardCommand>(cardCommands[0]);
         if (cardCommand->getCommandRef() == CalypsoCardCommand::READ_RECORDS &&
             std::dynamic_pointer_cast<CmdCardReadRecords>(cardCommand)->getReadMode() ==
@@ -193,10 +212,10 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     /* Compute the SAM challenge and process all pending SAM commands */
     const std::vector<uint8_t> samChallenge = processSamGetChallenge();
 
-    /* Build the card Open Secure Session command */
+    /* Build the "Open Secure Session" card command */
     auto cmdCardOpenSession =
         std::make_shared<CmdCardOpenSession>(
-            mCard->getProductType(),
+            mCard,
             static_cast<uint8_t>(static_cast<int>(mWriteAccessLevel) + 1),
             samChallenge,
             sfi,
@@ -225,17 +244,29 @@ void CardTransactionManagerAdapter::processAtomicOpening(
 
     /* Parse all the responses and fill the CalypsoCard object with the command data */
     try {
-        CalypsoCardUtilAdapter::updateCalypsoCard(mCard,
-                                                  cardCommands,
-                                                  apduResponses,
-                                                  true);
+
+        /*
+         * C++: cannot cast std::vector<std::shared_ptr<derived>> into
+         *      std::vector<std::shared_ptr<base>> automatically. Need to copy into another vector.
+         */
+        std::vector<std::shared_ptr<AbstractCardCommand>> copy;
+        for (int i = 0; i < static_cast<int>(cardCommands.size()); i++) {
+
+            copy.push_back(std::dynamic_pointer_cast<AbstractCardCommand>(cardCommands[i]));
+        }
+
+        parseApduResponses(copy, apduResponses);
+
     } catch (const CardCommandException& e) {
+
         throw UnexpectedCommandStatusException(MSG_CARD_COMMAND_ERROR +
                                                "while processing the response to open session: " +
                                                 e.getCommand().getName() +
                                                 getTransactionAuditDataAsString(),
                                                 std::make_shared<CardCommandException>(e));
+
     } catch (const InconsistentDataException& e) {
+
         throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
     }
 
@@ -247,6 +278,7 @@ void CardTransactionManagerAdapter::processAtomicOpening(
 
     const std::string logCardKif = cardKif != nullptr ? std::to_string(*cardKif) : "null";
     const std::string logCardKvc = cardKvc != nullptr ? std::to_string(*cardKvc) : "null";
+
     mLogger->debug("processAtomicOpening => opening: CARD_CHALLENGE=%, CARD_KIF=%, CARD_KVC=%\n",
                    HexUtil::toHex(cmdCardOpenSession->getCardChallenge()),
                    logCardKif,
@@ -258,8 +290,10 @@ void CardTransactionManagerAdapter::processAtomicOpening(
         mControlSamTransactionManager->computeKif(mWriteAccessLevel, cardKif, kvc);
 
     if (!mSecuritySetting->isSessionKeyAuthorized(kif, kvc)) {
+
         const std::string logKif = kif != nullptr ? std::to_string(*kif) : "null";
         const std::string logKvc = kvc != nullptr ? std::to_string(*kvc) : "null";
+
         throw UnauthorizedKeyException("Unauthorized key error: " \
                                        "KIF=" + logKif + ", " +
                                        "KVC=" + logKvc + " " +
@@ -267,11 +301,8 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     }
 
     /* Initialize a new SAM session. */
-    mControlSamTransactionManager->initializeSession(apduResponses[0]->getDataOut(),
-                                                     *kif,
-                                                     *kvc,
-                                                     false,
-                                                     false);
+    mControlSamTransactionManager
+        ->initializeSession(apduResponses[0]->getDataOut(), *kif, *kvc, false, false);
 
     /*
      * Add all commands data to the digest computation. The first command in the list is the
@@ -286,8 +317,11 @@ void CardTransactionManagerAdapter::abortSecureSessionSilently()
     if (mIsSessionOpen) {
 
         try {
+
             processCancel();
+
         } catch (const RuntimeException& e) {
+
             mLogger->warn("An error occurred while aborting the current secure session: %",
                           e.getMessage());
         }
@@ -303,16 +337,19 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSetCounter(
 
     const std::shared_ptr<ElementaryFile> ef = mCard->getFileBySfi(sfi);
     if (ef != nullptr) {
+
         oldValue = ef->getData()->getContentAsCounterValue(counterNumber);
     }
 
     if (oldValue == nullptr) {
+
         throw IllegalStateException("The value for counter " + std::to_string(counterNumber) +
                                     " in file " + std::to_string(sfi) + " is not available");
     }
 
     const int delta = newValue - *oldValue;
     if (delta > 0) {
+
         mLogger->trace("Increment counter % (file %) from % to %\n",
                        counterNumber,
                        sfi,
@@ -320,7 +357,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSetCounter(
                        newValue);
 
         prepareIncreaseCounter(sfi, counterNumber, delta);
+
     } else if (delta < 0) {
+
         mLogger->trace("Decrement counter % (file %) from % to %\n",
                        counterNumber,
                        sfi,
@@ -328,7 +367,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSetCounter(
                        newValue);
 
         prepareDecreaseCounter(sfi, counterNumber, -delta);
+
     } else {
+
         mLogger->info("The counter % (SFI %) is already set to the desired value %\n",
                        counterNumber,
                        sfi,
@@ -345,6 +386,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3 &&
         mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_2) {
+
         throw UnsupportedOperationException("The 'Increase/Decrease Multiple' commands are not " \
                                             "available for this card.");
     }
@@ -359,6 +401,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
                                     "counterNumberToIncDecValueMap");
 
     for (const auto& entry : counterNumberToIncDecValueMap) {
+
         Assert::getInstance().isInRange(entry.first,
                                         CalypsoCardConstant::NB_CNT_MIN,
                                         CalypsoCardConstant::NB_CNT_MAX,
@@ -372,15 +415,18 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
     const int nbCountersPerApdu = mCard->getPayloadCapacity() / 4;
 
     if (static_cast<int>(counterNumberToIncDecValueMap.size()) <= nbCountersPerApdu) {
+
         /* Create the command and add it to the list of commands */
         const std::map<const int, const int> dummy;
         mCardCommands.push_back(
             std::make_shared<CmdCardIncreaseOrDecreaseMultiple>(
                 isDecreaseCommand,
-                mCard->getCardClass(),
+                mCard,
                 sfi,
                 dummy));
+
     } else {
+
         /*
          * The number of counters exceeds the payload capacity, let's split into several apdu c
          * ommands
@@ -389,13 +435,16 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
         std::map<const int, const int> map;
 
         for (const auto& entry : counterNumberToIncDecValueMap) {
+
             i++;
             map.insert({entry.first, entry.second});
+
             if (i == nbCountersPerApdu) {
+
                 mCardCommands.push_back(
                     std::make_shared<CmdCardIncreaseOrDecreaseMultiple>(
                         isDecreaseCommand,
-                        mCard->getCardClass(),
+                        mCard,
                         sfi,
                         map));
                 i = 0;
@@ -404,9 +453,10 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
         }
 
         if (!map.empty()) {
+
             mCardCommands.push_back(
                 std::make_shared<CmdCardIncreaseOrDecreaseMultiple>(isDecreaseCommand,
-                                                                    mCard->getCardClass(),
+                                                                    mCard,
                                                                     sfi,
                                                                     map));
         }
@@ -439,22 +489,140 @@ void CardTransactionManagerAdapter::processAtomicCardCommands(
      * computation.
      */
     if (mIsSessionOpen) {
+
         mControlSamTransactionManager->updateSession(apduRequests, apduResponses, 0);
     }
 
     try {
-        CalypsoCardUtilAdapter::updateCalypsoCard(mCard,
-                                                  cardCommands,
-                                                  apduResponses,
-                                                  mIsSessionOpen);
+
+        /*
+         * C++: cannot cast std::vector<std::shared_ptr<derived>> into
+         *      std::vector<std::shared_ptr<base>> automatically. Need to copy into another vector.
+         */
+        std::vector<std::shared_ptr<AbstractCardCommand>> copy;
+
+        for (int i = 0; i < static_cast<int>(cardCommands.size()); i++) {
+
+            copy.push_back(std::dynamic_pointer_cast<AbstractCardCommand>(cardCommands[i]));
+        }
+
+        parseApduResponses(copy, apduResponses);
+
     } catch (const CardCommandException& e) {
+
         throw UnexpectedCommandStatusException(MSG_CARD_COMMAND_ERROR +
                                                "while processing responses to card commands: " +
                                                e.getCommand().getName() +
                                                getTransactionAuditDataAsString(),
                                                std::make_shared<CardCommandException>(e));
+
     } catch (const InconsistentDataException& e) {
+
         throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
+    }
+}
+
+void CardTransactionManagerAdapter::parseApduResponses(
+    const std::vector<std::shared_ptr<AbstractCardCommand>>& commands,
+    const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses)
+{
+    /*
+     * If there are more responses than requests, then we are unable to fill the card image. In this
+     * case we stop processing immediately because it may be a case of fraud, and we throw a
+     * desynchronized exception.
+     */
+    if (apduResponses.size() > commands.size()) {
+
+        throw InconsistentDataException("The number of commands/responses does not match: nb " \
+                                        "commands = " +
+                                        std::to_string(commands.size()) +
+                                        ", nb responses = " +
+                                        std::to_string(apduResponses.size()));
+    }
+
+    /*
+     * We go through all the responses (and not the requests) because there may be fewer in the
+     * case of an error that occurred in strict mode. In this case the last response will raise an
+     * exception.
+     */
+    for (int i = 0; i < static_cast<int>(apduResponses.size()); i++) {
+
+        try {
+
+            commands[i]->parseApduResponse(apduResponses[i]);
+
+        } catch (const CardCommandException& e) {
+
+            const CalypsoCardCommand& commandRef = commands[i]->getCommandRef();
+
+            try {
+
+                dynamic_cast<const CardDataAccessException&>(e);
+
+                if (commandRef == CalypsoCardCommand::READ_RECORDS ||
+                    commandRef == CalypsoCardCommand::READ_RECORD_MULTIPLE ||
+                    commandRef == CalypsoCardCommand::SEARCH_RECORD_MULTIPLE ||
+                    commandRef == CalypsoCardCommand::READ_BINARY) {
+
+                    checkResponseStatusForStrictAndBestEffortMode(commands[i], e);
+
+                } else {
+
+                    throw UnexpectedCommandStatusException(
+                            MSG_CARD_COMMAND_ERROR +
+                            "while processing responses to card commands: " +
+                            e.getCommand().getName() +
+                            getTransactionAuditDataAsString(),
+                            std::make_shared<CardCommandException>(e));
+                }
+
+            } catch (const std::bad_cast& ex) {
+
+                (void)ex;
+
+                throw UnexpectedCommandStatusException(
+                          MSG_CARD_COMMAND_ERROR +
+                          "while processing responses to card commands: " +
+                          e.getCommand().getName() +
+                          getTransactionAuditDataAsString(),
+                          std::make_shared<CardCommandException>(e));
+            }
+        }
+    }
+
+    /*
+     * Finally, if no error has occurred and there are fewer responses than requests, then we
+     * throw a desynchronized exception.
+     */
+    if (apduResponses.size() < commands.size()) {
+
+        throw InconsistentDataException("The number of commands/responses does not match: nb " \
+                                        "commands = " +
+                                        std::to_string(commands.size()) +
+                                        ", nb responses = " +
+                                        std::to_string(apduResponses.size()));
+    }
+}
+
+void CardTransactionManagerAdapter::checkResponseStatusForStrictAndBestEffortMode(
+    const std::shared_ptr<AbstractCardCommand> command,
+    const CardCommandException& e) const
+{
+    if (mIsSessionOpen) {
+
+        throw e;
+
+    } else {
+
+        /*
+         * Best effort mode, do not throw exception for "file not found" and "record not found"
+         * errors.
+         */
+        if (command->getApduResponse()->getStatusWord() != 0x6A82 &&
+            command->getApduResponse()->getStatusWord() != 0x6A83) {
+
+            throw e;
+        }
     }
 }
 
@@ -489,8 +657,10 @@ void CardTransactionManagerAdapter::processAtomicClosing(
 
     /* Add the card Ratification command if any */
     bool isRatificationCommandAdded;
+
     if (isRatificationMechanismEnabled &&
         std::dynamic_pointer_cast<CardReader>(mCardReader)->isContactless()) {
+
         /*
          * CL-RAT-CMD.1
          * CL-RAT-DELAY.1
@@ -499,7 +669,9 @@ void CardTransactionManagerAdapter::processAtomicClosing(
         apduRequests.push_back(
             CmdCardRatificationBuilder::getApduRequest(mCard->getCardClass()));
         isRatificationCommandAdded = true;
+
     } else {
+
         isRatificationCommandAdded = false;
     }
 
@@ -510,8 +682,11 @@ void CardTransactionManagerAdapter::processAtomicClosing(
     std::shared_ptr<CardResponseApi> cardResponse;
 
     try {
+
         cardResponse = transmitCardRequest(cardRequest, channelControl);
+
     } catch (const CardIOException& e) {
+
         const auto cause = std::dynamic_pointer_cast<AbstractApduException>(e.getCause());
         cardResponse = cause->getCardResponse();
 
@@ -549,18 +724,29 @@ void CardTransactionManagerAdapter::processAtomicClosing(
      * commands will be taken into account)
      */
     try {
-        CalypsoCardUtilAdapter::updateCalypsoCard(mCard,
-                                                  cardCommands,
-                                                  apduResponses,
-                                                  true);
+        /*
+         * C++: cannot cast std::vector<std::shared_ptr<derived>> into
+         *      std::vector<std::shared_ptr<base>> automatically. Need to copy into another vector.
+         */
+        std::vector<std::shared_ptr<AbstractCardCommand>> copy;
+        for (int i = 0; i < static_cast<int>(cardCommands.size()); i++) {
+
+            copy.push_back(std::dynamic_pointer_cast<AbstractCardCommand>(cardCommands[i]));
+        }
+
+        parseApduResponses(copy, apduResponses);
+
     } catch (const CardCommandException& e) {
+
         throw UnexpectedCommandStatusException(MSG_CARD_COMMAND_ERROR +
                                                "while processing of responses preceding the close" \
                                                " of the session: " +
                                                e.getCommand().getName() +
                                                getTransactionAuditDataAsString(),
                                                std::make_shared<CardCommandException>(e));
+
     } catch (const InconsistentDataException& e) {
+
         throw InconsistentDataException(e.getMessage() + getTransactionAuditDataAsString());
     }
 
@@ -569,15 +755,17 @@ void CardTransactionManagerAdapter::processAtomicClosing(
 
     /* Check the card's response to Close Secure Session */
     try {
-        CalypsoCardUtilAdapter::updateCalypsoCard(mCard,
-                                                  cmdCardCloseSession,
-                                                  closeSecureSessionApduResponse,
-                                                  false);
+
+        cmdCardCloseSession->parseApduResponse(closeSecureSessionApduResponse);
+
     } catch (const CardSecurityDataException& e) {
+
         throw UnexpectedCommandStatusException("Invalid card session" +
                                               getTransactionAuditDataAsString(),
                                               std::make_shared<CardSecurityDataException>(e));
+
     } catch (const CardCommandException& e) {
+
         throw UnexpectedCommandStatusException(MSG_CARD_COMMAND_ERROR +
                                                "while processing the response to close session: " +
                                                e.getCommand().getName() +
@@ -1051,7 +1239,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processVerifyPin(
         if (mSecuritySetting != nullptr && !mSecuritySetting->isPinPlainTransmissionEnabled()) {
 
             /* CL-PIN-GETCHAL.1 */
-            mCardCommands.push_back(std::make_shared<CmdCardGetChallenge>(mCard->getCardClass()));
+            mCardCommands.push_back(std::make_shared<CmdCardGetChallenge>(mCard));
 
             /* Transmit and receive data with the card */
             processAtomicCardCommands(mCardCommands, ChannelControl::KEEP_OPEN);
@@ -1062,11 +1250,11 @@ CardTransactionManager& CardTransactionManagerAdapter::processVerifyPin(
             /* Get the encrypted PIN with the help of the SAM */
             std::vector<uint8_t> cipheredPin = processSamCardCipherPin(pin, std::vector<uint8_t>());
 
-            mCardCommands.push_back(
-                std::make_shared<CmdCardVerifyPin>(mCard->getCardClass(), true, cipheredPin));
+            mCardCommands.push_back(std::make_shared<CmdCardVerifyPin>(mCard, true, cipheredPin));
+
         } else {
-            mCardCommands.push_back(
-                std::make_shared<CmdCardVerifyPin>(mCard->getCardClass(), false, pin));
+
+            mCardCommands.push_back(std::make_shared<CmdCardVerifyPin>(mCard, false, pin));
         }
 
         /* Transmit and receive data with the card */
@@ -1080,6 +1268,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processVerifyPin(
         return *this;
 
     } catch (const RuntimeException& e) {
+
         abortSecureSessionSilently();
         throw e;
     }
@@ -1100,13 +1289,16 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
     const std::vector<uint8_t>& newPin)
 {
     try {
+
         Assert::getInstance().isEqual(newPin.size(), CalypsoCardConstant::PIN_LENGTH, "PIN length");
 
         if (!mCard->isPinFeatureAvailable()) {
+
             throw UnsupportedOperationException(MSG_PIN_NOT_AVAILABLE);
         }
 
         if (mIsSessionOpen) {
+
             throw IllegalStateException("'Change PIN' not allowed when a secure session is open.");
         }
 
@@ -1117,13 +1309,14 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
 
             /* Transmission in plain mode */
             if (mCard->getPinAttemptRemaining() >= 0) {
-                mCardCommands.push_back(
-                    std::make_shared<CmdCardChangePin>(mCard->getCardClass(), newPin));
+
+                mCardCommands.push_back(std::make_shared<CmdCardChangePin>(mCard, newPin));
             }
+
         } else {
+
             /* CL-PIN-GETCHAL.1 */
-            mCardCommands.push_back(
-                std::make_shared<CmdCardGetChallenge>(mCard->getCardClass()));
+            mCardCommands.push_back(std::make_shared<CmdCardGetChallenge>(mCard));
 
             /* Transmit and receive data with the card */
             processAtomicCardCommands(mCardCommands, ChannelControl::KEEP_OPEN);
@@ -1135,8 +1328,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
             std::vector<uint8_t> currentPin(4); /* All zeros as required */
             std::vector<uint8_t> newPinData = processSamCardCipherPin(currentPin, newPin);
 
-            mCardCommands.push_back(
-                std::make_shared<CmdCardChangePin>(mCard->getCardClass(), newPinData));
+            mCardCommands.push_back(std::make_shared<CmdCardChangePin>(mCard, newPinData));
         }
 
         /* Transmit and receive data with the card */
@@ -1150,6 +1342,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangePin(
         return *this;
 
     } catch (const RuntimeException& e) {
+
         abortSecureSessionSilently();
         throw e;
     }
@@ -1162,11 +1355,13 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const ui
                                                                         const uint8_t issuerKvc)
 {
     if (mCard->getProductType() == CalypsoCard::ProductType::BASIC) {
+
         throw UnsupportedOperationException("The 'Change Key' command is not available for this " \
                                             "card.");
     }
 
     if (mIsSessionOpen) {
+
         throw IllegalStateException("'Change Key' not allowed when a secure session is open.");
     }
 
@@ -1175,7 +1370,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const ui
     finalizeSvCommandIfNeeded();
 
     /* CL-KEY-CHANGE.1 */
-    mCardCommands.push_back(std::make_shared<CmdCardGetChallenge>(mCard->getCardClass()));
+    mCardCommands.push_back(std::make_shared<CmdCardGetChallenge>(mCard));
 
     /* Transmit and receive data with the card */
     processAtomicCardCommands(mCardCommands, ChannelControl::KEEP_OPEN);
@@ -1189,9 +1384,7 @@ CardTransactionManager& CardTransactionManagerAdapter::processChangeKey(const ui
                                                                         newKif,
                                                                         newKvc);
 
-    mCardCommands.push_back(std::make_shared<CmdCardChangeKey>(mCard->getCardClass(),
-                                                               keyIndex,
-                                                               encryptedKey));
+    mCardCommands.push_back(std::make_shared<CmdCardChangeKey>(mCard, keyIndex, encryptedKey));
 
     /* Transmit and receive data with the card */
     processAtomicCardCommands(mCardCommands, mChannelControl);
@@ -1435,9 +1628,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSelectFile(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareSelectFile(const uint16_t lid)
 {
-    mCardCommands.push_back(std::make_shared<CmdCardSelectFile>(mCard->getCardClass(),
-                                                                mCard->getProductType(),
-                                                                lid));
+    mCardCommands.push_back(std::make_shared<CmdCardSelectFile>(mCard, lid));
 
     return *this;
 }
@@ -1446,8 +1637,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSelectFile(
     const SelectFileControl selectFileControl)
 {
     /* Create the command and add it to the list of commands */
-    mCardCommands.push_back(std::make_shared<CmdCardSelectFile>(mCard->getCardClass(),
-                                                                selectFileControl));
+    mCardCommands.push_back(std::make_shared<CmdCardSelectFile>(mCard, selectFileControl));
 
     return *this;
 }
@@ -1456,23 +1646,27 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareGetData(const GetD
 {
     /* Create the command and add it to the list of commands */
     switch (tag) {
-    case GetDataTag::FCI_FOR_CURRENT_DF:
-        mCardCommands.push_back(std::make_shared<CmdCardGetDataFci>(mCard->getCardClass()));
-        break;
-    case GetDataTag::FCP_FOR_CURRENT_FILE:
-        mCardCommands.push_back(std::make_shared<CmdCardGetDataFcp>(mCard->getCardClass()));
-        break;
-    case GetDataTag::EF_LIST:
-        mCardCommands.push_back(std::make_shared<CmdCardGetDataEfList>(mCard->getCardClass()));
-        break;
-    case GetDataTag::TRACEABILITY_INFORMATION:
-        mCardCommands.push_back(
-            std::make_shared<CmdCardGetDataTraceabilityInformation>(mCard->getCardClass()));
-        break;
-    default:
-        std::stringstream ss;
-        ss << tag;
-        throw UnsupportedOperationException("Unsupported Get Data tag: " + ss.str());
+
+        case GetDataTag::FCI_FOR_CURRENT_DF:
+            mCardCommands.push_back(std::make_shared<CmdCardGetDataFci>(mCard));
+            break;
+
+        case GetDataTag::FCP_FOR_CURRENT_FILE:
+            mCardCommands.push_back(std::make_shared<CmdCardGetDataFcp>(mCard));
+            break;
+
+        case GetDataTag::EF_LIST:
+            mCardCommands.push_back(std::make_shared<CmdCardGetDataEfList>(mCard));
+            break;
+
+        case GetDataTag::TRACEABILITY_INFORMATION:
+            mCardCommands.push_back(std::make_shared<CmdCardGetDataTraceabilityInformation>(mCard));
+            break;
+
+        default:
+            std::stringstream ss;
+            ss << tag;
+            throw UnsupportedOperationException("Unsupported Get Data tag: " + ss.str());
     }
 
     return *this;
@@ -1516,12 +1710,13 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecord(
 
     if (mIsSessionOpen &&
        !std::dynamic_pointer_cast<CardReader>(mCardReader)->isContactless()) {
+
         throw IllegalStateException("Explicit record size is expected inside a secure session in " \
                                     "contact mode.");
     }
 
     auto cmdCardReadRecords =
-        std::make_shared<CmdCardReadRecords>(mCard->getCardClass(),
+        std::make_shared<CmdCardReadRecords>(mCard,
                                              sfi,
                                              recordNumber,
                                              CmdCardReadRecords::ReadMode::ONE_RECORD,
@@ -1551,20 +1746,22 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecords(
                                      "toRecordNumber");
 
     if (toRecordNumber == fromRecordNumber) {
+
         /* Create the command and add it to the list of commands */
         mCardCommands.push_back(
-            std::make_shared<CmdCardReadRecords>(mCard->getCardClass(),
+            std::make_shared<CmdCardReadRecords>(mCard,
                                                  sfi,
                                                  fromRecordNumber,
                                                  CmdCardReadRecords::ReadMode::ONE_RECORD,
                                                  recordSize));
+
     } else {
+
         /*
          * Manages the reading of multiple records taking into account the transmission capacity
          * of the card and the response format (2 extra bytes).
          * Multiple APDUs can be generated depending on record size and transmission capacity.
          */
-        const CalypsoCardClass cardClass = mCard->getCardClass();
         const uint8_t nbBytesPerRecord = recordSize + 2;
         const uint8_t nbRecordsPerApdu =
             static_cast<uint8_t>(mCard->getPayloadCapacity() / nbBytesPerRecord);
@@ -1580,7 +1777,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecords(
                                 dataSizeMaxPerApdu;
 
             mCardCommands.push_back(
-                std::make_shared<CmdCardReadRecords>(cardClass,
+                std::make_shared<CmdCardReadRecords>(mCard,
                                                      sfi,
                                                      currentRecordNumber,
                                                      CmdCardReadRecords::ReadMode::MULTIPLE_RECORD,
@@ -1592,8 +1789,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecords(
 
         /* Optimization: prepare a read "one record" if possible for last iteration.*/
         if (currentRecordNumber == toRecordNumber) {
+
             mCardCommands.push_back(
-                std::make_shared<CmdCardReadRecords>(cardClass,
+                std::make_shared<CmdCardReadRecords>(mCard,
                                                      sfi,
                                                      currentRecordNumber,
                                                      CmdCardReadRecords::ReadMode::ONE_RECORD,
@@ -1613,6 +1811,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordsPartial
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3 &&
         mCard->getProductType() != CalypsoCard::ProductType::LIGHT) {
+
         throw UnsupportedOperationException("The 'Read Record Multiple' command is not available "\
                                             "for this card.");
     }
@@ -1638,15 +1837,15 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordsPartial
                                    CalypsoCardConstant::DATA_LENGTH_MAX - offset,
                                    "nbBytesToRead");
 
-    const CalypsoCardClass cardClass = mCard->getCardClass();
     const uint8_t nbRecordsPerApdu =
         static_cast<uint8_t>(mCard->getPayloadCapacity() / nbBytesToRead);
 
     uint8_t currentRecordNumber = fromRecordNumber;
 
     while (currentRecordNumber <= toRecordNumber) {
+
         mCardCommands.push_back(
-            std::make_shared<CmdCardReadRecordMultiple>(cardClass,
+            std::make_shared<CmdCardReadRecordMultiple>(mCard,
                                                         sfi,
                                                         currentRecordNumber,
                                                         offset,
@@ -1661,6 +1860,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
     const uint8_t sfi, const uint8_t offset, const uint8_t nbBytesToRead)
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
+
         throw UnsupportedOperationException("The 'Read Binary' command is not available for this " \
                                             "card.");
     }
@@ -1677,30 +1877,30 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
 
     /* C++: no need to check offset > 255, forced by value type */
     if (sfi > 0) {
+
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0). */
         mCardCommands.push_back(
-            std::make_shared<CmdCardReadBinary>(mCard->getCardClass(),
+            std::make_shared<CmdCardReadBinary>(mCard,
                                                 sfi,
                                                 static_cast<uint8_t>(0),
                                                 static_cast<uint8_t>(1)));
     }
 
     const uint8_t payloadCapacity = mCard->getPayloadCapacity();
-    const CalypsoCardClass cardClass = mCard->getCardClass();
 
     uint8_t currentLength;
     uint8_t currentOffset = offset;
     uint8_t nbBytesRemainingToRead = nbBytesToRead;
 
     do {
+
         currentLength = std::min(nbBytesRemainingToRead, payloadCapacity);
-        mCardCommands.push_back(std::make_shared<CmdCardReadBinary>(cardClass,
-                                                                    sfi,
-                                                                    currentOffset,
-                                                                    currentLength));
+        mCardCommands.push_back(
+            std::make_shared<CmdCardReadBinary>(mCard, sfi, currentOffset, currentLength));
 
         currentOffset += currentLength;
         nbBytesRemainingToRead -= currentLength;
+
     } while (nbBytesRemainingToRead > 0);
 
     return *this;
@@ -1716,12 +1916,14 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSearchRecords(
     const std::shared_ptr<SearchCommandData> data)
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
+
         throw UnsupportedOperationException("The 'Search Record Multiple' command is not " \
                                             "available for this card.");
     }
 
     auto dataAdapter = std::dynamic_pointer_cast<SearchCommandDataAdapter>(data);
     if (!dataAdapter) {
+
         throw IllegalArgumentException("The provided data must be an instance of " \
                                        "'SearchCommandDataAdapter'");
     }
@@ -1750,8 +1952,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSearchRecords(
                                         "mask");
     }
 
-    mCardCommands.push_back(std::make_shared<CmdCardSearchRecordMultiple>(mCard->getCardClass(),
-                                                                          dataAdapter));
+    mCardCommands.push_back(std::make_shared<CmdCardSearchRecordMultiple>(mCard, dataAdapter));
 
     return *this;
 }
@@ -1765,9 +1966,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareAppendRecord(
                                     "sfi");
 
     /* Create the command and add it to the list of commands */
-    mCardCommands.push_back(std::make_shared<CmdCardAppendRecord>(mCard->getCardClass(),
-                                                                  sfi,
-                                                                  recordData));
+    mCardCommands.push_back(std::make_shared<CmdCardAppendRecord>(mCard, sfi, recordData));
 
     return *this;
 }
@@ -1787,10 +1986,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateRecord(
                                     RECORD_NUMBER);
 
     /* Create the command and add it to the list of commands */
-    mCardCommands.push_back(std::make_shared<CmdCardUpdateRecord>(mCard->getCardClass(),
-                                                                  sfi,
-                                                                  recordNumber,
-                                                                  recordData));
+    mCardCommands.push_back(
+        std::make_shared<CmdCardUpdateRecord>(mCard, sfi, recordNumber, recordData));
 
     return *this;
 }
@@ -1810,10 +2007,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareWriteRecord(
                                      RECORD_NUMBER);
 
     /* Create the command and add it to the list of commands */
-    mCardCommands.push_back(std::make_shared<CmdCardWriteRecord>(mCard->getCardClass(),
-                                                                 sfi,
-                                                                 recordNumber,
-                                                                 recordData));
+    mCardCommands.push_back(
+        std::make_shared<CmdCardWriteRecord>(mCard, sfi, recordNumber, recordData));
 
     return *this;
 }
@@ -1841,6 +2036,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
     const std::vector<uint8_t>& data)
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
+
         throw UnsupportedOperationException("The 'Update/Write Binary' command is not available " \
                                             "for this card.");
     }
@@ -1857,9 +2053,10 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
 
     /* C++: no need to check offset > 255, forced by value type */
     if (sfi > 0) {
+
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0) */
         mCardCommands.push_back(
-            std::make_shared<CmdCardReadBinary>(mCard->getCardClass(),
+            std::make_shared<CmdCardReadBinary>(mCard,
                                                 sfi,
                                                 static_cast<uint8_t>(0),
                                                 static_cast<uint8_t>(1)));
@@ -1867,13 +2064,13 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
 
     const uint8_t dataLength = static_cast<uint8_t>(data.size());
     const uint8_t payloadCapacity = mCard->getPayloadCapacity();
-    const CalypsoCardClass cardClass = mCard->getCardClass();
 
     uint8_t currentLength;
     uint8_t currentOffset = offset;
     uint8_t currentIndex = 0;
 
     do {
+
         currentLength = static_cast<uint8_t>(
                             std::min(static_cast<int>(dataLength - currentIndex),
                                      static_cast<int>(payloadCapacity)));
@@ -1881,13 +2078,14 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
         mCardCommands.push_back(
             std::make_shared<CmdCardUpdateOrWriteBinary>(
                 isUpdateCommand,
-                cardClass,
+                mCard,
                 sfi,
                 currentOffset,
                 Arrays::copyOfRange(data, currentIndex, currentIndex + currentLength)));
 
         currentOffset += currentLength;
         currentIndex += currentLength;
+
     } while (currentIndex < dataLength);
 
     return *this;
@@ -1914,7 +2112,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
 
     /* Create the command and add it to the list of commands */
     mCardCommands.push_back(std::make_shared<CmdCardIncreaseOrDecrease>(isDecreaseCommand,
-                                                                        mCard->getCardClass(),
+                                                                        mCard,
                                                                         sfi,
                                                                         counterNumber,
                                                                         incDecValue));
@@ -1951,11 +2149,12 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareDecreaseCounters(
 CardTransactionManager& CardTransactionManagerAdapter::prepareCheckPinStatus()
 {
     if (!mCard->isPinFeatureAvailable()) {
+
         throw UnsupportedOperationException(MSG_PIN_NOT_AVAILABLE);
     }
 
     /* Create the command and add it to the list of commands */
-    mCardCommands.push_back(std::make_shared<CmdCardVerifyPin>(mCard->getCardClass()));
+    mCardCommands.push_back(std::make_shared<CmdCardVerifyPin>(mCard));
 
     return *this;
 }
@@ -1964,6 +2163,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvGet(const SvOper
                                                                     const SvAction svAction)
 {
     if (!mCard->isSvFeatureAvailable()) {
+
         throw UnsupportedOperationException("Stored Value is not available for this card.");
     }
 
@@ -1981,17 +2181,13 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvGet(const SvOper
          * for a non rev3.2 card add two SvGet commands (for RELOAD then for DEBIT).
          * CL-SV-GETNUMBER.1
          */
-        const SvOperation operation1 = SvOperation::RELOAD == svOperation ? SvOperation::DEBIT :
-                                                                            SvOperation::RELOAD;
-        addStoredValueCommand(std::make_shared<CmdCardSvGet>(mCard->getCardClass(),
-                                                             operation1,
-                                                             false),
+        const SvOperation operation1 =
+            SvOperation::RELOAD == svOperation ? SvOperation::DEBIT : SvOperation::RELOAD;
+        addStoredValueCommand(std::make_shared<CmdCardSvGet>(mCard, operation1, false),
                               operation1);
     }
 
-    addStoredValueCommand(std::make_shared<CmdCardSvGet>(mCard->getCardClass(),
-                                                         svOperation,
-                                                         useExtendedMode),
+    addStoredValueCommand(std::make_shared<CmdCardSvGet>(mCard, svOperation, useExtendedMode),
                           svOperation);
 
     mSvAction = svAction;
@@ -2008,9 +2204,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvReload(
     checkSvInsideSession();
 
     /* Create the initial command with the application data */
-    auto svReloadCmdBuild = std::make_shared<CmdCardSvReload>(mCard->getCardClass(),
+    auto svReloadCmdBuild = std::make_shared<CmdCardSvReload>(mCard,
                                                               amount,
-                                                              mCard->getSvKvc(),
                                                               date,
                                                               time,
                                                               free,
@@ -2067,9 +2262,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvDebit(
 
     /* Create the initial command with the application data */
     auto command = std::make_shared<CmdCardSvDebitOrUndebit>(mSvAction == SvAction::DO,
-                                                             mCard->getCardClass(),
+                                                             mCard,
                                                              amount,
-                                                             mCard->getSvKvc(),
                                                              date,
                                                              time,
                                                              isExtendedModeAllowed());
@@ -2122,7 +2316,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareInvalidate()
         throw IllegalStateException("This card is already invalidated.");
     }
 
-    mCardCommands.push_back(std::make_shared<CmdCardInvalidate>(mCard->getCardClass()));
+    mCardCommands.push_back(std::make_shared<CmdCardInvalidate>(mCard));
 
     return *this;
 }
@@ -2133,7 +2327,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareRehabilitate()
         throw IllegalStateException("This card is not invalidated.");
     }
 
-    mCardCommands.push_back(std::make_shared<CmdCardRehabilitate>(mCard->getCardClass()));
+    mCardCommands.push_back(std::make_shared<CmdCardRehabilitate>(mCard));
 
     return *this;
 }

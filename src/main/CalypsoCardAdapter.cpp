@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -65,7 +65,8 @@ const std::vector<int> CalypsoCardAdapter::BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE 
     220435, 262144, 311743, 370727, 440871, 524288, 623487, 741455, 881743, 1048576
 };
 
-CalypsoCardAdapter::CalypsoCardAdapter()
+CalypsoCardAdapter::CalypsoCardAdapter(
+  const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse)
 : mIsExtendedModeSupported(false),
   mIsRatificationOnDeselectSupported(false),
   mIsSvFeatureAvailable(false),
@@ -83,10 +84,26 @@ CalypsoCardAdapter::CalypsoCardAdapter()
   mSvKvc(0),
   mApplicationSubType(0),
   mApplicationType(0),
-  mSessionModification(0) {}
+  mSessionModification(0)
+{
+    if (cardSelectionResponse != nullptr) {
+
+        if (cardSelectionResponse->getSelectApplicationResponse() != nullptr) {
+
+            initializeWithFci(cardSelectionResponse->getSelectApplicationResponse());
+
+        } else if (cardSelectionResponse->getPowerOnData() != "") {
+
+            initializeWithPowerOnData(cardSelectionResponse->getPowerOnData());
+        }
+    }
+}
 
 void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnData)
 {
+    mProductType = ProductType::PRIME_REVISION_1;
+    mCalypsoCardClass = CalypsoCardClass::LEGACY;
+
     mPowerOnData = powerOnData;
 
     /*
@@ -97,6 +114,7 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
 
     /* Basic check: we expect to be here following a selection based on the ATR */
     if (atr.size() != CARD_REV1_ATR_LENGTH) {
+
         throw IllegalArgumentException("Unexpected ATR length: " + powerOnData);
     }
 
@@ -119,9 +137,6 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
     System::arraycopy(atr, 6, mStartupInfo, 1, 6);
 
     mIsRatificationOnDeselectSupported = true;
-
-    mProductType = ProductType::PRIME_REVISION_1;
-    mCalypsoCardClass = CalypsoCardClass::LEGACY;
 }
 
 void CalypsoCardAdapter::initializeWithFci(
@@ -130,6 +145,7 @@ void CalypsoCardAdapter::initializeWithFci(
     mSelectApplicationResponse = selectApplicationResponse;
 
     if (selectApplicationResponse->getDataOut().size() == 0) {
+
         /* No FCI provided. May be filled later with a Get Data response */
         return;
     }
@@ -138,21 +154,27 @@ void CalypsoCardAdapter::initializeWithFci(
      * Parse card FCI - to retrieve DF Name (AID), Serial Number, &amp; StartupInfo
      * CL-SEL-TLVSTRUC.1
      */
-    auto cardGetDataFci = std::make_shared<CmdCardGetDataFci>();
-    cardGetDataFci->parseApduResponse(selectApplicationResponse);
+    auto cardGetDataFci = std::make_shared<CmdCardGetDataFci>(CalypsoCardClass::ISO);
+    cardGetDataFci->AbstractCardCommand::parseApduResponse(selectApplicationResponse,
+                                                           shared_from_this());
 
     if (!cardGetDataFci->isValidCalypsoFCI()) {
         throw IllegalArgumentException("Bad FCI format.");
     }
 
-    mIsDfInvalidated = cardGetDataFci->isDfInvalidated();
+}
+
+void CalypsoCardAdapter::initializeWithFci(
+    const std::shared_ptr<CmdCardGetDataFci> cmdCardGetDataFci)
+{
+    mIsDfInvalidated = cmdCardGetDataFci->isDfInvalidated();
 
     /* CL-SEL-DATA.1 */
-    mDfName = cardGetDataFci->getDfName();
-    mCalypsoSerialNumber = cardGetDataFci->getApplicationSerialNumber();
+    mDfName = cmdCardGetDataFci->getDfName();
+    mCalypsoSerialNumber = cmdCardGetDataFci->getApplicationSerialNumber();
 
     /* CL-SI-OTHER.1 */
-    mStartupInfo = cardGetDataFci->getDiscretionaryData();
+    mStartupInfo = cmdCardGetDataFci->getDiscretionaryData();
 
     /*
      * CL-SI-ATRFU.1

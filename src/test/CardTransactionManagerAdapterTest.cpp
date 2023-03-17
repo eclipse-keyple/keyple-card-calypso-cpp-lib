@@ -31,6 +31,9 @@
 #include "HexUtil.h"
 #include "IllegalArgumentException.h"
 
+/* Keyple Core Service */
+#include "CardSelectionResponseAdapter.h"
+
 /* Mock */
 #include "ApduResponseAdapterMock.h"
 #include "CardResponseAdapterMock.h"
@@ -42,6 +45,7 @@ using namespace testing;
 using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card;
 using namespace keyple::card::calypso;
+using namespace keyple::core::service;
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp::exception;
 
@@ -121,8 +125,8 @@ static const std::string NEW_PIN = "4567";
 static const std::string CIPHER_PIN_VERIFICATION_OK = "1122334455667788";
 static const std::string CIPHER_PIN_UPDATE_OK = "88776655443322111122334455667788";
 static const std::string PIN_5_DIGITS = "12345";
-//static const uint8_t PIN_CIPHERING_KEY_KIF = 0x11;
-//static const uint8_t PIN_CIPHERING_KEY_KVC = 0x22;
+static const uint8_t PIN_CIPHERING_KEY_KIF = 0x11;
+static const uint8_t PIN_CIPHERING_KEY_KVC = 0x22;
 
 static const uint8_t FILE7 = 0x07;
 static const uint8_t FILE8 = 0x08;
@@ -464,14 +468,23 @@ static std::shared_ptr<ReaderMock> samReader;
 static std::shared_ptr<CalypsoSamAdapter> calypsoSam;
 static std::shared_ptr<CardSecuritySetting> cardSecuritySetting;
 
+
+static void initCalypsoCard(const std::string& selectApplicationResponse)
+{
+    calypsoCard =
+        std::make_shared<CalypsoCardAdapter>(
+            std::make_shared<CardSelectionResponseAdapter>(
+                std::make_shared<ApduResponseAdapter>(
+                    HexUtil::toByteArray(selectApplicationResponse))));
+
+    cardTransactionManager =
+        CalypsoExtensionService::getInstance()
+            ->createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
+}
+
 static void setUp()
 {
     cardReader = std::make_shared<ReaderMock>();
-
-    calypsoCard = std::make_shared<CalypsoCardAdapter>();
-    calypsoCard->initializeWithFci(
-        std::make_shared<ApduResponseAdapterMock>(
-            HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3)));
 
     samReader = std::make_shared<ReaderMock>();
 
@@ -484,9 +497,7 @@ static void setUp()
     cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
     cardSecuritySetting->setControlSamResource(samReader, calypsoSam);
 
-    cardTransactionManager =
-        CalypsoExtensionService::getInstance()
-            ->createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3);
 }
 
 static void tearDown()
@@ -498,7 +509,6 @@ static void tearDown()
     cardTransactionManager.reset();
     cardSecuritySetting.reset();
 }
-
 static std::shared_ptr<CardRequestSpi> createCardRequest(
     const std::vector<std::string>& apduCommands)
 {
@@ -1001,204 +1011,143 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.processVerifyPin(PIN_5_DIGITS.getBytes());
 //   }
 
-//   @Test(expected = IllegalStateException.class)
-//   public void processVerifyPin_whenPINIsNotFirstCommand_shouldThrowISE() {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
-//     cardTransactionManager.prepareReadRecord(FILE7, 1);
-//     cardTransactionManager.processVerifyPin(PIN_OK.getBytes());
-//   }
+TEST(CardTransactionManagerAdapterTest, processVerifyPin_whenPINIsNotFirstCommand_shouldThrowISE)
+{
+    setUp();
 
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void processVerifyPin_whenPINNotAvailable_shouldThrowUOE() {
-//     cardTransactionManager.processVerifyPin(PIN_OK.getBytes());
-//   }
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN);
+    cardTransactionManager->prepareReadRecord(FILE7, 1);
 
-//   @Test
-//   public void processVerifyPin_whenPINTransmittedInPlainText_shouldSendApduVerifyPIN()
-//       throws Exception {
-//     cardSecuritySetting =
-//         CalypsoExtensionService.getInstance()
-//             .createCardSecuritySetting()
-//             .setControlSamResource(samReader, calypsoSam)
-//             .enablePinPlainTransmission();
-//     cardTransactionManager =
-//         CalypsoExtensionService.getInstance()
-//             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_VERIFY_PIN_PLAIN_OK_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.processVerifyPin(PIN_OK.getBytes());
-//     InOrder inOrder = inOrder(samReader, cardReader);
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    EXPECT_THROW(cardTransactionManager->processVerifyPin(
+                    std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end())),
+                 IllegalStateException);
 
-//   @Test
-//   public void processChangePin_whenTransmissionIsPlain_shouldSendApdusToTheCardAndTheSAM()
-//       throws Exception {
-//     cardSecuritySetting =
-//         CalypsoExtensionService.getInstance()
-//             .createCardSecuritySetting()
-//             .enablePinPlainTransmission()
-//             .setControlSamResource(samReader, calypsoSam);
-//     cardTransactionManager =
-//         CalypsoExtensionService.getInstance()
-//             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+    tearDown();
+}
 
-//     calypsoCard.setPinAttemptRemaining(3);
+TEST(CardTransactionManagerAdapterTest, processVerifyPin_whenPINNotAvailable_shouldThrowUOE)
+{
+    setUp();
 
-//     CardRequestSpi cardChangePinCardRequest = createCardRequest(CARD_CHANGE_PIN_PLAIN_CMD);
-//     CardResponseApi cardChangePinCardResponse = createCardResponse(CARD_CHANGE_PIN_PLAIN_RSP);
+    EXPECT_THROW(cardTransactionManager->processVerifyPin(
+                    std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end())),
+                 UnsupportedOperationException);
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardChangePinCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardChangePinCardResponse);
+    tearDown();
+}
 
-//     cardTransactionManager.processChangePin(NEW_PIN.getBytes());
+TEST(CardTransactionManagerAdapterTest,
+     processVerifyPin_whenPINTransmittedInPlainText_shouldSendApduVerifyPIN)
+{
+    setUp();
 
-//     InOrder inOrder = inOrder(cardReader);
+    cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam).enablePinPlainTransmission();
 
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardChangePinCardRequest)), any(ChannelControl.class));
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN);
 
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    const auto cardCardRequest = createCardRequest({CARD_VERIFY_PIN_PLAIN_OK_CMD});
+    const auto cardCardResponse = createCardResponse({SW1SW2_OK});
 
-//   @Test
-//   public void processChangePin_whenTransmissionIsEncrypted_shouldSendApdusToTheCardAndTheSAM()
-//       throws Exception {
-//     cardSecuritySetting =
-//         CalypsoExtensionService.getInstance()
-//             .createCardSecuritySetting()
-//             .setPinModificationCipheringKey(PIN_CIPHERING_KEY_KIF, PIN_CIPHERING_KEY_KVC)
-//             .setControlSamResource(samReader, calypsoSam);
-//     cardTransactionManager =
-//         CalypsoExtensionService.getInstance()
-//             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     CardRequestSpi cardGetChallengeCardRequest = createCardRequest(CARD_GET_CHALLENGE_CMD);
-//     CardResponseApi cardGetChallengeCardResponse = createCardResponse(CARD_GET_CHALLENGE_RSP);
+    cardTransactionManager->processVerifyPin(std::vector<uint8_t>(PIN_OK.begin(), PIN_OK.end()));
 
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(
-//             SAM_SELECT_DIVERSIFIER_CMD, SAM_GIVE_RANDOM_CMD, SAM_CARD_CIPHER_PIN_UPDATE_CMD);
-//     CardResponseApi samCardResponse =
-//         createCardResponse(SW1SW2_OK, SW1SW2_OK, SAM_CARD_CIPHER_PIN_UPDATE_RSP);
+    tearDown();
+}
 
-//     CardRequestSpi cardChangePinCardRequest = createCardRequest(CARD_CHANGE_PIN_CMD);
-//     CardResponseApi cardChangePinCardResponse = createCardResponse(CARD_CHANGE_PIN_RSP);
+TEST(CardTransactionManagerAdapterTest,
+     processChangePin_whenTransmissionIsPlain_shouldSendApdusToTheCardAndTheSAM)
+{
+    setUp();
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardGetChallengeCardRequest)),
-//             any(ChannelControl.class)))
-//         .thenReturn(cardGetChallengeCardResponse);
+    cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
+    cardSecuritySetting->enablePinPlainTransmission().setControlSamResource(samReader, calypsoSam);
 
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN);
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardChangePinCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardChangePinCardResponse);
+    calypsoCard->setPinAttemptRemaining(3);
 
-//     cardTransactionManager.processChangePin(NEW_PIN.getBytes());
+    const auto cardChangePinCardRequest = createCardRequest({CARD_CHANGE_PIN_PLAIN_CMD});
+    const auto cardChangePinCardResponse = createCardResponse({CARD_CHANGE_PIN_PLAIN_RSP});
 
-//     InOrder inOrder = inOrder(cardReader, samReader);
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardChangePinCardResponse));
 
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardGetChallengeCardRequest)),
-//             any(ChannelControl.class));
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardChangePinCardRequest)), any(ChannelControl.class));
+    cardTransactionManager->processChangePin(std::vector<uint8_t>(NEW_PIN.begin(), NEW_PIN.end()));
 
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    tearDown();
+}
 
-//   @Test
-//   public void processChangeKey_shouldSendApdusToTheCardAndTheSAM() throws Exception {
-//     cardSecuritySetting =
-//         CalypsoExtensionService.getInstance()
-//             .createCardSecuritySetting()
-//             .setControlSamResource(samReader, calypsoSam)
-//             .enablePinPlainTransmission();
-//     cardTransactionManager =
-//         CalypsoExtensionService.getInstance()
-//             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
+TEST(CardTransactionManagerAdapterTest,
+     processChangePin_whenTransmissionIsEncrypted_shouldSendApdusToTheCardAndTheSAM)
+{
+    setUp();
 
-//     CardRequestSpi cardGetChallengeCardRequest = createCardRequest(CARD_GET_CHALLENGE_CMD);
-//     CardResponseApi cardGetChallengeCardResponse = createCardResponse(CARD_GET_CHALLENGE_RSP);
+    cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
+    cardSecuritySetting
+        ->setPinModificationCipheringKey(PIN_CIPHERING_KEY_KIF, PIN_CIPHERING_KEY_KVC)
+        .setControlSamResource(samReader, calypsoSam);
 
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(
-//             SAM_SELECT_DIVERSIFIER_CMD, SAM_GIVE_RANDOM_CMD, SAM_CARD_GENERATE_KEY_CMD);
-//     CardResponseApi samCardResponse =
-//         createCardResponse(SW1SW2_OK, SW1SW2_OK, SAM_CARD_GENERATE_KEY_RSP);
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN);
 
-//     CardRequestSpi cardChangeKeyCardRequest = createCardRequest(CARD_CHANGE_KEY_CMD);
-//     CardResponseApi cardChangeKeyCardResponse = createCardResponse(SW1SW2_OK);
+    const auto cardGetChallengeCardRequest = createCardRequest({CARD_GET_CHALLENGE_CMD});
+    const auto cardGetChallengeCardResponse = createCardResponse({CARD_GET_CHALLENGE_RSP});
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardGetChallengeCardRequest)),
-//             any(ChannelControl.class)))
-//         .thenReturn(cardGetChallengeCardResponse);
+    const auto samCardRequest = createCardRequest({SAM_SELECT_DIVERSIFIER_CMD,
+                                                   SAM_GIVE_RANDOM_CMD,
+                                                   SAM_CARD_CIPHER_PIN_UPDATE_CMD});
+    const auto samCardResponse = createCardResponse({SW1SW2_OK,
+                                                     SW1SW2_OK,
+                                                     SAM_CARD_CIPHER_PIN_UPDATE_RSP});
 
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
+    const auto cardChangePinCardRequest = createCardRequest({CARD_CHANGE_PIN_CMD});
+    const auto cardChangePinCardResponse = createCardResponse({CARD_CHANGE_PIN_RSP});
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardChangeKeyCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardChangeKeyCardResponse);
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _))
+        .WillOnce(Return(cardGetChallengeCardResponse))
+        .WillOnce(Return(cardChangePinCardResponse));
 
-//     cardTransactionManager.processChangeKey(1,  2,  3,  4,  5);
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _))
+        .WillOnce(Return(samCardResponse));
 
-//     InOrder inOrder = inOrder(cardReader, samReader);
+    cardTransactionManager->processChangePin(std::vector<uint8_t>(NEW_PIN.begin(), NEW_PIN.end()));
 
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardGetChallengeCardRequest)),
-//             any(ChannelControl.class));
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardChangeKeyCardRequest)), any(ChannelControl.class));
+    tearDown();
+}
 
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+TEST(CardTransactionManagerAdapterTest, processChangeKey_shouldSendApdusToTheCardAndTheSAM)
+{
+    setUp();
+
+    cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam).enablePinPlainTransmission();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN);
+
+    const auto cardGetChallengeCardRequest = createCardRequest({CARD_GET_CHALLENGE_CMD});
+    const auto cardGetChallengeCardResponse = createCardResponse({CARD_GET_CHALLENGE_RSP});
+
+    const auto samCardRequest = createCardRequest({SAM_SELECT_DIVERSIFIER_CMD,
+                                                   SAM_GIVE_RANDOM_CMD,
+                                                   SAM_CARD_GENERATE_KEY_CMD});
+    const auto samCardResponse = createCardResponse({SW1SW2_OK,
+                                                     SW1SW2_OK,SAM_CARD_GENERATE_KEY_RSP});
+
+    const auto cardChangeKeyCardRequest = createCardRequest({CARD_CHANGE_KEY_CMD});
+    const auto cardChangeKeyCardResponse = createCardResponse({SW1SW2_OK});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _))
+        .WillOnce(Return(cardGetChallengeCardResponse))
+        .WillOnce(Return(cardChangeKeyCardResponse));
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _))
+        .WillOnce(Return(samCardResponse));
+
+
+    cardTransactionManager->processChangeKey(1,  2,  3,  4,  5);
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest,
      prepareSelectFileDeprecated_whenLidIsLessThan2ByteLong_shouldThrowIAE)
@@ -1240,26 +1189,25 @@ TEST(CardTransactionManagerAdapterTest,
 //     verifyNoMoreInteractions(samReader, cardReader);
 //   }
 
-//   @Test
-//   public void
-//       prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision2_shouldPrepareSelectFileApduWith1234()
-//           throws Exception {
-//     short lid = 0x1234;
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_SELECT_FILE_1234_CMD_PRIME_REV2);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_SELECT_FILE_1234_RSP_PRIME_REV2);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareSelectFile(lid);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision2_shouldPrepareSelectFileApduWith1234)
+{
+    setUp();
+
+    const uint16_t lid = 0x1234;
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2);
+
+    const auto cardCardRequest = createCardRequest({CARD_SELECT_FILE_1234_CMD_PRIME_REV2});
+    const auto cardCardResponse = createCardResponse({CARD_SELECT_FILE_1234_RSP_PRIME_REV2});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareSelectFile(lid);
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
 
 //   @Test
 //   public void
@@ -1598,13 +1546,18 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.prepareWriteRecord(FILE7, 251, new byte[1]);
 //   }
 
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareSearchRecords_whenProductTypeIsNotPrimeRev3_shouldThrowUOE() {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
-//     cardTransactionManager.prepareSearchRecords(null);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenProductTypeIsNotPrimeRev3_shouldThrowUOE)
+{
+    setUp();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2);
+
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(nullptr),
+                 UnsupportedOperationException);
+
+    tearDown();
+}
 
 //   @Test(expected = IllegalArgumentException.class)
 //   public void prepareSearchRecords_whenDataIsNull_shouldThrowIAE() {
@@ -1914,13 +1867,18 @@ TEST(CardTransactionManagerAdapterTest,
 //     assertThat(data.getMatchingRecordNumbers()).containsExactly(4, 6);
 //   }
 
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareReadRecordsPartially_whenProductTypeIsNotPrimeRev3OrLight_shouldThrowUOE() {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 1, 1, 1);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenProductTypeIsNotPrimeRev3OrLight_shouldThrowUOE)
+{
+    setUp();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2);
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(1, 1, 1, 1, 1),
+                 UnsupportedOperationException);
+
+    tearDown();
+}
 
 //   @Test(expected = IllegalArgumentException.class)
 //   public void prepareReadRecordsPartially_whenSfiIsNegative_shouldThrowIAE() {
@@ -2045,13 +2003,18 @@ TEST(CardTransactionManagerAdapterTest,
 //         .isEqualTo(HexUtil::toByteArray("00000055"));
 //   }
 
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareUpdateBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE() {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
-//     cardTransactionManager.prepareUpdateBinary( 1, 1, new byte[1]);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareUpdateBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE)
+{
+    setUp();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2);
+
+    EXPECT_THROW(cardTransactionManager->prepareUpdateBinary(1, 1, std::vector<uint8_t>(1)),
+                 UnsupportedOperationException);
+
+    tearDown();
+}
 
 //   @Test(expected = IllegalArgumentException.class)
 //   public void prepareReadBinary_whenSfiIsNegative_shouldThrowIAE() {
@@ -2264,13 +2227,18 @@ TEST(CardTransactionManagerAdapterTest,
 //         .isEqualTo(HexUtil::toByteArray("1122334455"));
 //   }
 
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareWriteBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE() {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2)));
-//     cardTransactionManager.prepareWriteBinary( 1, 1, new byte[1]);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareWriteBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE)
+{
+    setUp();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2);
+
+    EXPECT_THROW(cardTransactionManager->prepareWriteBinary(1, 1, std::vector<uint8_t>(1)),
+                 UnsupportedOperationException);
+
+    tearDown();
+}
 
 //   @Test(expected = IllegalArgumentException.class)
 //   public void prepareWriteBinary_whenSfiIsNegative_shouldThrowIAE() {
@@ -2647,24 +2615,23 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.prepareCheckPinStatus();
 //   }
 
-//   @Test
-//   public void prepareCheckPinStatus_whenPinFeatureIsAvailable_shouldPrepareCheckPinStatusApdu()
-//       throws Exception {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN)));
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_CHECK_PIN_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareCheckPinStatus();
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareCheckPinStatus_whenPinFeatureIsAvailable_shouldPrepareCheckPinStatusApdu)
+{
+    setUp();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN);
+
+    const auto cardCardRequest = createCardRequest({CARD_CHECK_PIN_CMD});
+    const auto cardCardResponse = createCardResponse({SW1SW2_OK});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareCheckPinStatus();
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
 
 //   @Test(expected = IllegalArgumentException.class)
 //   public void prepareSvGet_whenSvOperationNull_shouldThrowIAE() {
@@ -2681,60 +2648,58 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.prepareSvGet(SvOperation.DEBIT, SvAction.DO);
 //   }
 
-//   @Test
-//   public void prepareSvGet_whenSvOperationDebit_shouldPrepareSvGetDebitApdu() throws Exception {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_SV_GET_DEBIT_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_SV_GET_DEBIT_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareSvGet(SvOperation.DEBIT, SvAction.DO);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSvGet_whenSvOperationDebit_shouldPrepareSvGetDebitApdu)
+{
+    setUp();
 
-//   @Test
-//   public void prepareSvGet_whenSvOperationReload_shouldPrepareSvGetReloadApdu() throws Exception {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_SV_GET_RELOAD_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_SV_GET_RELOAD_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareSvGet(SvOperation.RELOAD, SvAction.DO);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE);
 
-//   @Test
-//   public void prepareSvGet_whenSvOperationReloadWithPrimeRev2_shouldPrepareSvGetReloadApdu()
-//       throws Exception {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2_WITH_STORED_VALUE)));
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_PRIME_REV2_SV_GET_RELOAD_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_SV_GET_RELOAD_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareSvGet(SvOperation.RELOAD, SvAction.DO);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    const auto cardCardRequest = createCardRequest({CARD_SV_GET_DEBIT_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_SV_GET_DEBIT_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareSvGet(SvOperation::DEBIT, SvAction::DO);
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSvGet_whenSvOperationReload_shouldPrepareSvGetReloadApdu)
+{
+    setUp();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE);
+
+    const auto cardCardRequest = createCardRequest({CARD_SV_GET_RELOAD_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_SV_GET_RELOAD_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareSvGet(SvOperation::RELOAD, SvAction::DO);
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSvGet_whenSvOperationReloadWithPrimeRev2_shouldPrepareSvGetReloadApdu)
+{
+    setUp();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2_WITH_STORED_VALUE);
+
+    const auto cardCardResponse = createCardResponse({CARD_SV_GET_RELOAD_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareSvGet(SvOperation::RELOAD, SvAction::DO);
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
 
 //   @Test(expected = IllegalStateException.class)
 //   public void prepareSvReload_whenNoSvGetPreviouslyExecuted_shouldThrowISE() throws Exception {
@@ -2761,58 +2726,67 @@ TEST(CardTransactionManagerAdapterTest,
 //     cardTransactionManager.prepareSvReadAllLogs();
 //   }
 
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareSvReadAllLogs_whenNotAnSVApplication_shouldThrowISE() {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE)));
-//     cardTransactionManager.prepareSvReadAllLogs();
-//   }
+TEST(CardTransactionManagerAdapterTest, prepareSvReadAllLogs_whenNotAnSVApplication_shouldThrowISE)
+{
+    setUp();
 
-//   @Test(expected = IllegalStateException.class)
-//   public void prepareInvalidate_whenCardIsInvalidated_shouldThrowISE() {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED)));
-//     cardTransactionManager.prepareInvalidate();
-//   }
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_STORED_VALUE);
 
-//   @Test
-//   public void prepareInvalidate_whenCardIsNotInvalidated_prepareInvalidateApdu() throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_INVALIDATE_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareInvalidate();
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSvReadAllLogs(), UnsupportedOperationException);
 
-//   @Test(expected = IllegalStateException.class)
-//   public void prepareRehabilitate_whenCardIsNotInvalidated_shouldThrowISE() {
-//     cardTransactionManager.prepareRehabilitate();
-//   }
+    tearDown();
+}
 
-//   @Test
-//   public void prepareRehabilitate_whenCardIsInvalidated_prepareInvalidateApdu() throws Exception {
-//     calypsoCard.initializeWithFci(
-//         new ApduResponseAdapter(
-//             HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED)));
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_REHABILITATE_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareRehabilitate();
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+TEST(CardTransactionManagerAdapterTest, prepareInvalidate_whenCardIsInvalidated_shouldThrowISE)
+{
+    setUp();
 
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED);
 
+    EXPECT_THROW(cardTransactionManager->prepareInvalidate(), IllegalStateException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareInvalidate_whenCardIsNotInvalidated_prepareInvalidateApdu)
+{
+    setUp();
+
+    const auto cardCardRequest = createCardRequest({CARD_INVALIDATE_CMD});
+    const auto cardCardResponse = createCardResponse({SW1SW2_OK});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareInvalidate();
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareRehabilitate_whenCardIsNotInvalidated_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareRehabilitate(), IllegalStateException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareRehabilitate_whenCardIsInvalidated_prepareInvalidateApdu)
+{
+    setUp();
+
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED);
+
+    const auto cardCardRequest = createCardRequest({CARD_REHABILITATE_CMD});
+    const auto cardCardResponse = createCardResponse({SW1SW2_OK});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareRehabilitate();
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}

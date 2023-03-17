@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -20,9 +20,13 @@
 /* Calypsonet Terminal Calypso */
 #include "CalypsoCard.h"
 
+/* Calypsonet Terminal Card */
+#include "ApduResponseApi.h"
+
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -32,6 +36,7 @@ namespace keyple {
 namespace card {
 namespace calypso {
 
+using namespace calypsonet::terminal::card;
 using namespace calypsonet::terminal::calypso::card;
 using namespace keyple::core::util::cpp;
 
@@ -51,17 +56,24 @@ public:
      *
      * @param isUpdateCommand True if it is an "Update Binary" command, false if it is a "Write
      *        Binary" command.
-     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param sfi the sfi to select.
      * @param offset the offset.
      * @param data the data to write.
      * @since 2.1.0
      */
     CmdCardUpdateOrWriteBinary(const bool isUpdateCommand,
-                               const CalypsoCardClass calypsoCardClass,
+                               const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                const uint8_t sfi,
                                const uint8_t offset,
                                const std::vector<uint8_t>& data);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    void parseApduResponse(std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
      * {@inheritDoc}
@@ -72,30 +84,6 @@ public:
      * @since 2.1.0
      */
     bool isSessionBufferUsed() const override;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return The SFI.
-     * @since 2.1.0
-     */
-    uint8_t getSfi() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return The offset.
-     * @since 2.1.0
-     */
-    uint8_t getOffset() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return The data.
-     * @since 2.1.0
-     */
-    const std::vector<uint8_t>& getData() const;
 
     /**
      * {@inheritDoc}

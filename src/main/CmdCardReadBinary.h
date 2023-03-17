@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -20,9 +20,13 @@
 /* Calypsonet Terminal Calypso */
 #include "CalypsoCard.h"
 
+/* Calypsonet Terminal Card */
+#include "ApduResponseApi.h"
+
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -32,6 +36,7 @@ namespace keyple {
 namespace card {
 namespace calypso {
 
+using namespace calypsonet::terminal::card;
 using namespace calypsonet::terminal::calypso::card;
 using namespace keyple::core::util::cpp;
 
@@ -49,13 +54,13 @@ public:
      * (package-private)<br>
      * Constructor.
      *
-     * @param calypsoCardClass Indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param sfi The sfi to select.
      * @param offset The offset.
      * @param length The number of bytes to read.
      * @since 2.1.0
      */
-    CmdCardReadBinary(const CalypsoCardClass calypsoCardClass,
+    CmdCardReadBinary(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                       const uint8_t sfi,
                       const uint8_t offset,
                       const uint8_t length);
@@ -65,16 +70,17 @@ public:
      *
      * @return false
      * @since 2.1.0
+     * @since 2.2.3
      */
-    bool isSessionBufferUsed() const override;
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
-     * (package-private)<br>
+     * {@inheritDoc}
      *
-     * @return The SFI.
+     * @return false
      * @since 2.1.0
      */
-    uint8_t getSfi() const;
+    bool isSessionBufferUsed() const override;
 
     /**
      * (package-private)<br>

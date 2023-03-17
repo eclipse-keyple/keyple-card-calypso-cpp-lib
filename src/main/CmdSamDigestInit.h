@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -12,17 +12,12 @@
 
 #pragma once
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -36,7 +31,7 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdSamDigestInit.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param verificationMode the verification mode.
      * @param confidentialSessionMode the confidential session mode (rev 3.2).
      * @param workKif from the card response.
@@ -48,7 +43,7 @@ public:
      * @since 2.0.1
      */
     CmdSamDigestInit(
-        const CalypsoSam::ProductType productType,
+        const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
         const bool verificationMode,
         const bool confidentialSessionMode,
         const uint8_t workKif,

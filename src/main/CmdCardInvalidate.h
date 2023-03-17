@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -23,6 +23,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -49,10 +50,10 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardInvalidate.
      *
-     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @since 2.0.1
      */
-    CmdCardInvalidate(const CalypsoCardClass calypsoCardClass);
+    CmdCardInvalidate(const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
 
     /**
      * {@inheritDoc}

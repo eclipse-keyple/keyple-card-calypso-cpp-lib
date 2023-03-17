@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -41,14 +41,15 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardVerifyPin::STATUS_TABLE = initStatusTable();
 
 CmdCardVerifyPin::CmdCardVerifyPin(
-  const CalypsoCardClass calypsoCardClass,
+  const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
   const bool encryptPinTransmission,
   const std::vector<uint8_t>& pin)
-: AbstractCardCommand(mCommand, 0), mCla(calypsoCardClass.getValue())
+: AbstractCardCommand(mCommand, 0, calypsoCard), mCla(calypsoCard->getCardClass().getValue())
 {
     if (pin.empty() ||
         (!encryptPinTransmission && pin.size() != 4) ||
         (encryptPinTransmission && pin.size() != 8)) {
+
         throw IllegalArgumentException("The PIN must be 4 bytes long");
     }
 
@@ -65,8 +66,8 @@ CmdCardVerifyPin::CmdCardVerifyPin(
     mReadCounterOnly = false;
 }
 
-CmdCardVerifyPin::CmdCardVerifyPin(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0), mCla(calypsoCardClass.getValue())
+CmdCardVerifyPin::CmdCardVerifyPin(const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractCardCommand(mCommand, 0, calypsoCard), mCla(calypsoCard->getCardClass().getValue())
 {
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;
@@ -80,40 +81,48 @@ CmdCardVerifyPin::CmdCardVerifyPin(const CalypsoCardClass calypsoCardClass)
     mReadCounterOnly = true;
 }
 
+void CmdCardVerifyPin::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    try {
+
+        AbstractCardCommand::parseApduResponse(apduResponse);
+        getCalypsoCard()->setPinAttemptRemaining(3);
+
+    } catch (const CardPinException& e) {
+
+        switch (apduResponse->getStatusWord()) {
+
+            case 0x63C2:
+                getCalypsoCard()->setPinAttemptRemaining(2);
+                break;
+
+            case 0x63C1:
+                getCalypsoCard()->setPinAttemptRemaining(1);
+                break;
+
+            case 0x6983:
+                getCalypsoCard()->setPinAttemptRemaining(0);
+                break;
+
+            default:
+                /* NOP */
+                break;
+        }
+
+        /*
+         * Forward the exception if the operation do not target the reading of the attempt counter.
+         * Catch it silently otherwise
+         */
+        if (!mReadCounterOnly) {
+
+            throw e;
+        }
+    }
+}
+
 bool CmdCardVerifyPin::isSessionBufferUsed() const
 {
     return false;
-}
-
-bool CmdCardVerifyPin::isReadCounterOnly() const
-{
-    return mReadCounterOnly;
-}
-
-int CmdCardVerifyPin::getRemainingAttemptCounter() const
-{
-    int attemptCounter;
-
-    switch (getApduResponse()->getStatusWord()) {
-    case 0x6983:
-        attemptCounter = 0;
-        break;
-    case 0x63C1:
-        attemptCounter = 1;
-        break;
-    case 0x63C2:
-        attemptCounter = 2;
-        break;
-    case 0x9000:
-        attemptCounter = 3;
-        break;
-    default:
-        std::stringstream ss;
-        ss << std::setfill ('0') << std::setw(4) << std::hex << getApduResponse()->getStatusWord();
-        throw IllegalStateException("Incorrect status word: " + ss.str());
-    }
-
-    return attemptCounter;
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

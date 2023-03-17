@@ -16,11 +16,9 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "CalypsoSamAdapter.h"
 
 namespace keyple {
 namespace card {
@@ -40,11 +38,11 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdSamGetChallenge.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param expectedResponseLength the expected response length.
      * @since 2.0.1
      */
-    CmdSamGetChallenge(const CalypsoSam::ProductType productType,
+    CmdSamGetChallenge(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                        const int expectedResponseLength);
 
     /**

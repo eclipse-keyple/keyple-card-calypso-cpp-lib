@@ -13,9 +13,6 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-/* Calypsonet Terminal Calypso */
-#include "InconsistentDataException.h"
-
 /* Calypsonet Terminal Card */
 #include "ParseException.h"
 
@@ -35,7 +32,6 @@
 
 using namespace testing;
 
-using namespace calypsonet::terminal::calypso;
 using namespace calypsonet::terminal::card::spi;
 using namespace keyple::card::calypso;
 using namespace keyple::core::util;
@@ -157,7 +153,7 @@ TEST(CalypsoSamSelectionAdapterTest,
     samSelection->setUnlockData("00112233445566778899AABBCCDDEEFF");
     samSelection->getCardSelectionRequest();
 
-    EXPECT_THROW(samSelection->parse(cardSelectionResponseApi), InconsistentDataException);
+    EXPECT_THROW(samSelection->parse(cardSelectionResponseApi), ParseException);
 
     tearDown();
 }

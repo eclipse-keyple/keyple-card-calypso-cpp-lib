@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -42,7 +42,8 @@ using namespace calypsonet::terminal::card::spi;
  *
  * @since 2.0.0
  */
-class KEYPLECARDCALYPSO_API CalypsoCardSelectionAdapter final : public CalypsoCardSelection, public CardSelectionSpi {
+class KEYPLECARDCALYPSO_API CalypsoCardSelectionAdapter final
+: public CalypsoCardSelection, public CardSelectionSpi {
 public:
     /**
      * (package-private)<br>
@@ -178,6 +179,8 @@ private:
     static const int AID_MIN_LENGTH;
     static const int AID_MAX_LENGTH;
     static const int SW_CARD_INVALIDATED;
+    static const std::string MSG_CARD_COMMAND_ERROR;
+
 
     /**
      * C++: vector of AbstractApduCommand instead of AbstractCardCommand because of vector
@@ -190,6 +193,19 @@ private:
      */
     std::shared_ptr<CardSelectorAdapter> mCardSelector;
 
+    /**
+     * (private)<br>
+     * Parses the APDU responses and updates the Calypso card image.
+     *
+     * @param calypsoCard The Calypso card.
+     * @param commands The list of commands that get the responses.
+     * @param apduResponses The APDU responses returned by the card to all commands.
+     * @throw CardCommandException If a response from the card was unexpected.
+     * @throw InconsistentDataException If the number of commands/responses does not match.
+     */
+    void parseApduResponses(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
+                            const std::vector<std::shared_ptr<AbstractApduCommand>>& commands,
+                            const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses);
 };
 
 }

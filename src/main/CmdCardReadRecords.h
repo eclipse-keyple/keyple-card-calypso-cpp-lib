@@ -20,6 +20,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 #include "CalypsoCardCommand.h"
 
@@ -64,14 +65,30 @@ public:
      * (package-private)<br>
      * Instantiates a new read records cmd build.
      *
+     * @param calypsoCard The Calypso card.
+     * @param sfi the sfi top select.
+     * @param firstRecordNumber the record number to read (or first record to read in case of
+     *        several records)
+     * @param readMode read mode, requests the reading of one or all the records.
+     * @param expectedLength the expected length of the record(s).
+     * @since 2.2.3
+     */
+    CmdCardReadRecords(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
+                       const int sfi,
+                       const int firstRecordNumber,
+                       const ReadMode readMode,
+                       const int expectedLength);
+
+    /**
+     * (package-private)<br>
+     * Instantiates a new read records cmd build.
+     *
      * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
      * @param sfi the sfi top select.
      * @param firstRecordNumber the record number to read (or first record to read in case of
      *        several records)
      * @param readMode read mode, requests the reading of one or all the records.
      * @param expectedLength the expected length of the record(s).
-     * @throws IllegalArgumentException If record number &lt; 1
-     * @throws IllegalArgumentException If the request is inconsistent
      * @since 2.0.1
      */
     CmdCardReadRecords(const CalypsoCardClass calypsoCardClass,
@@ -155,32 +172,44 @@ private:
     /**
      *
      */
+    int mSfi = 0;
+
+    /**
+     *
+     */
+    int mFirstRecordNumber = 0;
+
+    /**
+     *
+     */
+    ReadMode mReadMode = ReadMode::ONE_RECORD;
+
+    /**
+     *
+     */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
-
-    /**
-     * Construction arguments used for parsing
-     */
-    const uint8_t mSfi;
-
-    /**
-     *
-     */
-    const uint8_t mFirstRecordNumber;
-
-    /**
-     *
-     */
-    const ReadMode mReadMode;
-
-    /**
-     *
-     */
-    std::map<const uint8_t, const std::vector<uint8_t>> mRecords;
 
     /**
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
+
+    /**
+     * (private)<br>
+     * Builds the command.
+     *
+     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     * @param sfi the sfi top select.
+     * @param firstRecordNumber the record number to read (or first record to read in case of several.
+     *     records)
+     * @param readMode read mode, requests the reading of one or all the records.
+     * @param expectedLength the expected length of the record(s).
+     */
+    void buildCommand(const CalypsoCardClass calypsoCardClass,
+                      const int sfi,
+                      const int firstRecordNumber,
+                      const ReadMode readMode,
+                      const int expectedLength);
 
 };
 

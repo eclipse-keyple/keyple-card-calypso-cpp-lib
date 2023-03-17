@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,17 +16,13 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "CalypsoSamAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -44,14 +40,14 @@ public:
      * <p>If bot KIF and KVC of the ciphering are equal to 0, the source key is ciphered with the null
      * key.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param cipheringKif The KIF of the ciphering key.
      * @param cipheringKvc The KVC of the ciphering key.
      * @param sourceKif The KIF of the source key.
      * @param sourceKvc The KVC of the source key.
      * @since 2.0.1
      */
-    CmdSamCardGenerateKey(const CalypsoSam::ProductType productType,
+    CmdSamCardGenerateKey(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                           const uint8_t cipheringKif,
                           const uint8_t cipheringKvc,
                           const uint8_t sourceKif,

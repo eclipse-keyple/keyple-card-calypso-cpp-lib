@@ -20,6 +20,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 #include "SearchCommandDataAdapter.h"
 
@@ -46,11 +47,11 @@ public:
      * (package-private)<br>
      * Constructor.
      *
-     * @param calypsoCardClass The CLA field value.
+     * @param calypsoCard The Calypso card.
      * @param data The search command input/output data.
      * @since 2.1.0
      */
-    CmdCardSearchRecordMultiple(const CalypsoCardClass calypsoCardClass,
+    CmdCardSearchRecordMultiple(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                 const std::shared_ptr<SearchCommandDataAdapter> data);
 
     /**
@@ -76,23 +77,6 @@ public:
      */
     void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
-    /**
-     * (package-private)<br>
-     *
-     * @return The search command input/output data.
-     * @since 2.1.0
-     */
-    const std::shared_ptr<SearchCommandDataAdapter> getSearchCommandData() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return An empty array if fetching of first matching record is not requested or if no record
-     *     has matched.
-     * @since 2.1.0
-     */
-    const std::vector<uint8_t> getFirstMatchingRecordContent() const;
-
 private:
     /**
      *
@@ -109,11 +93,6 @@ private:
      *
      */
     const std::shared_ptr<SearchCommandDataAdapter> mData;
-
-    /**
-     *
-     */
-    std::vector<uint8_t> mFirstMatchingRecordContent;
 
     /**
      *

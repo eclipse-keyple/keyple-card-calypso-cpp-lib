@@ -38,9 +38,9 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardSearchRecordMultiple::STATUS_TABLE = initStatusTable();
 
 CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
-  const CalypsoCardClass calypsoCardClass,
+  const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
   const std::shared_ptr<SearchCommandDataAdapter> data)
-: AbstractCardCommand(CalypsoCardCommand::SEARCH_RECORD_MULTIPLE, 0),
+: AbstractCardCommand(CalypsoCardCommand::SEARCH_RECORD_MULTIPLE, 0, calypsoCard),
   mData(data)
 {
     const int searchDataLength = static_cast<int>(data->getSearchData().size());
@@ -48,10 +48,12 @@ CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
 
     std::vector<uint8_t> dataIn(3 + (2 * searchDataLength));
     if (data->isEnableRepeatedOffset()) {
+
         dataIn[0] = 0x80;
     }
 
     if (data->isFetchFirstMatchingResult()) {
+
         dataIn[0] |= 1;
     }
 
@@ -61,29 +63,34 @@ CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
     System::arraycopy(data->getSearchData(), 0, dataIn, 3, searchDataLength);
 
     if (data->getMask().empty()) {
+
         /* CL-CMD-SEARCH.1 */
         Arrays::fill(dataIn,
                      dataIn.size() - searchDataLength,
                      dataIn.size(),
                      static_cast<uint8_t>(0xFF));
+
     } else {
+
         System::arraycopy(data->getMask(),
                           0,
                           dataIn,
                           dataIn.size() - searchDataLength,
                           data->getMask().size());
-    if (static_cast<int>(data->getMask().size()) != searchDataLength) {
-        /* CL-CMD-SEARCH.1 */
-        Arrays::fill(dataIn,
-                     dataIn.size() - searchDataLength + data->getMask().size(),
-                     dataIn.size(),
-                     static_cast<uint8_t>(0xFF));
-    }
+
+        if (static_cast<int>(data->getMask().size()) != searchDataLength) {
+
+            /* CL-CMD-SEARCH.1 */
+            Arrays::fill(dataIn,
+                        dataIn.size() - searchDataLength + data->getMask().size(),
+                        dataIn.size(),
+                        static_cast<uint8_t>(0xFF));
+        }
     }
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(calypsoCardClass.getValue(),
+            ApduUtil::build(calypsoCard->getCardClass().getValue(),
                             getCommandRef().getInstructionByte(),
                             data->getRecordNumber(),
                             p2,
@@ -166,31 +173,20 @@ void CmdCardSearchRecordMultiple::parseApduResponse(
 {
     AbstractCardCommand::parseApduResponse(apduResponse);
 
-    if (apduResponse->getDataOut().size() > 0) {
-        const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+    const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+    const int nbRecords = dataOut[0];
 
-        const int nbRecords = dataOut[0];
-        for (int i = 1; i <= nbRecords; i++) {
-            mData->getMatchingRecordNumbers().push_back(dataOut[i]);
-        }
+    for (int i = 1; i <= nbRecords; i++) {
 
-        if (mData->isFetchFirstMatchingResult() && nbRecords > 0) {
-            mFirstMatchingRecordContent =
-                Arrays::copyOfRange(dataOut, nbRecords + 1, dataOut.size());
-        }
+        mData->getMatchingRecordNumbers().push_back(dataOut[i]);
     }
-}
 
-const std::shared_ptr<SearchCommandDataAdapter> CmdCardSearchRecordMultiple::getSearchCommandData()
-    const
-{
-    return mData;
-}
+    if (mData->isFetchFirstMatchingResult() && nbRecords > 0) {
 
-const std::vector<uint8_t> CmdCardSearchRecordMultiple::getFirstMatchingRecordContent() const
-{
-    return !mFirstMatchingRecordContent.empty() ?
-               mFirstMatchingRecordContent : std::vector<uint8_t>();
+        getCalypsoCard()->setContent(mData->getSfi(),
+                                     mData->getMatchingRecordNumbers()[0],
+                                     Arrays::copyOfRange(dataOut, nbRecords + 1, dataOut.size()));
+    }
 }
 
 }

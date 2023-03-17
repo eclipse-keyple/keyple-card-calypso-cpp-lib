@@ -16,6 +16,7 @@
 
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
+#include "CalypsoSamAdapter.h"
 #include "CalypsoSamCommand.h"
 
 namespace keyple {
@@ -53,11 +54,24 @@ public:
      * (package-private)<br>
      * Constructor dedicated for the building of referenced Calypso commands
      *
-     * @param commandRef a command reference from the Calypso command table.
+     * @param commandRef A command reference from the Calypso command table.
      * @param le The value of the LE field.
+     * @param calypsoSam The Calypso SAM (it may be null if the SAM selection has not yet been
+     *                   made).
      * @since 2.0.1
      */
-    AbstractSamCommand(const CalypsoSamCommand& commandRef, const int le);
+    AbstractSamCommand(const CalypsoSamCommand& commandRef,
+                       const int le,
+                       const std::shared_ptr<CalypsoSamAdapter> calypsoSam);
+
+    /**
+     * (package-private)<br>
+     * Returns the Calypso SAM.
+     *
+     * @return Null if the SAM selection has not yet been made.
+     * @since 2.2.3
+     */
+    const std::shared_ptr<CalypsoSamAdapter> getCalypsoSam() const;
 
     /**
      * {@inheritDoc}
@@ -89,11 +103,25 @@ public:
      */
     void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
+    /**
+     * (package-private)<br>
+     * Sets the Calypso SAM and invoke the {@link #parseApduResponse(ApduResponseApi)} method.
+     *
+     * @since 2.2.3
+     */
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse,
+                           const std::shared_ptr<CalypsoSamAdapter> calypsoSam);
+
 private:
     /**
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
+
+    /**
+     *
+     */
+    std::shared_ptr<CalypsoSamAdapter> mCalypsoSam;
 };
 
 }

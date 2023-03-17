@@ -34,24 +34,26 @@ const CalypsoSamCommand CmdSamReadCeilings::mCommand = CalypsoSamCommand::READ_C
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamReadCeilings::STATUS_TABLE = initStatusTable();
 
-CmdSamReadCeilings::CmdSamReadCeilings(std::shared_ptr<CalypsoSamAdapter> sam,
+CmdSamReadCeilings::CmdSamReadCeilings(std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                        const CeilingsOperationType ceilingsOperationType,
                                        const int target)
-: AbstractSamCommand(mCommand, 48),
-  mSam(sam),
+: AbstractSamCommand(mCommand, 48, calypsoSam),
   mCeilingsOperationType(ceilingsOperationType),
   mFirstEventCeilingNumber(ceilingsOperationType == CeilingsOperationType::READ_SINGLE_CEILING ?
                            target : (target - 1) * 9)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(sam->getProductType());
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 
     uint8_t p1;
     uint8_t p2;
 
     if (ceilingsOperationType == CeilingsOperationType::READ_SINGLE_CEILING) {
+
         p1 = target;
         p2 = 0xB8;
+
     } else {
+
         p1 = 0x00;
         p2 = static_cast<uint8_t>(0xB0 + target);
     }
@@ -91,12 +93,19 @@ void CmdSamReadCeilings::parseApduResponse(std::shared_ptr<ApduResponseApi> apdu
     AbstractSamCommand::parseApduResponse(apduResponse);
 
     const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+
     if (mCeilingsOperationType == CeilingsOperationType::READ_SINGLE_CEILING) {
-        mSam->putEventCeiling(dataOut[8], ByteArrayUtil::extractInt(dataOut, 9, 3, false));
+
+        getCalypsoSam()->putEventCeiling(dataOut[8],
+                                         ByteArrayUtil::extractInt(dataOut, 9, 3, false));
+
     } else {
+
         for (int i = 0; i < 9; i++) {
-            mSam->putEventCeiling(mFirstEventCeilingNumber + i,
-                                  ByteArrayUtil::extractInt(dataOut, 8 + (3 * i), 3, false));
+
+            getCalypsoSam()->putEventCeiling(
+                mFirstEventCeilingNumber + i,
+                ByteArrayUtil::extractInt(dataOut, 8 + (3 * i), 3, false));
         }
     }
 }

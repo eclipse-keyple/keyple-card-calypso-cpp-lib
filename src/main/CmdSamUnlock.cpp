@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -34,18 +34,21 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamUnlock::STATUS_TABLE = initStatusTable();
 
 
-CmdSamUnlock::CmdSamUnlock(const CalypsoSam::ProductType productType, const std::vector<uint8_t>& unlockData)
-: AbstractSamCommand(mCommand, 0)
+CmdSamUnlock::CmdSamUnlock(const CalypsoSam::ProductType productType,
+                           const std::vector<uint8_t>& unlockData)
+: AbstractSamCommand(mCommand, 0, nullptr)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(productType);
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;
 
     if (unlockData.empty()) {
+
         throw IllegalArgumentException("Unlock data null!");
     }
 
     if (unlockData.size() != 8 && unlockData.size() != 16) {
+
         throw IllegalArgumentException("Unlock data should be 8 ou 16 bytes long!");
     }
 

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -42,15 +42,16 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdSamSvPrepareDebitOrUndebit::CmdSamSvPrepareDebitOrUndebit(
   const bool isDebitCommand,
-  const CalypsoSam::ProductType productType,
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const std::vector<uint8_t>& svGetHeader,
   const std::vector<uint8_t>& svGetData,
   const std::vector<uint8_t>& svDebitOrUndebitCmdBuildData)
-: AbstractSamCommand(isDebitCommand ? CalypsoSamCommand::SV_PREPARE_DEBIT : 
-                                      CalypsoSamCommand::SV_PREPARE_UNDEBIT, 
-                     0)
+: AbstractSamCommand(isDebitCommand ? CalypsoSamCommand::SV_PREPARE_DEBIT :
+                                      CalypsoSamCommand::SV_PREPARE_UNDEBIT,
+                     0,
+                     calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t p1 = 0x01;
     const uint8_t p2 = 0xFF;
     std::vector<uint8_t> data(16 + svGetData.size()); /* Header(4) + SvUndebit data (12) = 16 bytes*/

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -34,16 +34,16 @@ const CalypsoCardCommand CmdCardWriteRecord::mCommand = CalypsoCardCommand::WRIT
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardWriteRecord::STATUS_TABLE = initStatusTable();
 
-CmdCardWriteRecord::CmdCardWriteRecord(const CalypsoCardClass calypsoCardClass,
+CmdCardWriteRecord::CmdCardWriteRecord(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                        const uint8_t sfi,
                                        const uint8_t recordNumber,
                                        const std::vector<uint8_t>& newRecordData)
-: AbstractCardCommand(mCommand, 0),
+: AbstractCardCommand(mCommand, 0, calypsoCard),
   mSfi(sfi),
   mRecordNumber(recordNumber),
   mData(newRecordData)
 {
-    const uint8_t cla = calypsoCardClass.getValue();
+    const uint8_t cla = calypsoCard->getCardClass().getValue();
     const uint8_t p2 = (sfi == 0) ? 0x04 : sfi * 8 + 4;
 
     setApduRequest(
@@ -61,24 +61,16 @@ CmdCardWriteRecord::CmdCardWriteRecord(const CalypsoCardClass calypsoCardClass,
     addSubName(extraInfo.str());
 }
 
+void CmdCardWriteRecord::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractCardCommand::parseApduResponse(apduResponse);
+
+    getCalypsoCard()->fillContent(mSfi, mRecordNumber, mData, 0);
+}
+
 bool CmdCardWriteRecord::isSessionBufferUsed() const
 {
     return true;
-}
-
-uint8_t CmdCardWriteRecord::getSfi() const
-{
-    return mSfi;
-}
-
-uint8_t CmdCardWriteRecord::getRecordNumber() const
-{
-    return mRecordNumber;
-}
-
-const std::vector<uint8_t>& CmdCardWriteRecord::getData() const
-{
-    return mData;
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

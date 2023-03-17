@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -37,11 +37,13 @@ using namespace keyple::core::util::cpp;
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardReadBinary::STATUS_TABLE = initStatusTable();
 
-CmdCardReadBinary::CmdCardReadBinary(const CalypsoCardClass calypsoCardClass,
+CmdCardReadBinary::CmdCardReadBinary(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                      const uint8_t sfi,
                                      const uint8_t offset,
                                      const uint8_t length)
-: AbstractCardCommand(CalypsoCardCommand::READ_BINARY, length), mSfi(sfi), mOffset(offset)
+: AbstractCardCommand(CalypsoCardCommand::READ_BINARY, length, calypsoCard),
+  mSfi(sfi),
+  mOffset(offset)
 {
     const uint8_t msb = ((offset & 0xFF00) >> 8);
     const uint8_t lsb = (offset & 0xFF);
@@ -55,7 +57,7 @@ CmdCardReadBinary::CmdCardReadBinary(const CalypsoCardClass calypsoCardClass,
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(
-                calypsoCardClass.getValue(),
+                calypsoCard->getCardClass().getValue(),
                 getCommandRef().getInstructionByte(),
                 p1,
                 lsb,
@@ -69,14 +71,16 @@ CmdCardReadBinary::CmdCardReadBinary(const CalypsoCardClass calypsoCardClass,
     addSubName(extraInfo.str());
 }
 
+void CmdCardReadBinary::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractCardCommand::parseApduResponse(apduResponse);
+
+    getCalypsoCard()->setContent(mSfi, 1, apduResponse->getDataOut(), mOffset);
+}
+
 bool CmdCardReadBinary::isSessionBufferUsed() const
 {
     return false;
-}
-
-uint8_t CmdCardReadBinary::getSfi() const
-{
-    return mSfi;
 }
 
 uint8_t CmdCardReadBinary::getOffset() const

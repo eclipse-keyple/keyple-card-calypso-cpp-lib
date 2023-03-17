@@ -31,8 +31,10 @@ namespace keyple {
 namespace card {
 namespace calypso {
 
-AbstractCardCommand::AbstractCardCommand(const CalypsoCardCommand& commandRef, const int le)
-: AbstractApduCommand(commandRef, le) {}
+AbstractCardCommand::AbstractCardCommand(const CalypsoCardCommand& commandRef,
+                                         const int le,
+                                         const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractApduCommand(commandRef, le), mCalypsoCard(calypsoCard) {}
 
 const CalypsoCardCommand& AbstractCardCommand::getCommandRef() const
 {
@@ -82,6 +84,19 @@ const CalypsoApduCommandException AbstractCardCommand::buildUnexpectedResponseLe
 void AbstractCardCommand::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
     AbstractApduCommand::parseApduResponse(apduResponse);
+}
+
+std::shared_ptr<CalypsoCardAdapter> AbstractCardCommand::getCalypsoCard() const
+{
+    return mCalypsoCard;
+}
+
+void AbstractCardCommand::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse,
+                                            const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+{
+    mCalypsoCard = calypsoCard;
+
+    parseApduResponse(apduResponse);
 }
 
 }

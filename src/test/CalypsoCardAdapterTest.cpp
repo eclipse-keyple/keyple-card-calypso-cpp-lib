@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -18,6 +18,7 @@
 
 /* Keyple Core Service */
 #include "ApduResponseAdapter.h"
+#include "CardSelectionResponseAdapter.h"
 
 /* Keyple Core Util */
 #include "HexUtil.h"
@@ -69,12 +70,24 @@ const std::string SELECT_APPLICATION_RESPONSE_DIFFERENT_TAGS_ORDER =
 
 static void setUp()
 {
-    calypsoCardAdapter = std::make_shared<CalypsoCardAdapter>();
 }
 
 static void tearDown()
 {
     calypsoCardAdapter.reset();
+}
+
+static std::shared_ptr<CalypsoCardAdapter> buildCalypsoCard(const std::string& powerOnData)
+{
+    return std::make_shared<CalypsoCardAdapter>(
+               std::make_shared<CardSelectionResponseAdapter>(powerOnData));
+}
+
+static std::shared_ptr<CalypsoCardAdapter> buildCalypsoCard(
+    const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    return std::make_shared<CalypsoCardAdapter>(
+               std::make_shared<CardSelectionResponseAdapter>(apduResponse));
 }
 
 /**
@@ -131,8 +144,7 @@ TEST(CalypsoCardAdapterTest, initializeWithPowerOnData_whenInconsistentData_shou
 {
     setUp();
 
-    EXPECT_THROW(calypsoCardAdapter->initializeWithPowerOnData(POWER_ON_DATA_BAD_LENGTH),
-                 IllegalArgumentException);
+    EXPECT_THROW(buildCalypsoCard(POWER_ON_DATA_BAD_LENGTH), IllegalArgumentException);
 
     tearDown();
 }
@@ -141,7 +153,7 @@ TEST(CalypsoCardAdapterTest, initializeWithPowerOnData_shouldInitPrimeRevision1P
 {
     setUp();
 
-    calypsoCardAdapter->initializeWithPowerOnData(POWER_ON_DATA);
+    calypsoCardAdapter = buildCalypsoCard(POWER_ON_DATA);
 
     ASSERT_EQ(calypsoCardAdapter->getProductType(), CalypsoCard::ProductType::PRIME_REVISION_1);
     ASSERT_FALSE(calypsoCardAdapter->isExtendedModeSupported());
@@ -160,11 +172,9 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenBadFci_shouldThrowIAE)
 {
     setUp();
 
-    const auto selectApplicationResponse =
-        std::make_shared<ApduResponseAdapter>(HexUtil::toByteArray("1122339000"));
-
-    EXPECT_THROW(calypsoCardAdapter->initializeWithFci(selectApplicationResponse),
-                 IllegalArgumentException);
+    EXPECT_THROW(
+        buildCalypsoCard(std::make_shared<ApduResponseAdapter>(HexUtil::toByteArray("1122339000"))),
+        IllegalArgumentException);
 
     tearDown();
 }
@@ -173,10 +183,8 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_withEmptyFCI_shouldInitUnknownPro
 {
     setUp();
 
-    const auto selectApplicationResponse =
-        std::make_shared<ApduResponseAdapter>(HexUtil::toByteArray("9000"));
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(std::make_shared<ApduResponseAdapter>(HexUtil::toByteArray("9000")));
 
     ASSERT_EQ(calypsoCardAdapter->getProductType(), CalypsoCard::ProductType::UNKNOWN);
 
@@ -187,14 +195,12 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenAppTypeIs_00_shouldThrowIAE)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_APP_TYPE_00,
-                                       SW1SW2_OK);
 
-    EXPECT_THROW(calypsoCardAdapter->initializeWithFci(selectApplicationResponse),
-                 IllegalArgumentException);
+    EXPECT_THROW(
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME, CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_APP_TYPE_00, SW1SW2_OK)),
+        IllegalArgumentException);
 
     tearDown();
 }
@@ -203,13 +209,10 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenAppTypeIs_FF_shouldInitUnknow
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_APP_TYPE_FF,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME, CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_APP_TYPE_FF, SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getProductType(), CalypsoCard::ProductType::UNKNOWN);
 
@@ -221,16 +224,15 @@ TEST(CalypsoCardAdapterTest,
 {
     setUp();
 
-    std::shared_ptr<ApduResponseApi> selectApplicationResponse;
-
     for (int appType = 1; appType <= 0x1F; appType++) {
-        selectApplicationResponse =
-            buildSelectApplicationResponse(DF_NAME,
-                                           CALYPSO_SERIAL_NUMBER,
-                                           StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(),
-                                                               appType),
-                                           SW1SW2_OK);
-        calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+
+        calypsoCardAdapter =
+            buildCalypsoCard(
+                buildSelectApplicationResponse(
+                    DF_NAME,
+                    CALYPSO_SERIAL_NUMBER,
+                    StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(), appType),
+                    SW1SW2_OK));
 
         ASSERT_EQ(calypsoCardAdapter->getProductType(), CalypsoCard::ProductType::PRIME_REVISION_2);
     }
@@ -243,16 +245,15 @@ TEST(CalypsoCardAdapterTest,
 {
     setUp();
 
-    std::shared_ptr<ApduResponseApi> selectApplicationResponse;
-
     for (int appType = 0x20; appType <= 0x89; appType++) {
-        selectApplicationResponse =
-            buildSelectApplicationResponse(DF_NAME,
-                                           CALYPSO_SERIAL_NUMBER,
-                                           StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(),
-                                                               appType),
-                                           SW1SW2_OK);
-        calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+
+        calypsoCardAdapter =
+            buildCalypsoCard(
+                buildSelectApplicationResponse(
+                    DF_NAME,
+                    CALYPSO_SERIAL_NUMBER,
+                    StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(), appType),
+                    SW1SW2_OK));
 
         ASSERT_EQ(calypsoCardAdapter->getProductType(), CalypsoCard::ProductType::PRIME_REVISION_3);
     }
@@ -265,16 +266,15 @@ TEST(CalypsoCardAdapterTest,
 {
     setUp();
 
-    std::shared_ptr<ApduResponseApi> selectApplicationResponse;
-
     for (int appType = 0x90; appType <= 0x97; appType++) {
-        selectApplicationResponse =
-            buildSelectApplicationResponse(DF_NAME,
-                                           CALYPSO_SERIAL_NUMBER,
-                                           StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(),
-                                                               appType),
-                                           SW1SW2_OK);
-        calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+
+        calypsoCardAdapter =
+            buildCalypsoCard(
+                buildSelectApplicationResponse(
+                    DF_NAME,
+                    CALYPSO_SERIAL_NUMBER,
+                    StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(), appType),
+                    SW1SW2_OK));
 
         ASSERT_EQ(calypsoCardAdapter->getProductType(), CalypsoCard::ProductType::LIGHT);
     }
@@ -287,16 +287,16 @@ TEST(CalypsoCardAdapterTest,
 {
     setUp();
 
-    std::shared_ptr<ApduResponseApi> selectApplicationResponse;
-
     for (int appType = 0x98; appType <= 0x9F; appType++) {
-        selectApplicationResponse =
-            buildSelectApplicationResponse(DF_NAME,
-                                           CALYPSO_SERIAL_NUMBER,
-                                           StringUtils::format(STARTUP_INFO_BASIC_APP_TYPE_XX.c_str(),
-                                                               appType),
-                                           SW1SW2_OK);
-        calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+
+        calypsoCardAdapter =
+            buildCalypsoCard(
+                buildSelectApplicationResponse(
+                    DF_NAME,
+                    CALYPSO_SERIAL_NUMBER,
+                    StringUtils::format(STARTUP_INFO_BASIC_APP_TYPE_XX.c_str(), appType),
+                    SW1SW2_OK));
+
         ASSERT_EQ(calypsoCardAdapter->getProductType(), CalypsoCard::ProductType::BASIC);
     }
 
@@ -308,16 +308,16 @@ TEST(CalypsoCardAdapterTest,
 {
     setUp();
 
-    std::shared_ptr<ApduResponseApi> selectApplicationResponse;
-
     for (int appType = 0xA0; appType <= 0xFE; appType++) {
-        selectApplicationResponse =
-            buildSelectApplicationResponse(DF_NAME,
-                                           CALYPSO_SERIAL_NUMBER,
-                                           StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(),
-                                                               appType),
-                                           SW1SW2_OK);
-        calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+
+        calypsoCardAdapter =
+            buildCalypsoCard(
+                buildSelectApplicationResponse(
+                    DF_NAME,
+                    CALYPSO_SERIAL_NUMBER,
+                    StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(), appType),
+                    SW1SW2_OK));
+
         ASSERT_EQ(calypsoCardAdapter->getProductType(), CalypsoCard::ProductType::PRIME_REVISION_3);
     }
 
@@ -328,13 +328,11 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenStatusWord_9000_shouldInitNot
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME, CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_FALSE(calypsoCardAdapter->isDfInvalidated());
 
@@ -345,13 +343,12 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenStatusWord_6283_shouldInitInv
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_INVALIDATED);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_INVALIDATED));
 
     ASSERT_TRUE(calypsoCardAdapter->isDfInvalidated());
 
@@ -362,13 +359,11 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenSerialNumberNotHce_shouldInit
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME, CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_FALSE(calypsoCardAdapter->isHce());
 
@@ -379,13 +374,12 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenSerialNumberHce_shouldInitHce
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER_HCE,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER_HCE,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_TRUE(calypsoCardAdapter->isHce());
 
@@ -396,15 +390,14 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenSessionModificationByteIsOutO
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER_HCE,
-                                       StringUtils::format(STARTUP_INFO_SESSION_MODIFICATION_XX.c_str(),
-                                                           0x05),
-                                       SW1SW2_OK);
-
-    EXPECT_THROW(calypsoCardAdapter->initializeWithFci(selectApplicationResponse),
-                 IllegalArgumentException);
+    EXPECT_THROW(
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER_HCE,
+                StringUtils::format(STARTUP_INFO_SESSION_MODIFICATION_XX.c_str(), 0x05),
+                SW1SW2_OK)),
+        IllegalArgumentException);
 
     tearDown();
 }
@@ -413,15 +406,14 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenSessionModificationByteIsOutO
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER_HCE,
-                                       StringUtils::format(STARTUP_INFO_SESSION_MODIFICATION_XX.c_str(),
-                                                           0x38),
-                                       SW1SW2_OK);
-
-    EXPECT_THROW(calypsoCardAdapter->initializeWithFci(selectApplicationResponse),
-                 IllegalArgumentException);
+    EXPECT_THROW(
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER_HCE,
+                StringUtils::format(STARTUP_INFO_SESSION_MODIFICATION_XX.c_str(), 0x38),
+                SW1SW2_OK)),
+        IllegalArgumentException);
 
     tearDown();
 }
@@ -430,14 +422,12 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenStartupInfoIsShorter_shouldTh
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER_HCE,
-                                       STARTUP_INFO_TOO_SHORT,
-                                       SW1SW2_OK);
-
-    EXPECT_THROW(calypsoCardAdapter->initializeWithFci(selectApplicationResponse),
-                 IllegalArgumentException);
+    EXPECT_THROW(
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER_HCE,
+                                           STARTUP_INFO_TOO_SHORT, SW1SW2_OK)),
+        IllegalArgumentException);
 
     tearDown();
 }
@@ -446,13 +436,12 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenStartupInfoIsLarger_shouldPro
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER_HCE,
-                                       STARTUP_INFO_PRIME_REVISION_3_EXTRA_BYTE,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER_HCE,
+                                           STARTUP_INFO_PRIME_REVISION_3_EXTRA_BYTE,
+                                           SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getStartupInfoRawData(),
               HexUtil::toByteArray(STARTUP_INFO_PRIME_REVISION_3_EXTRA_BYTE));
@@ -464,11 +453,10 @@ TEST(CalypsoCardAdapterTest, initializeWithFci_whenTagsAreInADifferentOrder_shou
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        std::make_shared<ApduResponseAdapter>(
-            HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_DIFFERENT_TAGS_ORDER));
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            std::make_shared<ApduResponseAdapter>(
+                HexUtil::toByteArray(SELECT_APPLICATION_RESPONSE_DIFFERENT_TAGS_ORDER)));
 
     ASSERT_EQ(calypsoCardAdapter->getDfName(), HexUtil::toByteArray(DF_NAME));
     ASSERT_EQ(calypsoCardAdapter->getCalypsoSerialNumberFull(),
@@ -483,6 +471,8 @@ TEST(CalypsoCardAdapterTest, getPowerOnData_whenNotSet_shouldReturnNull)
 {
     setUp();
 
+    calypsoCardAdapter = buildCalypsoCard("");
+
     ASSERT_EQ(calypsoCardAdapter->getPowerOnData(), "");
 
     tearDown();
@@ -492,7 +482,7 @@ TEST(CalypsoCardAdapterTest, getPowerOnData_shouldReturnPowerOnData)
 {
     setUp();
 
-    calypsoCardAdapter->initializeWithPowerOnData(POWER_ON_DATA);
+    calypsoCardAdapter = buildCalypsoCard(POWER_ON_DATA);
 
     ASSERT_EQ(calypsoCardAdapter->getPowerOnData(), POWER_ON_DATA);
 
@@ -502,6 +492,8 @@ TEST(CalypsoCardAdapterTest, getPowerOnData_shouldReturnPowerOnData)
 TEST(CalypsoCardAdapterTest, getSelectApplicationResponse_whenNotSet_shouldReturnEmpty)
 {
     setUp();
+
+    calypsoCardAdapter = buildCalypsoCard((const std::shared_ptr<ApduResponseApi>)nullptr);
 
     ASSERT_EQ(calypsoCardAdapter->getSelectApplicationResponse().size(), 0);
 
@@ -518,7 +510,7 @@ TEST(CalypsoCardAdapterTest, getSelectApplicationResponse_shouldSelectApplicatio
                                        STARTUP_INFO_PRIME_REVISION_3,
                                        SW1SW2_OK);
 
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter = buildCalypsoCard(selectApplicationResponse);
 
     ASSERT_EQ(calypsoCardAdapter->getSelectApplicationResponse(),
               selectApplicationResponse->getApdu());
@@ -530,13 +522,12 @@ TEST(CalypsoCardAdapterTest, getDfName_shouldReturnDfNameFromFCI)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getDfName(), HexUtil::toByteArray(DF_NAME));
 
@@ -547,13 +538,12 @@ TEST(CalypsoCardAdapterTest, getApplicationSerialNumber_shouldReturnApplicationS
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getApplicationSerialNumber(),
               HexUtil::toByteArray(CALYPSO_SERIAL_NUMBER));
@@ -565,13 +555,12 @@ TEST(CalypsoCardAdapterTest, getStartupInfoRawData_shouldReturnFromFCI)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getStartupInfoRawData(),
               HexUtil::toByteArray(STARTUP_INFO_PRIME_REVISION_3));
@@ -583,13 +572,12 @@ TEST(CalypsoCardAdapterTest, isPinFeatureAvailable_whenAppTypeBit0IsNotSet_shoul
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_FALSE(calypsoCardAdapter->isPinFeatureAvailable());
 
@@ -600,13 +588,12 @@ TEST(CalypsoCardAdapterTest, isPinFeatureAvailable_whenAppTypeBit0IsSet_shouldRe
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3_PIN,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3_PIN,
+                                           SW1SW2_OK));
 
     ASSERT_TRUE(calypsoCardAdapter->isPinFeatureAvailable());
 
@@ -617,13 +604,12 @@ TEST(CalypsoCardAdapterTest, isSvFeatureAvailable_whenAppTypeBit1IsNotSet_should
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_FALSE(calypsoCardAdapter->isSvFeatureAvailable());
 
@@ -634,13 +620,12 @@ TEST(CalypsoCardAdapterTest, isSvFeatureAvailable_whenAppTypeBit1IsSet_shouldRet
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3_STORED_VALUE,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3_STORED_VALUE,
+                                           SW1SW2_OK));
 
     ASSERT_TRUE(calypsoCardAdapter->isSvFeatureAvailable());
 
@@ -652,13 +637,12 @@ TEST(CalypsoCardAdapterTest,
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_TRUE(calypsoCardAdapter->isRatificationOnDeselectSupported());
 
@@ -670,13 +654,13 @@ TEST(CalypsoCardAdapterTest,
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3_RATIFICATION_ON_DESELECT,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                STARTUP_INFO_PRIME_REVISION_3_RATIFICATION_ON_DESELECT,
+                SW1SW2_OK));
 
     ASSERT_FALSE(calypsoCardAdapter->isRatificationOnDeselectSupported());
 
@@ -687,13 +671,12 @@ TEST(CalypsoCardAdapterTest, isExtendedModeSupported_whenAppTypeBit3IsNotSet_sho
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_FALSE(calypsoCardAdapter->isExtendedModeSupported());
 
@@ -704,13 +687,12 @@ TEST(CalypsoCardAdapterTest, isExtendedModeSupported_whenAppTypeBit3IsSet_should
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3_EXTENDED_MODE,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3_EXTENDED_MODE,
+                                           SW1SW2_OK));
 
     ASSERT_TRUE(calypsoCardAdapter->isExtendedModeSupported());
 
@@ -721,13 +703,12 @@ TEST(CalypsoCardAdapterTest, isPkiModeSupported_whenAppTypeBit4IsNotSet_shouldRe
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3,
+                                           SW1SW2_OK));
 
     ASSERT_FALSE(calypsoCardAdapter->isPkiModeSupported());
 
@@ -738,13 +719,12 @@ TEST(CalypsoCardAdapterTest, isPkiModeSupported_whenAppTypeBit4IsSet_shouldRetur
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       STARTUP_INFO_PRIME_REVISION_3_PKI_MODE,
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(DF_NAME,
+                                           CALYPSO_SERIAL_NUMBER,
+                                           STARTUP_INFO_PRIME_REVISION_3_PKI_MODE,
+                                           SW1SW2_OK));
 
     ASSERT_TRUE(calypsoCardAdapter->isPkiModeSupported());
 
@@ -755,14 +735,13 @@ TEST(CalypsoCardAdapterTest, getSessionModification_shouldReturnSessionModificat
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_SESSION_MODIFICATION_XX.c_str(),
-                                                           0x11),
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_SESSION_MODIFICATION_XX.c_str(), 0x11),
+                SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getSessionModification(), 0x11);
 
@@ -773,13 +752,13 @@ TEST(CalypsoCardAdapterTest, getPlatform_shouldReturnPlatformByte)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_PLATFORM_XX.c_str(), 0x22),
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_PLATFORM_XX.c_str(), 0x22),
+                SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getPlatform(), 0x22);
 
@@ -790,13 +769,13 @@ TEST(CalypsoCardAdapterTest, getApplicationType_shouldReturnApplicationType)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(), 0x33),
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_APP_TYPE_XX.c_str(), 0x33),
+                SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getApplicationType(), 0x33);
 
@@ -807,14 +786,15 @@ TEST(CalypsoCardAdapterTest, getApplicationSubType_whenValueIs00_shouldThrowIAE)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_SUBTYPE_XX.c_str(), 0x00),
-                                       SW1SW2_OK);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_SUBTYPE_XX.c_str(), 0x00),
+                SW1SW2_OK));
 
-    EXPECT_THROW(calypsoCardAdapter->initializeWithFci(selectApplicationResponse),
-                 IllegalArgumentException);
+    EXPECT_THROW(calypsoCardAdapter->getApplicationSubtype(), IllegalArgumentException);
 
     tearDown();
 }
@@ -823,14 +803,15 @@ TEST(CalypsoCardAdapterTest, getApplicationSubType_whenValueIsFF_shouldThrowIAE)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_SUBTYPE_XX.c_str(), 0xFF),
-                                       SW1SW2_OK);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_SUBTYPE_XX.c_str(), 0xFF),
+                SW1SW2_OK));
 
-    EXPECT_THROW(calypsoCardAdapter->initializeWithFci(selectApplicationResponse),
-                 IllegalArgumentException);
+    EXPECT_THROW(calypsoCardAdapter->getApplicationSubtype(), IllegalArgumentException);
 
     tearDown();
 }
@@ -839,13 +820,13 @@ TEST(CalypsoCardAdapterTest, getApplicationSubType_shouldReturnApplicationSubTyp
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_SUBTYPE_XX.c_str(), 0x44),
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_SUBTYPE_XX.c_str(), 0x44),
+                SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getApplicationSubtype(), 0x44);
 
@@ -856,14 +837,13 @@ TEST(CalypsoCardAdapterTest, getSoftwareIssuer_shouldReturnSoftwareIssuer)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_SOFTWARE_ISSUER_XX.c_str(),
-                                                           0x55),
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_SOFTWARE_ISSUER_XX.c_str(), 0x55),
+                SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getSoftwareIssuer(), 0x55);
 
@@ -874,14 +854,13 @@ TEST(CalypsoCardAdapterTest, getSoftwareVersion_shouldReturnSoftwareVersion)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_SOFTWARE_VERSION_XX.c_str(),
-                                                           0x66),
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_SOFTWARE_VERSION_XX.c_str(), 0x66),
+                SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getSoftwareVersion(), 0x66);
 
@@ -892,14 +871,13 @@ TEST(CalypsoCardAdapterTest, getSoftwareRevision_shouldReturnSoftwareRevision)
 {
     setUp();
 
-    const std::shared_ptr<ApduResponseApi> selectApplicationResponse =
-        buildSelectApplicationResponse(DF_NAME,
-                                       CALYPSO_SERIAL_NUMBER,
-                                       StringUtils::format(STARTUP_INFO_SOFTWARE_REVISION_XX.c_str(),
-                                                           0x77),
-                                       SW1SW2_OK);
-
-    calypsoCardAdapter->initializeWithFci(selectApplicationResponse);
+    calypsoCardAdapter =
+        buildCalypsoCard(
+            buildSelectApplicationResponse(
+                DF_NAME,
+                CALYPSO_SERIAL_NUMBER,
+                StringUtils::format(STARTUP_INFO_SOFTWARE_REVISION_XX.c_str(), 0x77),
+                SW1SW2_OK));
 
     ASSERT_EQ(calypsoCardAdapter->getSoftwareRevision(), 0x77);
 
@@ -910,6 +888,8 @@ TEST(CalypsoCardAdapterTest, getSvBalance_whenNotSet_shouldThrowISE)
 {
     setUp();
 
+    calypsoCardAdapter = buildCalypsoCard((const std::shared_ptr<ApduResponseApi>)nullptr);
+
     EXPECT_THROW(calypsoCardAdapter->getSvBalance(), IllegalStateException);
 
     tearDown();
@@ -919,6 +899,8 @@ TEST(CalypsoCardAdapterTest, isDfRatified_whenNoSessionWasOpened_shouldThrowISE)
 {
     setUp();
 
+    calypsoCardAdapter = buildCalypsoCard((const std::shared_ptr<ApduResponseApi>)nullptr);
+
     EXPECT_THROW(calypsoCardAdapter->isDfRatified(), IllegalStateException);
 
     tearDown();
@@ -927,6 +909,8 @@ TEST(CalypsoCardAdapterTest, isDfRatified_whenNoSessionWasOpened_shouldThrowISE)
 TEST(CalypsoCardAdapterTest, getTransactionCounter_whenNoSessionWasOpened_shouldThrowISE)
 {
     setUp();
+
+    calypsoCardAdapter = buildCalypsoCard((const std::shared_ptr<ApduResponseApi>)nullptr);
 
     EXPECT_THROW(calypsoCardAdapter->getTransactionCounter(), IllegalStateException);
 

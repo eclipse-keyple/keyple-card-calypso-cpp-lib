@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -34,12 +34,12 @@ const CalypsoCardCommand CmdCardChangeKey::mCommand = CalypsoCardCommand::CHANGE
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardChangeKey::STATUS_TABLE = initStatusTable();
 
-CmdCardChangeKey::CmdCardChangeKey(const CalypsoCardClass calypsoCardClass,
+CmdCardChangeKey::CmdCardChangeKey(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                    const uint8_t keyIndex,
                                    const std::vector<uint8_t>& cryptogram)
-: AbstractCardCommand(mCommand, 0)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
 {
-    const uint8_t cla = calypsoCardClass.getValue();
+    const uint8_t cla = calypsoCard->getCardClass().getValue();
     const uint8_t p1 = 0x00;
 
     setApduRequest(

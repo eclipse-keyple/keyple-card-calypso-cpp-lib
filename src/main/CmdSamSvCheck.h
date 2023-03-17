@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,9 +16,6 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractSamCommand.h"
@@ -26,8 +23,6 @@
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 using StatusProperties = AbstractApduCommand::StatusProperties;
 
@@ -43,12 +38,12 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdSamSvCheck to authenticate a card SV transaction.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param svCardSignature null if the operation is to abort the SV transaction, a 3 or 6-byte
-     *     array. containing the card signature from SV Debit, SV Load or SV Undebit.
+     *        array. containing the card signature from SV Debit, SV Load or SV Undebit.
      * @since 2.0.1
      */
-    CmdSamSvCheck(const CalypsoSam::ProductType productType,
+    CmdSamSvCheck(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                   const std::vector<uint8_t>& svCardSignature);
 
    /**

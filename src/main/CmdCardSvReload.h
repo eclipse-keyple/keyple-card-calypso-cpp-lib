@@ -19,6 +19,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 namespace keyple {
@@ -67,9 +68,8 @@ public:
      * <p>The process is carried out in two steps: first to check and store the card and application
      * data, then to create the final APDU with the data from the SAM (see finalizeCommand).
      *
-     * @param calypsoCardClass Indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param amount amount to debit (signed integer from -8388608 to 8388607).
-     * @param kvc debit key KVC (not checked by the card).
      * @param date debit date (not checked by the card).
      * @param time debit time (not checked by the card).
      * @param free 2 free bytes stored in the log but not processed by the card.
@@ -77,9 +77,8 @@ public:
      * @throw IllegalArgumentException If the command is inconsistent
      * @since 2.0.1
      */
-    CmdCardSvReload(const CalypsoCardClass calypsoCardClass,
+    CmdCardSvReload(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                     const int amount,
-                    const uint8_t kvc,
                     const std::vector<uint8_t>& date,
                     const std::vector<uint8_t>& time,
                     const std::vector<uint8_t>& free,
@@ -165,11 +164,6 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
-
-    /**
-     *
-     */
-    CalypsoCardClass mCalypsoCardClass;
 
     /**
      *

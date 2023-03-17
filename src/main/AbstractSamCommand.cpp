@@ -31,8 +31,15 @@ namespace calypso {
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     AbstractSamCommand::STATUS_TABLE = initStatusTable();
 
-AbstractSamCommand::AbstractSamCommand(const CalypsoSamCommand& commandRef, const int le)
-: AbstractApduCommand(commandRef, le) {}
+AbstractSamCommand::AbstractSamCommand(const CalypsoSamCommand& commandRef,
+                                       const int le,
+                                       const std::shared_ptr<CalypsoSamAdapter> calypsoSam)
+: AbstractApduCommand(commandRef, le), mCalypsoSam(calypsoSam) {}
+
+const std::shared_ptr<CalypsoSamAdapter> AbstractSamCommand::getCalypsoSam() const
+{
+    return mCalypsoSam;
+}
 
 const CalypsoSamCommand& AbstractSamCommand::getCommandRef() const
 {
@@ -102,6 +109,14 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>&
     AbstractSamCommand::getStatusTable() const
 {
     return STATUS_TABLE;
+}
+
+void AbstractSamCommand::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse,
+                                           const std::shared_ptr<CalypsoSamAdapter> calypsoSam)
+{
+    mCalypsoSam = calypsoSam;
+
+    parseApduResponse(apduResponse);
 }
 
 }

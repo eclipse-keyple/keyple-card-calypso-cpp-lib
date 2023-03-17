@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -17,12 +17,16 @@
 #include <memory>
 #include <vector>
 
+/* Calypsonet Terminal Card */
+#include "ApduResponseApi.h"
+
 /* Calypsonet Terminal Calypso */
 #include "CalypsoCard.h"
 
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -49,14 +53,14 @@ public:
      * (package-private)<br>
      * Verify the PIN
      *
-     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param encryptPinTransmission true if the PIN transmission has to be encrypted.
      * @param pin the PIN data. The PIN is always 4-byte long here, even in the case of an encrypted
      *     transmission (@see setCipheredPinData).
      * @since 2.0.1
      */
     CmdCardVerifyPin(
-        const CalypsoCardClass calypsoCardClass,
+        const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
         const bool encryptPinTransmission,
         const std::vector<uint8_t>& pin);
 
@@ -64,10 +68,17 @@ public:
      * (package-private)<br>
      * Alternate command dedicated to the reading of the wrong presentation counter
      *
-     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @since 2.0.1
      */
-    CmdCardVerifyPin(const CalypsoCardClass calypsoCardClass);
+    CmdCardVerifyPin(const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
      * {@inheritDoc}
@@ -76,24 +87,6 @@ public:
      * @since 2.0.1
      */
     bool isSessionBufferUsed() const override;
-
-    /**
-     * (package-private)<br>
-     * Indicates if the command is used to read the attempt counter only
-     *
-     * @return True if the command is used to read the attempt counter
-     * @since 2.0.1
-     */
-    bool isReadCounterOnly() const;
-
-    /**
-     * (package-private)<br>
-     * Determine the value of the attempt counter from the status word
-     *
-     * @return The remaining attempt counter value (0, 1, 2 or 3)
-     * @since 2.0.1
-     */
-    int getRemainingAttemptCounter() const;
 
     /**
      * {@inheritDoc}

@@ -31,13 +31,13 @@ const CalypsoSamCommand CmdSamDigestClose::mCommand = CalypsoSamCommand::DIGEST_
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamDigestClose::STATUS_TABLE = initStatusTable();
 
-CmdSamDigestClose::CmdSamDigestClose(const CalypsoSam::ProductType productType,
+CmdSamDigestClose::CmdSamDigestClose(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                      const int expectedResponseLength)
-: AbstractSamCommand(mCommand, expectedResponseLength)
+: AbstractSamCommand(mCommand, expectedResponseLength, calypsoSam)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(SamUtilAdapter::getClassByte(productType),
+            ApduUtil::build(SamUtilAdapter::getClassByte(calypsoSam->getProductType()),
                             mCommand.getInstructionByte(),
                             0,
                             0,

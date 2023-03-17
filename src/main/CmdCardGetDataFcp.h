@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -20,6 +20,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 #include "CalypsoCardCommand.h"
 
@@ -47,6 +48,15 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardGetDataFci.
      *
+     * @param calypsoCard The Calypso card.
+     * @since 2.2.3
+     */
+    CmdCardGetDataFcp(const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
+
+    /**
+     * (package-private)<br>
+     * Instantiates a new CmdCardGetDataFci.
+     *
      * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
      * @since 2.0.1
      */
@@ -55,19 +65,16 @@ public:
     /**
      * {@inheritDoc}
      *
-     * @return False
-     * @since 2.0.1
+     * @since 2.2.3
      */
-    bool isSessionBufferUsed() const override;
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
-     * (package-private)<br>
+     * {@inheritDoc}
      *
-     * @return The content of the proprietary information tag present in the response to the Get
-     *         Data (FCP) command
-     * @since 2.0.1
+     * @return False
      */
-    const std::vector<uint8_t>& getProprietaryInformation();
+    bool isSessionBufferUsed() const override;
 
     /**
      * {@inheritDoc}
@@ -102,6 +109,14 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
+
+    /**
+    * (private)<br>
+    * Builds the command.
+    *
+    * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+    */
+    void buildCommand(const CalypsoCardClass calypsoCardClass);
 };
 
 }

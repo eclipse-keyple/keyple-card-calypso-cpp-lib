@@ -1,3 +1,15 @@
+/**************************************************************************************************
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
+ *                                                                                                *
+ * See the NOTICE file(s) distributed with this work for additional information regarding         *
+ * copyright ownership.                                                                           *
+ *                                                                                                *
+ * This program and the accompanying materials are made available under the terms of the Eclipse  *
+ * Public License 2.0 which is available at http://www.eclipse.org/legal/epl-2.0                  *
+ *                                                                                                *
+ * SPDX-License-Identifier: EPL-2.0                                                               *
+ **************************************************************************************************/
+
 #include "CmdSamWriteKey.h"
 
 /* Keyple Card Calypso */
@@ -25,28 +37,31 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamWriteKey::STATUS_TABLE = initStatusTable();
 
 
-CmdSamWriteKey::CmdSamWriteKey(const CalypsoSam::ProductType productType, 
-                               const uint8_t writingMode,
-                               const uint8_t keyReference,
-                               const std::vector<uint8_t>& keyData)
-: AbstractSamCommand(mCommand, 0)
+CmdSamWriteKey::CmdSamWriteKey(
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+  const uint8_t writingMode,
+  const uint8_t keyReference,
+  const std::vector<uint8_t>& keyData)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 
     if (keyData.empty()) {
+
         throw IllegalArgumentException("Key data null!");
     }
 
     if (keyData.size() < 48 && keyData.size() > 80) {
+
         throw IllegalArgumentException("Key data should be between 40 and 80 bytes long!");
     }
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cla, 
-                            mCommand.getInstructionByte(), 
-                            writingMode, 
-                            keyReference, 
+            ApduUtil::build(cla,
+                            mCommand.getInstructionByte(),
+                            writingMode,
+                            keyReference,
                             keyData)));
 }
 

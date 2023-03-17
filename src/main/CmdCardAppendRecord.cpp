@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -36,14 +36,14 @@ const CalypsoCardCommand CmdCardAppendRecord::mCommand = CalypsoCardCommand::APP
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardAppendRecord::STATUS_TABLE = initStatusTable();
 
-CmdCardAppendRecord::CmdCardAppendRecord(const CalypsoCardClass calypsoCardClass,
+CmdCardAppendRecord::CmdCardAppendRecord(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                          const uint8_t sfi,
                                          const std::vector<uint8_t>& newRecordData)
-: AbstractCardCommand(mCommand, 0), mSfi(sfi), mData(newRecordData)
+: AbstractCardCommand(mCommand, 0, calypsoCard), mSfi(sfi), mData(newRecordData)
 
 {
 
-    const uint8_t cla = calypsoCardClass.getValue();
+    const uint8_t cla = calypsoCard->getCardClass().getValue();
     const uint8_t p1 = 0x00;
     const uint8_t p2 = (sfi == 0) ? 0x00 : sfi * 8;
 
@@ -57,19 +57,16 @@ CmdCardAppendRecord::CmdCardAppendRecord(const CalypsoCardClass calypsoCardClass
     addSubName(extraInfo.str());
 }
 
+void CmdCardAppendRecord::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractCardCommand::parseApduResponse(apduResponse);
+
+    getCalypsoCard()->addCyclicContent(mSfi, mData);
+}
+
 bool CmdCardAppendRecord::isSessionBufferUsed() const
 {
     return true;
-}
-
-uint8_t CmdCardAppendRecord::getSfi() const
-{
-    return mSfi;
-}
-
-const std::vector<uint8_t>& CmdCardAppendRecord::getData() const
-{
-    return mData;
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

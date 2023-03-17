@@ -28,7 +28,6 @@ ADD_LIBRARY(
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoCardCommand.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoCardConstant.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoCardSelectionAdapter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoCardUtilAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoExtensionService.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamAdapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CalypsoSamCommand.cpp

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -39,13 +39,14 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardUpdateOrWriteBinary::CmdCardUpdateOrWriteBinary(
   const bool isUpdateCommand,
-  const CalypsoCardClass calypsoCardClass,
+  const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
   const uint8_t sfi,
   const uint8_t offset,
   const std::vector<uint8_t>& data)
 : AbstractCardCommand(isUpdateCommand ? CalypsoCardCommand::UPDATE_BINARY :
                                         CalypsoCardCommand::WRITE_BINARY,
-                      0),
+                      0,
+                      calypsoCard),
   mSfi(sfi),
   mOffset(offset),
   mData(data)
@@ -61,7 +62,7 @@ CmdCardUpdateOrWriteBinary::CmdCardUpdateOrWriteBinary(
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(calypsoCardClass.getValue(),
+            ApduUtil::build(calypsoCard->getCardClass().getValue(),
                             getCommandRef().getInstructionByte(),
                             p1,
                             lsb,
@@ -76,24 +77,23 @@ CmdCardUpdateOrWriteBinary::CmdCardUpdateOrWriteBinary(
     addSubName(extraInfo.str());
 }
 
+void CmdCardUpdateOrWriteBinary::parseApduResponse(std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractCardCommand::parseApduResponse(apduResponse);
+
+    if (getCommandRef() == CalypsoCardCommand::UPDATE_BINARY) {
+
+        getCalypsoCard()->setContent(mSfi, 1, mData, mOffset);
+
+    } else {
+
+        getCalypsoCard()->fillContent(mSfi, 1, mData, mOffset);
+    }
+}
+
 bool CmdCardUpdateOrWriteBinary::isSessionBufferUsed() const
 {
     return true;
-}
-
-uint8_t CmdCardUpdateOrWriteBinary::getSfi() const
-{
-    return mSfi;
-}
-
-uint8_t CmdCardUpdateOrWriteBinary::getOffset() const
-{
-    return mOffset;
-}
-
-const std::vector<uint8_t>& CmdCardUpdateOrWriteBinary::getData() const
-{
-    return mData;
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

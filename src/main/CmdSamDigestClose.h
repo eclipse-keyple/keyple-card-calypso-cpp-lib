@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -15,18 +15,14 @@
 #include <map>
 #include <memory>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "CalypsoSamAdapter.h"
 #include "CalypsoSamCommand.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -40,11 +36,11 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdSamDigestClose .
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param expectedResponseLength the expected response length.
      * @since 2.0.1
      */
-    CmdSamDigestClose(const CalypsoSam::ProductType productType,
+    CmdSamDigestClose(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                       const int expectedResponseLength);
 
     /**

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -26,6 +26,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -53,12 +54,12 @@ public:
      * (package-private)<br>
      * Change Key Calypso command
      *
-     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param keyIndex index of the key of the current DF to change.
      * @param cryptogram key encrypted with Issuer key (key #1).
      * @since 2.1.0
      */
-    CmdCardChangeKey(const CalypsoCardClass calypsoCardClass,
+    CmdCardChangeKey(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                      const uint8_t keyIndex,
                      const std::vector<uint8_t>& cryptogram);
 

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -26,6 +26,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -53,11 +54,11 @@ public:
      * (package-private)<br>
      * Builds a Calypso Change PIN command
      *
-     * @param calypsoCardClass Indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param newPinData The new PIN data either plain or encrypted.
      * @since 2.0.1
      */
-    CmdCardChangePin(const CalypsoCardClass calypsoCardClass,
+    CmdCardChangePin(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                      const std::vector<uint8_t>& newPinData);
 
     /**

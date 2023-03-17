@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -20,6 +20,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -47,20 +48,25 @@ public:
      *
      * @param isDecreaseCommand True if it is a "Decrease" command, false if it is an * "Increase"
      *        command.
-     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param sfi SFI of the file to select or 00h for current EF.
      * @param counterNumber &gt;= 01h: Counters file, number of the counter. 00h: Simulated Counter.
      *        file.
      * @param incDecValue Value to subtract or add to the counter (defined as a positive int &lt;=
      *        16777215 [FFFFFFh])
-     * @throw IllegalArgumentException If the decrement value is out of range
-     * @throw IllegalArgumentException If the command is inconsistent
      */
     CmdCardIncreaseOrDecrease(const bool isDecreaseCommand,
-                              const CalypsoCardClass calypsoCardClass,
+                              const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                               const uint8_t sfi,
                               const uint8_t counterValue,
                               const int incDecValue);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
      * {@inheritDoc}

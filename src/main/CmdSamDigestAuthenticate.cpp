@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -34,20 +34,22 @@ const CalypsoSamCommand CmdSamDigestAuthenticate::mCommand = CalypsoSamCommand::
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamDigestAuthenticate::STATUS_TABLE = initStatusTable();
 
-CmdSamDigestAuthenticate::CmdSamDigestAuthenticate(const CalypsoSam::ProductType productType,
+CmdSamDigestAuthenticate::CmdSamDigestAuthenticate(std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                                    const std::vector<uint8_t>& signature)
-: AbstractSamCommand(mCommand, 0)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
     if (signature.empty()) {
+
         throw IllegalArgumentException("Signature can't be null");
     }
 
     if (signature.size() != 4 && signature.size() != 8 && signature.size() != 16) {
+
         throw IllegalArgumentException("Signature is not the right length : length is " +
                                        std::to_string(signature.size()));
     }
 
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;
 

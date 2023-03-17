@@ -14,9 +14,6 @@
 
 #include <map>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 #include "TraceableSignatureComputationDataAdapter.h"
@@ -24,8 +21,6 @@
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -39,11 +34,11 @@ public:
      * (package-private)<br>
      * Builds a new instance based on the provided signature computation data.
      *
-     * @param productType The SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param data The signature computation data.
      * @since 2.2.0
      */
-    CmdSamPsoComputeSignature(const CalypsoSam::ProductType productType,
+    CmdSamPsoComputeSignature(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                               const std::shared_ptr<TraceableSignatureComputationDataAdapter> data);
 
     /**

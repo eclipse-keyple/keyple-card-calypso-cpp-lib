@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -32,6 +32,9 @@
 /* Keyple Core Util */
 #include "IllegalArgumentException.h"
 
+/* Keyple Core Service */
+#include "CardSelectionResponseAdapter.h"
+
 /* Mock */
 #include "CalypsoSamMock.h"
 #include "CardSelectionResponseApiMock.h"
@@ -43,6 +46,7 @@ using namespace calypsonet::terminal::card;
 using namespace calypsonet::terminal::reader;
 using namespace keyple::card::calypso;
 using namespace keyple::core::common;
+using namespace keyple::core::service;
 using namespace keyple::core::util::cpp::exception;
 
 static const std::string POWER_ON_DATA = "3B8F8001805A0A010320031124B77FE7829000F7";
@@ -60,7 +64,7 @@ static const std::vector<uint8_t> serial = {1, 2, 3, 4, 5, 6};
 static void setUp()
 {
     reader = std::make_shared<ReaderMock>();
-    calypsoCard = std::make_shared<CalypsoCardAdapter>();
+    calypsoCard = std::make_shared<CalypsoCardAdapter>(nullptr);
     cardSecuritySetting = std::make_shared<CardSecuritySettingAdapter>();
     calypsoSamSelection = std::make_shared<CalypsoSamSelectionMock>();
     auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
@@ -344,7 +348,8 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    calypsoCard->initializeWithPowerOnData(POWER_ON_DATA);
+    calypsoCard = std::make_shared<CalypsoCardAdapter>(
+                      std::make_shared<CardSelectionResponseAdapter>(POWER_ON_DATA));
 
 
     auto adapter = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);

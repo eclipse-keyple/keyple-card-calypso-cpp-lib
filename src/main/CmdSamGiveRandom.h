@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,17 +16,12 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -40,13 +35,14 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdSamDigestUpdate.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param random the random data.
-     * @throws IllegalArgumentException If the random data is null or has a length not equal to 8 TODO
-     *     implement specific settings for rev less than 3
+     * @throws IllegalArgumentException If the random data is null or has a length not equal to 8
+     *         TODO implement specific settings for rev less than 3
      * @since 2.0.1
      */
-    CmdSamGiveRandom(const CalypsoSam::ProductType productType, const std::vector<uint8_t>& random);
+    CmdSamGiveRandom(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+                     const std::vector<uint8_t>& random);
 
     /**
      * {@inheritDoc}

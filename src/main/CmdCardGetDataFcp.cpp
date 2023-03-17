@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -13,6 +13,7 @@
 #include "CmdCardGetDataFcp.h"
 
 /* Keyple Card Calypso */
+#include "CmdCardSelectFile.h"
 #include "CardDataAccessException.h"
 
 /* Keyple Core Util */
@@ -33,8 +34,19 @@ const int CmdCardGetDataFcp::TAG_PROPRIETARY_INFORMATION = 0x85;
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardGetDataFcp::STATUS_TABLE = initStatusTable();
 
+CmdCardGetDataFcp::CmdCardGetDataFcp(const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
+{
+    buildCommand(calypsoCard->getCardClass());
+}
+
 CmdCardGetDataFcp::CmdCardGetDataFcp(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0)
+: AbstractCardCommand(mCommand, 0, nullptr)
+{
+    buildCommand(calypsoCardClass);
+}
+
+void CmdCardGetDataFcp::buildCommand(const CalypsoCardClass calypsoCardClass)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
@@ -45,27 +57,16 @@ CmdCardGetDataFcp::CmdCardGetDataFcp(const CalypsoCardClass calypsoCardClass)
                             0x00)));
 }
 
+void CmdCardGetDataFcp::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractCardCommand::parseApduResponse(apduResponse);
+
+    CmdCardSelectFile::parseProprietaryInformation(apduResponse->getDataOut(), getCalypsoCard());
+}
+
 bool CmdCardGetDataFcp::isSessionBufferUsed() const
 {
     return false;
-}
-
-const std::vector<uint8_t>& CmdCardGetDataFcp::getProprietaryInformation()
-{
-    if (mProprietaryInformation.empty()) {
-        const std::map<const int, const std::vector<uint8_t>> tags =
-            BerTlvUtil::parseSimple(getApduResponse()->getDataOut(), true);
-
-        const auto it = tags.find(TAG_PROPRIETARY_INFORMATION);
-        if (it == tags.end()) {
-            throw IllegalStateException("Proprietary information: tag not found.");
-        }
-
-        mProprietaryInformation = it->second;
-        Assert::getInstance().isEqual(mProprietaryInformation.size(), 23, "proprietaryInformation");
-    }
-
-    return mProprietaryInformation;
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

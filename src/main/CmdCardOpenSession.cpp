@@ -103,32 +103,35 @@ const std::vector<uint8_t>& CmdCardOpenSession::SecureSession::getSecureSessionD
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardOpenSession::STATUS_TABLE = initStatusTable();
 
-CmdCardOpenSession::CmdCardOpenSession(const CalypsoCard::ProductType productType,
+CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                        const uint8_t keyIndex,
                                        const std::vector<uint8_t>& samChallenge,
                                        const uint8_t sfi,
                                        const uint8_t recordNumber,
                                        const bool isExtendedModeAllowed)
-: AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION, 0),
-  mProductType(productType),
+: AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION, 0, calypsoCard),
   mIsExtendedModeAllowed(isExtendedModeAllowed)
 {
-    switch (productType) {
-    case CalypsoCard::ProductType::PRIME_REVISION_1:
-        createRev10(keyIndex, samChallenge, sfi, recordNumber);
-        break;
-    case CalypsoCard::ProductType::PRIME_REVISION_2:
-        createRev24(keyIndex, samChallenge, sfi, recordNumber);
-        break;
-    case CalypsoCard::ProductType::PRIME_REVISION_3:
-    case CalypsoCard::ProductType::LIGHT:
-    case CalypsoCard::ProductType::BASIC:
-        createRev3(keyIndex, samChallenge, sfi, recordNumber);
-        break;
-    default:
-        std::stringstream ss;
-        ss << "Product type " << productType << " isn't supported";
-        throw IllegalArgumentException(ss.str());
+    switch (getCalypsoCard()->getProductType()) {
+
+        case CalypsoCard::ProductType::PRIME_REVISION_1:
+            createRev10(keyIndex, samChallenge, sfi, recordNumber);
+            break;
+
+        case CalypsoCard::ProductType::PRIME_REVISION_2:
+            createRev24(keyIndex, samChallenge, sfi, recordNumber);
+            break;
+
+        case CalypsoCard::ProductType::PRIME_REVISION_3:
+        case CalypsoCard::ProductType::LIGHT:
+        case CalypsoCard::ProductType::BASIC:
+            createRev3(keyIndex, samChallenge, sfi, recordNumber);
+            break;
+
+        default:
+            std::stringstream ss;
+            ss << "Product type " << getCalypsoCard()->getProductType() << " isn't supported";
+            throw IllegalArgumentException(ss.str());
     }
 }
 
@@ -145,10 +148,13 @@ void CmdCardOpenSession::createRev3(const uint8_t keyIndex,
     std::vector<uint8_t> dataIn;
 
     if (mIsExtendedModeAllowed) {
+
         p2 = static_cast<uint8_t>(sfi * 8 + 2);
         dataIn = std::vector<uint8_t>(samChallenge.size() + 1);
         System::arraycopy(samChallenge, 0, dataIn, 1, samChallenge.size());
+
     } else {
+
         p2 = static_cast<uint8_t>(sfi * 8 + 1);
         dataIn = samChallenge;
     }
@@ -257,17 +263,31 @@ void CmdCardOpenSession::parseApduResponse(const std::shared_ptr<ApduResponseApi
     AbstractCardCommand::parseApduResponse(apduResponse);
 
     const std::vector<uint8_t> dataOut = getApduResponse()->getDataOut();
-    if (dataOut.size() > 0) {
-        switch (mProductType) {
-            case CalypsoCard::ProductType::PRIME_REVISION_1:
-                parseRev10(dataOut);
-                break;
-            case CalypsoCard::ProductType::PRIME_REVISION_2:
-                parseRev24(dataOut);
-                break;
-            default:
-                parseRev3(dataOut);
-        }
+
+    switch (getCalypsoCard()->getProductType()) {
+
+        case CalypsoCard::ProductType::PRIME_REVISION_1:
+            parseRev10(dataOut);
+            break;
+
+        case CalypsoCard::ProductType::PRIME_REVISION_2:
+            parseRev24(dataOut);
+            break;
+
+        default:
+            parseRev3(dataOut);
+    }
+
+    /* CL-CSS-INFORAT.1 */
+    getCalypsoCard()->setDfRatified(mSecureSession->isPreviousSessionRatified());
+
+    /* CL-CSS-INFOTCNT.1 */
+    getCalypsoCard()->setTransactionCounter(
+        ByteArrayUtil::extractInt(mSecureSession->getChallengeTransactionCounter(), 0, 3, false));
+
+    if (mSecureSession->getOriginalData().size() > 0) {
+
+        getCalypsoCard()->setContent(mSfi, mRecordNumber, mSecureSession->getOriginalData());
     }
 }
 
@@ -392,16 +412,6 @@ const std::vector<uint8_t>& CmdCardOpenSession::getCardChallenge() const
     return mSecureSession->getChallengeRandomNumber();
 }
 
-int CmdCardOpenSession::getTransactionCounterValue() const
-{
-    return ByteArrayUtil::extractInt(mSecureSession->getChallengeTransactionCounter(), 0, 3, false);
-}
-
-bool CmdCardOpenSession::wasRatified() const
-{
-    return mSecureSession->isPreviousSessionRatified();
-}
-
 bool CmdCardOpenSession::isManageSecureSessionAuthorized() const
 {
     return mSecureSession->isManageSecureSessionAuthorized();
@@ -415,11 +425,6 @@ const std::shared_ptr<uint8_t> CmdCardOpenSession::getSelectedKif() const
 const std::shared_ptr<uint8_t> CmdCardOpenSession::getSelectedKvc() const
 {
     return mSecureSession->getKVC();
-}
-
-const std::vector<uint8_t>& CmdCardOpenSession::getRecordDataRead() const
-{
-    return mSecureSession->getOriginalData();
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

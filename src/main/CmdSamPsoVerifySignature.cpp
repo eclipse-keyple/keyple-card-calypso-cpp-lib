@@ -36,12 +36,12 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamPsoVerifySignature::STATUS_TABLE = initStatusTable();
 
 CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
-  const CalypsoSam::ProductType productType,
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const std::shared_ptr<TraceableSignatureVerificationDataAdapter> data)
-: AbstractSamCommand(CalypsoSamCommand::PSO_VERIFY_SIGNATURE, 0),
+: AbstractSamCommand(CalypsoSamCommand::PSO_VERIFY_SIGNATURE, 0, calypsoSam),
   mData(data)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t ins = getCommandRef().getInstructionByte();
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0xA8;
@@ -67,15 +67,22 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
      */
     uint8_t opMode = 0; /* %0000 Normal mode */
     if (data->isSamTraceabilityMode()) {
+
         if (data->isPartialSamSerialNumber()) {
+
             opMode |= 4; /* %x100 */
+
         } else {
+
             opMode |= 6; /* %x110 */
         }
     }
+
     if (data->isBusyMode()) {
+
         opMode |= 8; /* %1xx0 */
     }
+
     opMode <<= 4;
 
     /* Y: Signature size (in bytes) */
@@ -84,6 +91,7 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
 
     /* TraceOffset (optional): Bit offset in MessageIn of the SAM traceability data */
     if (data->isSamTraceabilityMode()) {
+
         dataIn[4] = static_cast<uint8_t>(data->getTraceabilityOffset() >> 8);
         dataIn[5] = static_cast<uint8_t>(data->getTraceabilityOffset());
     }
@@ -105,9 +113,12 @@ void CmdSamPsoVerifySignature::parseApduResponse(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
     try {
+
         AbstractSamCommand::parseApduResponse(apduResponse);
         mData->setSignatureValid(true);
+
     } catch(const CalypsoSamSecurityDataException& e) {
+
         mData->setSignatureValid(false);
         throw static_cast<const CalypsoSamCommandException&>(e);
     }

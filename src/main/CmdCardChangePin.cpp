@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -34,15 +34,15 @@ const CalypsoCardCommand CmdCardChangePin::mCommand = CalypsoCardCommand::CHANGE
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardChangePin::STATUS_TABLE = initStatusTable();
 
-CmdCardChangePin::CmdCardChangePin(const CalypsoCardClass calypsoCardClass,
+CmdCardChangePin::CmdCardChangePin(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                    const std::vector<uint8_t>& newPinData)
-: AbstractCardCommand(mCommand, 0)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
 {
     if (newPinData.empty() || (newPinData.size() != 0x04 && newPinData.size() != 0x10)) {
         throw IllegalArgumentException("Bad PIN data length.");
     }
 
-    const uint8_t cla = calypsoCardClass.getValue();
+    const uint8_t cla = calypsoCard->getCardClass().getValue();
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0xFF; /* CL-PIN-MP1P2.1 */
 

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,17 +16,13 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "CalypsoSamAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -40,12 +36,12 @@ public:
      * (package-private)<br>
      * Creates a new instance.
      *
-     * @param productType The SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param diversifier The key diversifier.
      * @throws IllegalArgumentException If the diversifier is null or has a wrong length
      * @since 2.0.1
      */
-    CmdSamSelectDiversifier(const CalypsoSam::ProductType productType,
+    CmdSamSelectDiversifier(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                             std::vector<uint8_t>& diversifier);
 
    /**

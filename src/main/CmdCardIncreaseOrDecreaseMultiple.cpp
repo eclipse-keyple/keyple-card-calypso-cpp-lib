@@ -38,12 +38,13 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
   const bool isDecreaseCommand,
-  const CalypsoCardClass calypsoCardClass,
+  const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
   const uint8_t sfi,
   const std::map<const int, const int> counterNumberToIncDecValueMap)
 : AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE_MULTIPLE :
                                           CalypsoCardCommand::INCREASE_MULTIPLE,
-                      0),
+                      0,
+                      calypsoCard),
   mSfi(sfi),
   mCounterNumberToIncDecValueMap(counterNumberToIncDecValueMap)
 {
@@ -53,6 +54,7 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
     int index = 0;
 
     for (const auto& entry : counterNumberToIncDecValueMap) {
+
         dataIn[index] = static_cast<uint8_t>(entry.first);
         const int incDecValue = entry.second;
         dataIn[index + 1] = ((incDecValue >> 16) & 0xFF);
@@ -63,7 +65,7 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(calypsoCardClass.getValue(),
+            ApduUtil::build(calypsoCard->getCardClass().getValue(),
                             getCommandRef().getInstructionByte(),
                             p1,
                             p2,
@@ -72,7 +74,9 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
 
     std::stringstream extraInfo;
     extraInfo << "SFI:" << sfi << "h";
+
     for (const auto& entry : counterNumberToIncDecValueMap) {
+
         extraInfo << ", " << entry.first << ":" << entry.second;
     }
 
@@ -139,11 +143,15 @@ void CmdCardIncreaseOrDecreaseMultiple::parseApduResponse(
     AbstractCardCommand::parseApduResponse(apduResponse);
 
     if (apduResponse->getDataOut().size() > 0) {
+
         const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
         const int nbCounters = static_cast<int>(dataOut.size() / 4);
+
         for (int i = 0; i < nbCounters; i++) {
-            mNewCounterValues.insert({dataOut[i * 4],
-                                     Arrays::copyOfRange(dataOut, (i * 4) + 1, (i * 4) + 4)});
+
+            getCalypsoCard()->setCounter(mSfi,
+                                         dataOut[i * 4] & 0xFF,
+                                         Arrays::copyOfRange(dataOut, (i * 4) + 1, (i * 4) + 4));
         }
     }
 }
@@ -157,12 +165,6 @@ const std::map<const int, const int>&
     CmdCardIncreaseOrDecreaseMultiple::getCounterNumberToIncDecValueMap() const
 {
     return mCounterNumberToIncDecValueMap;
-}
-
-const std::map<const uint8_t, const std::vector<uint8_t>>&
-    CmdCardIncreaseOrDecreaseMultiple::getNewCounterValues() const
-{
-    return mNewCounterValues;
 }
 
 }

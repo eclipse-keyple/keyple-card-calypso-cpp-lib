@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -42,13 +42,13 @@ const CalypsoSamCommand CmdSamSvPrepareLoad::mCommand = CalypsoSamCommand::SV_PR
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamSvPrepareLoad::STATUS_TABLE = initStatusTable();
 
-CmdSamSvPrepareLoad::CmdSamSvPrepareLoad(const CalypsoSam::ProductType productType,
+CmdSamSvPrepareLoad::CmdSamSvPrepareLoad(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                          const std::vector<uint8_t>& svGetHeader,
                                          const std::vector<uint8_t>& svGetData,
                                          const std::vector<uint8_t>& svReloadCmdBuildData)
-: AbstractSamCommand(mCommand, 0)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t p1 = 0x01;
     const uint8_t p2 = 0xFF;
     std::vector<uint8_t> data(19 + svGetData.size()); /* Header(4) + SvReload data (15) = 19 bytes*/

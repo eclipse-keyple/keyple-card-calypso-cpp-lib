@@ -16,9 +16,6 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 #include "CalypsoSamCommand.h"
@@ -26,8 +23,6 @@
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -41,11 +36,11 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdSamDigestUpdateMultiple.
      *
-     * @param productType the product type.
+     * @param calypsoSam The Calypso SAM.
      * @param digestData the digest data.
      * @since 2.0.1
      */
-    CmdSamDigestUpdateMultiple(const CalypsoSam::ProductType productType,
+    CmdSamDigestUpdateMultiple(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                const std::vector<uint8_t>& digestData);
 
     /**

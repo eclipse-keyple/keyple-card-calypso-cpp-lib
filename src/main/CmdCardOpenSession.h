@@ -23,6 +23,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -49,7 +50,7 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardOpenSession.
      *
-     * @param productType The card product type.
+     * @param calypsoCard The Calypso card.
      * @param keyIndex The key index.
      * @param samChallenge The SAM challenge.
      * @param sfi The optional SFI of the file to read.
@@ -58,7 +59,7 @@ public:
      * @throw IllegalArgumentException If the key index is 0 and rev is 2.4
      * @since 2.0.1
      */
-    CmdCardOpenSession(const CalypsoCard::ProductType productType,
+    CmdCardOpenSession(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                        const uint8_t keyIndex,
                        const std::vector<uint8_t>& samChallenge,
                        const uint8_t sfi,
@@ -238,22 +239,6 @@ public:
     /**
      * (package-private)<br>
      *
-     * @return A non negative number.
-     * @since 2.0.1
-     */
-    int getTransactionCounterValue() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return True if the previous session was ratified.
-     * @since 2.0.1
-     */
-    bool wasRatified() const;
-
-    /**
-     * (package-private)<br>
-     *
      * @return True if the managed secure session is authorized.
      * @since 2.0.1
      */
@@ -274,14 +259,6 @@ public:
      * @since 2.0.1
      */
     const std::shared_ptr<uint8_t> getSelectedKvc() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return The optional read data.
-     * @since 2.0.1
-     */
-    const std::vector<uint8_t>& getRecordDataRead() const;
 
     /**
      * {@inheritDoc}
@@ -436,11 +413,6 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
-
-    /**
-     *
-     */
-    const CalypsoCard::ProductType mProductType = CalypsoCard::ProductType::UNKNOWN;
 
     /**
      *

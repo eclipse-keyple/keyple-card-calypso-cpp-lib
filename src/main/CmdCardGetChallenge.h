@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -23,6 +23,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -49,10 +50,18 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardGetChallenge.
      *
-     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+   * @param calypsoCard The Calypso card.
      * @since 2.0.1
      */
-    CmdCardGetChallenge(const CalypsoCardClass calypsoCardClass);
+    CmdCardGetChallenge(const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return false
+     * @since 2.2.3
+     */
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse);
 
     /**
      * {@inheritDoc}
@@ -61,15 +70,6 @@ public:
      * @since 2.0.1
      */
     bool isSessionBufferUsed() const override;
-
-    /**
-     * (package-private)<br>
-     * Gets the card challenge
-     *
-     * @return An array of bytes
-     * @since 2.0.1
-     */
-    const std::vector<uint8_t> getCardChallenge() const;
 
 private:
     /**

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -37,22 +37,24 @@ const CalypsoSamCommand CmdSamCardCipherPin::mCommand = CalypsoSamCommand::CARD_
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamCardCipherPin::STATUS_TABLE = initStatusTable();
 
-CmdSamCardCipherPin::CmdSamCardCipherPin(const CalypsoSam::ProductType productType,
+CmdSamCardCipherPin::CmdSamCardCipherPin(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                          const uint8_t cipheringKif,
                                          const uint8_t cipheringKvc,
                                          const std::vector<uint8_t>& currentPin,
                                          const std::vector<uint8_t>& newPin)
-: AbstractSamCommand(mCommand, 0)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
     if (currentPin.size() != 4) {
+
         throw IllegalArgumentException("Bad current PIN value.");
     }
 
     if (!newPin.empty() && newPin.size() != 4) {
+
         throw IllegalArgumentException("Bad new PIN value.");
     }
 
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 
     uint8_t p1;
     uint8_t p2;

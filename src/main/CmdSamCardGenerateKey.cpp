@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -35,20 +35,21 @@ const CalypsoSamCommand CmdSamCardGenerateKey::mCommand = CalypsoSamCommand::CAR
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamCardGenerateKey::STATUS_TABLE = initStatusTable();
 
-CmdSamCardGenerateKey::CmdSamCardGenerateKey(const CalypsoSam::ProductType productType,
+CmdSamCardGenerateKey::CmdSamCardGenerateKey(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                              const uint8_t cipheringKif,
                                              const uint8_t cipheringKvc,
                                              const uint8_t sourceKif,
                                              const uint8_t sourceKvc)
-: AbstractSamCommand(mCommand, 0)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 
     uint8_t p1;
     uint8_t p2;
     std::vector<uint8_t> data;
 
     if (cipheringKif == 0 && cipheringKvc == 0) {
+
         /* Case where the source key is ciphered by the null key */
         p1 = 0xFF;
         p2 = 0x00;
@@ -57,7 +58,9 @@ CmdSamCardGenerateKey::CmdSamCardGenerateKey(const CalypsoSam::ProductType produ
         data[0] = sourceKif;
         data[1] = sourceKvc;
         data[2] = 0x90;
+
     } else {
+
         p1 = 0xFF;
         p2 = 0xFF;
 

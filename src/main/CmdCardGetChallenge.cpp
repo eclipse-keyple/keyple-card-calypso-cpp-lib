@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -36,8 +36,8 @@ using namespace keyple::core::util::cpp;
 
 const CalypsoCardCommand CmdCardGetChallenge::mCommand = CalypsoCardCommand::GET_CHALLENGE;
 
-CmdCardGetChallenge::CmdCardGetChallenge(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0x08)
+CmdCardGetChallenge::CmdCardGetChallenge(const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractCardCommand(mCommand, 0x08, calypsoCard)
 {
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;
@@ -45,21 +45,24 @@ CmdCardGetChallenge::CmdCardGetChallenge(const CalypsoCardClass calypsoCardClass
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(calypsoCardClass.getValue(),
+            ApduUtil::build(calypsoCard->getCardClass().getValue(),
                             mCommand.getInstructionByte(),
                             p1,
                             p2,
                             le)));
 }
 
+void CmdCardGetChallenge::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractCardCommand::parseApduResponse(apduResponse);
+
+    getCalypsoCard()->setCardChallenge(getApduResponse()->getDataOut());
+}
+
+
 bool CmdCardGetChallenge::isSessionBufferUsed() const
 {
     return false;
-}
-
-const std::vector<uint8_t> CmdCardGetChallenge::getCardChallenge() const
-{
-    return getApduResponse()->getDataOut();
 }
 
 }

@@ -37,15 +37,16 @@ const CalypsoCardCommand CmdCardCloseSession::mCommand = CalypsoCardCommand::CLO
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardCloseSession::STATUS_TABLE = initStatusTable();
 
-CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCard> calypsoCard,
+CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                          const bool ratificationAsked,
                                          const std::vector<uint8_t> terminalSessionSignature)
-: AbstractCardCommand(mCommand, 0), mCalypsoCard(calypsoCard)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
 {
     /* The optional parameter terminalSessionSignature could contain 4 or 8 bytes */
     if (!terminalSessionSignature.empty() &&
         terminalSessionSignature.size() != 4 &&
         terminalSessionSignature.size() != 8) {
+
         throw IllegalArgumentException("Invalid terminal sessionSignature: " +
                                        HexUtil::toHex(terminalSessionSignature));
     }
@@ -58,29 +59,25 @@ CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCard> caly
      */
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(
-                std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard)
-                    ->getCardClass().getValue(),
-                mCommand.getInstructionByte(),
-                p1,
-                0x00,
-                terminalSessionSignature,
-                0)));
+            ApduUtil::build(calypsoCard->getCardClass().getValue(),
+                            mCommand.getInstructionByte(),
+                            p1,
+                            0x00,
+                            terminalSessionSignature,
+                            0)));
 }
 
-CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCard> calypsoCard)
-: AbstractCardCommand(mCommand, 0), mCalypsoCard(calypsoCard)
+CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
 {
     /* CL-CSS-ABORTCMD.1 */
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(
-                std::dynamic_pointer_cast<CalypsoCardAdapter>(calypsoCard)
-                    ->getCardClass().getValue(),
-                mCommand.getInstructionByte(),
-                0x00,
-                0x00,
-                0)));
+            ApduUtil::build(calypsoCard->getCardClass().getValue(),
+                            mCommand.getInstructionByte(),
+                            0x00,
+                            0x00,
+                            0)));
 }
 
 bool CmdCardCloseSession::isSessionBufferUsed() const
@@ -94,7 +91,7 @@ void CmdCardCloseSession::parseApduResponse(const std::shared_ptr<ApduResponseAp
 
     const std::vector<uint8_t> responseData = getApduResponse()->getDataOut();
 
-    if (mCalypsoCard->isExtendedModeSupported()) {
+    if (getCalypsoCard()->isExtendedModeSupported()) {
         /* 8-byte signature */
         if (responseData.size() == 8) {
             /* Signature only */

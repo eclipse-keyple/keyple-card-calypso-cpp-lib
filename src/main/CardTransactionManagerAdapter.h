@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -35,6 +35,7 @@
 /* Keyple Card Calypso */
 #include "CalypsoCardAdapter.h"
 #include "CardSecuritySettingAdapter.h"
+#include "CardCommandException.h"
 #include "CardControlSamTransactionManagerAdapter.h"
 
 /* Keyple Core Util */
@@ -1091,6 +1092,29 @@ private:
      * @return True if the card extended mode is allowed.
      */
     bool isExtendedModeAllowed() const;
+
+    /**
+     * (private)<br>
+     * Parses the APDU responses and updates the Calypso card image.
+     *
+     * @param commands The list of commands that get the responses.
+     * @param apduResponses The APDU responses returned by the card to all commands.
+     * @throw CardCommandException If a response from the card was unexpected.
+     * @throw InconsistentDataException If the number of commands/responses does not match.
+     */
+    void parseApduResponses(const std::vector<std::shared_ptr<AbstractCardCommand>>& commands,
+                            const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses);
+
+    /**
+     * (private)<br>
+     * Sets the response to the command and check the status for strict and best effort mode.
+     *
+     * @param command The command.
+     * @throw CardCommandException If needed.
+     */
+    void checkResponseStatusForStrictAndBestEffortMode(
+        const std::shared_ptr<AbstractCardCommand> command,
+        const CardCommandException& e) const;
 
     /**
      *

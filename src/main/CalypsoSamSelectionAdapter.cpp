@@ -12,9 +12,6 @@
 
 #include "CalypsoSamSelectionAdapter.h"
 
-/* Calypsonet Terminal Calypso */
-#include "InconsistentDataException.h"
-
 /* Calypsonet Terminal Card */
 #include "ParseException.h"
 
@@ -24,6 +21,7 @@
 #include "KeypleAssert.h"
 #include "Pattern.h"
 #include "PatternSyntaxException.h"
+#include "RuntimeException.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoSamAccessForbiddenException.h"
@@ -37,7 +35,6 @@ namespace keyple {
 namespace card {
 namespace calypso {
 
-using namespace calypsonet::terminal::calypso::transaction;
 using namespace calypsonet::terminal::card::spi;
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
@@ -70,12 +67,14 @@ const std::shared_ptr<SmartCardSpi> CalypsoSamSelectionAdapter::parse(
     const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse)
 {
     if (mUnlockCommand != nullptr) {
+
         /* An unlock command has been requested */
         if (cardSelectionResponse->getCardResponse() == nullptr ||
             cardSelectionResponse->getCardResponse()->getApduResponses().empty()) {
-            throw InconsistentDataException("Mismatch in the number of requests/responses");
+            throw ParseException("Mismatch in the number of requests/responses");
         }
 
+        /* Check the SAM response to the unlock command */
         const std::shared_ptr<ApduResponseApi> apduResponse =
             cardSelectionResponse->getCardResponse()->getApduResponses()[0];
 
@@ -86,12 +85,20 @@ const std::shared_ptr<SmartCardSpi> CalypsoSamSelectionAdapter::parse(
             (void)e;
             mLogger->warn("SAM not locked or already unlocked\n");
         } catch (const CalypsoSamCommandException& e) {
-            throw ParseException("An exception occurred while parse the SAM responses.",
+            throw ParseException("An exception occurred while parsing the SAM response.",
                                  std::make_shared<CalypsoSamCommandException>(e));
         }
     }
 
-    return std::make_shared<CalypsoSamAdapter>(cardSelectionResponse);
+    try {
+
+        return std::make_shared<CalypsoSamAdapter>(cardSelectionResponse);
+
+    } catch (const RuntimeException& e) {
+
+        throw ParseException("An exception occurred while parsing the SAM response.",
+                             std::make_shared<RuntimeException>(e));
+    }
 }
 
 CalypsoSamSelection& CalypsoSamSelectionAdapter::filterByProductType(

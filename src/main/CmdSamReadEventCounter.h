@@ -16,9 +16,6 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 #include "CalypsoSamAdapter.h"
@@ -26,8 +23,6 @@
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -56,13 +51,13 @@ public:
      * (package-private)<br>
      * Instantiate a new CmdSamReadEventCounter
      *
-     * @param sam the SAM.
+     * @param calypsoSam The Calypso SAM.
      * @param counterOperationType the counter operation type.
      * @param target the counter index (0-26) if READ_SINGLE_COUNTER, the record index (1-3) if
      *        READ_COUNTER_RECORD.
      * @since 2.0.1
      */
-    CmdSamReadEventCounter(std::shared_ptr<CalypsoSamAdapter> sam,
+    CmdSamReadEventCounter(std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                            const CounterOperationType counterOperationType,
                            const int target);
 
@@ -91,11 +86,6 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
-
-    /**
-     *
-     */
-    std::shared_ptr<CalypsoSamAdapter> mSam;
 
     /**
      *

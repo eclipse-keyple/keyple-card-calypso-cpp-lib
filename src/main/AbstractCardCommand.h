@@ -20,6 +20,9 @@ namespace keyple {
 namespace card {
 namespace calypso {
 
+/* Forward declaration */
+class CalypsoCardAdapter;
+
 /**
  * (package-private)<br>
  * Superclass for all card commands.
@@ -34,9 +37,13 @@ public:
      *
      * @param commandRef a command reference from the Calypso command table.
      * @param le The value of the LE field.
+     * @param calypsoCard The Calypso card (it may be null if the card selection has not yet been
+     *        made).
      * @since 2.0.1
      */
-    AbstractCardCommand(const CalypsoCardCommand& commandRef, const int le);
+    AbstractCardCommand(const CalypsoCardCommand& commandRef,
+                        const int le,
+                        const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
 
     /**
      * {@inheritDoc}
@@ -78,6 +85,30 @@ public:
      * @since 2.0.1
      */
     void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
+
+    /**
+     * (package-private)<br>
+     * Returns the Calypso card.
+     *
+     * @return Null if the card selection has not yet been made.
+     * @since 2.2.3
+     */
+    std::shared_ptr<CalypsoCardAdapter> getCalypsoCard() const;
+
+    /**
+     * (package-private)<br>
+     * Sets the Calypso card and invoke the parseApduResponse(ApduResponseApi) method.
+     *
+     * @since 2.2.3
+     */
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse,
+                           const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
+
+private:
+    /**
+     *
+     */
+    std::shared_ptr<CalypsoCardAdapter> mCalypsoCard;
 };
 
 }

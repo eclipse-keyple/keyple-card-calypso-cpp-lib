@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -38,30 +38,34 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamDigestInit::STATUS_TABLE = initStatusTable();
 
 CmdSamDigestInit::CmdSamDigestInit(
-  const CalypsoSam::ProductType productType,
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const bool verificationMode,
   const bool confidentialSessionMode,
   const uint8_t workKif,
   const uint8_t workKvc,
   const std::vector<uint8_t>& digestData)
-: AbstractSamCommand(mCommand, 0)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
     if (workKif == 0x00 || workKvc == 0x00) {
+
         throw IllegalArgumentException("Bad kif or kvc!");
     }
 
     if (digestData.empty()) {
+
         throw IllegalArgumentException("Digest data is null!");
     }
 
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     uint8_t p1 = 0x00;
 
     if (verificationMode) {
+
         p1 += 1;
     }
 
     if (confidentialSessionMode) {
+
         p1 += 2;
     }
 

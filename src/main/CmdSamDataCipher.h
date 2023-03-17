@@ -12,20 +12,16 @@
 
 #pragma once
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractSamCommand.h"
 #include "BasicSignatureComputationDataAdapter.h"
 #include "BasicSignatureVerificationDataAdapter.h"
+#include "CalypsoSamAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 using StatusProperties = AbstractApduCommand::StatusProperties;
 
@@ -41,13 +37,13 @@ public:
      * (package-private)<br>
      * Builds a new instance based on the provided data.
      *
-     * @param productType The SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param signatureComputationData The signature computation data (optional).
      * @param signatureVerificationData The signature computation data (optional).
      * @since 2.2.0
      */
     CmdSamDataCipher(
-        const CalypsoSam::ProductType productType,
+        const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
         const std::shared_ptr<BasicSignatureComputationDataAdapter> signatureComputationData,
         const std::shared_ptr<BasicSignatureVerificationDataAdapter> signatureVerificationData);
 

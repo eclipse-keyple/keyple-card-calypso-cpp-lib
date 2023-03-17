@@ -20,6 +20,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 #include "CalypsoCardCommand.h"
 
@@ -43,8 +44,19 @@ using StatusProperties = AbstractApduCommand::StatusProperties;
  *
  * @since 2.0.1
  */
-class CmdCardGetDataFci final : public AbstractCardCommand {
+class CmdCardGetDataFci final
+: public AbstractCardCommand,
+  public std::enable_shared_from_this<CmdCardGetDataFci> {
 public:
+    /**
+     * (package-private)<br>
+     * Instantiates a new CmdCardGetDataFci.
+     *
+     * @param calypsoCard The Calypso card.
+     * @since 2.2.3
+     */
+    CmdCardGetDataFci(const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
+
     /**
      * (package-private)<br>
      * Instantiates a new CmdCardGetDataFci.
@@ -53,14 +65,6 @@ public:
      * @since 2.0.1
      */
     CmdCardGetDataFci(const CalypsoCardClass calypsoCardClass);
-
-    /**
-     * (package-private)<br>
-     * Empty constructor.
-     *
-     * @since 2.0.1
-     */
-    CmdCardGetDataFci();
 
     /**
      * {@inheritDoc}
@@ -175,8 +179,12 @@ private:
     /**
      * Attributes result of th FCI parsing
      */
-    bool mIsDfInvalidated;
-    bool mIsValidCalypsoFCI;
+    bool mIsDfInvalidated = false;
+
+    /**
+     *
+     */
+    bool mIsValidCalypsoFCI = false;
 
     /**
      *
@@ -197,6 +205,14 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
+
+    /**
+     * (private)<br>
+     * Builds the command.
+     *
+     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     */
+    void buildCommand(const CalypsoCardClass calypsoCardClass);
 };
 
 }

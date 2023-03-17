@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -25,10 +25,12 @@
 
 /* Calypsonet Terminal Card */
 #include "ApduResponseApi.h"
+#include "CardSelectionResponseApi.h"
 #include "SmartCardSpi.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoCardClass.h"
+#include "CmdCardGetDataFci.h"
 #include "ElementaryFileAdapter.h"
 #include "KeypleCardCalypsoExport.h"
 
@@ -45,42 +47,36 @@ using namespace calypsonet::terminal::card;
 using namespace calypsonet::terminal::card::spi;
 using namespace keyple::core::util::cpp;
 
+/* Forward declaration */
+class CmdCardGetDataFci;
+
 /**
  * (package-private)<br>
  * Implementation of CalypsoCard.
  *
  * @since 2.0.0
  */
-class KEYPLECARDCALYPSO_API CalypsoCardAdapter final : public CalypsoCard, public SmartCardSpi {
+class KEYPLECARDCALYPSO_API CalypsoCardAdapter final
+: public CalypsoCard,
+  public SmartCardSpi,
+  public std::enable_shared_from_this<CalypsoCardAdapter> {
 public:
     /**
      * Constructor.
      *
      * @since 2.0.0
      */
-    CalypsoCardAdapter();
-
-    /**
-     * (package-private)<br>
-     * Initializes the object with the card power-on data.
-     *
-     * <p>This method should be invoked only when no response to select application is available.
-     *
-     * @param powerOnData The card's power-on data.
-     * @throw IllegalArgumentException If powerOnData is inconsistent.
-     * @since 2.0.0
-     */
-    void initializeWithPowerOnData(const std::string& powerOnData);
+    CalypsoCardAdapter(const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse);
 
     /**
      * (package-private)<br>
      * Initializes or post-initializes the object with the application FCI data.
      *
-     * @param selectApplicationResponse The select application response.
+     * @param cmdCardGetDataFci The command containing the parsed FCI data.
      * @throws IllegalArgumentException If the FCI is inconsistent.
-     * @since 2.0.0
+     * @since 2.2.3
      */
-    void initializeWithFci(const std::shared_ptr<ApduResponseApi> selectApplicationResponse);
+    void initializeWithFci(const std::shared_ptr<CmdCardGetDataFci> cmdCardGetDataFci);
 
     /**
      * {@inheritDoc}
@@ -911,6 +907,28 @@ private:
      */
     static void copyFiles(const std::vector<std::shared_ptr<ElementaryFile>>& src,
                           std::vector<std::shared_ptr<ElementaryFile>>& dest);
+
+    /**
+     * (private)<br>
+     * Initializes the object with the card power-on data.
+     *
+     * <p>This method should be invoked only when no response to select application is available.
+     *
+     * @param powerOnData The card's power-on data.
+     * @throw IllegalArgumentException If powerOnData is inconsistent.
+     * @since 2.0.0
+     */
+    void initializeWithPowerOnData(const std::string& powerOnData);
+
+    /**
+     * (private)<br>
+     * Initializes or post-initializes the object with the application FCI data.
+     *
+     * @param selectApplicationResponse The select application response.
+     * @throws IllegalArgumentException If the FCI is inconsistent.
+     * @since 2.0.0
+     */
+    void initializeWithFci(const std::shared_ptr<ApduResponseApi> selectApplicationResponse);
 };
 
 }

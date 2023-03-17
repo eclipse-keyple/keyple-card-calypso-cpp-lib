@@ -36,15 +36,17 @@ const CalypsoSamCommand CmdSamDigestUpdateMultiple::mCommand =
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamDigestUpdateMultiple::STATUS_TABLE = initStatusTable();
 
-CmdSamDigestUpdateMultiple::CmdSamDigestUpdateMultiple(const CalypsoSam::ProductType productType,
-                                                       const std::vector<uint8_t>& digestData)
-: AbstractSamCommand(mCommand, 0)
+CmdSamDigestUpdateMultiple::CmdSamDigestUpdateMultiple(
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+  const std::vector<uint8_t>& digestData)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t p1 = 0x80;
     const uint8_t p2 = 0x00;
 
     if (digestData.empty() || digestData.size() > 255) {
+
         throw IllegalArgumentException("Digest data null or too long!");
     }
 

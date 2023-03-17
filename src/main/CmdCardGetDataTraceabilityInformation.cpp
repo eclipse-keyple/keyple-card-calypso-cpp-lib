@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -30,8 +30,21 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardGetDataTraceabilityInformation::STATUS_TABLE = initStatusTable();
 
 CmdCardGetDataTraceabilityInformation::CmdCardGetDataTraceabilityInformation(
+    const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
+{
+    buildCommand(calypsoCard->getCardClass());
+}
+
+CmdCardGetDataTraceabilityInformation::CmdCardGetDataTraceabilityInformation(
     const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0)
+: AbstractCardCommand(mCommand, 0, nullptr)
+{
+    buildCommand(calypsoCardClass);
+}
+
+
+void CmdCardGetDataTraceabilityInformation::buildCommand(const CalypsoCardClass calypsoCardClass)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
@@ -46,6 +59,14 @@ CmdCardGetDataTraceabilityInformation::CmdCardGetDataTraceabilityInformation(
 bool CmdCardGetDataTraceabilityInformation::isSessionBufferUsed() const
 {
     return false;
+}
+
+void CmdCardGetDataTraceabilityInformation::parseApduResponse(
+    const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    CmdCardGetDataTraceabilityInformation::parseApduResponse(apduResponse);
+
+    getCalypsoCard()->setTraceabilityInformation(apduResponse->getDataOut());
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

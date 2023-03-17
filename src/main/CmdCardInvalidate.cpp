@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -31,15 +31,18 @@ const CalypsoCardCommand CmdCardInvalidate::mCommand = CalypsoCardCommand::INVAL
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardInvalidate::STATUS_TABLE = initStatusTable();
 
-CmdCardInvalidate::CmdCardInvalidate(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0)
+CmdCardInvalidate::CmdCardInvalidate(const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
 {
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(calypsoCardClass.getValue(), mCommand.getInstructionByte(), p1, p2)));
+            ApduUtil::build(calypsoCard->getCardClass().getValue(),
+                            mCommand.getInstructionByte(),
+                            p1,
+                            p2)));
 }
 
 bool CmdCardInvalidate::isSessionBufferUsed() const

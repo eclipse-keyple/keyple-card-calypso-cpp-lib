@@ -23,6 +23,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -56,7 +57,7 @@ public:
      * @throw IllegalArgumentException If the command is inconsistent
      * @since 2.0.1
      */
-    CmdCardCloseSession(const std::shared_ptr<CalypsoCard> calypsoCard,
+    CmdCardCloseSession(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                         const bool ratificationAsked,
                         const std::vector<uint8_t> terminalSessionSignature);
 
@@ -68,7 +69,7 @@ public:
      * @param calypsoCard The {@link CalypsoCard}.
      * @since 2.0.1
      */
-    CmdCardCloseSession(const std::shared_ptr<CalypsoCard> calypsoCard);
+    CmdCardCloseSession(const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
 
     /**
      * {@inheritDoc}
@@ -124,11 +125,6 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
-
-    /**
-     *
-     */
-    const std::shared_ptr<CalypsoCard> mCalypsoCard;
 
     /**
      * The signatureLo

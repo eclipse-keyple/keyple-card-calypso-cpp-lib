@@ -19,6 +19,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 namespace keyple {
@@ -79,9 +80,8 @@ public:
      *
      * @param isDebitCommand True if it is an "SV Debit" command, false if it is an "SV Undebit"
      *        command
-     * @param calypsoCardClass Indicated which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param amount amount to debit or undebit (positive integer from 0 to 32767).
-     * @param kvc the KVC.
      * @param date operation date (not checked by the card).
      * @param time operation time (not checked by the card).
      * @param isExtendedModeAllowed True if the extended mode must is allowed.
@@ -89,9 +89,8 @@ public:
      * @since 2.0.1
      */
     CmdCardSvDebitOrUndebit(const bool isDebitCommand,
-                            const CalypsoCardClass calypsoCardClass,
+                            const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                             const int amount,
-                            const uint8_t kvc,
                             const std::vector<uint8_t>& date,
                             const std::vector<uint8_t>& time,
                             const bool isExtendedModeAllowed);
@@ -142,17 +141,6 @@ public:
     void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
-     * (package-private)<br>
-     * Gets the SV signature. <br>
-     * The signature can be empty here in the case of a secure session where the transmission of the
-     * signature is postponed until the end of the session.
-     *
-     * @return A byte array containing the signature
-     * @since 2.0.1
-     */
-    const std::vector<uint8_t> getSignatureLo() const;
-
-    /**
      * {@inheritDoc}
      *
      * @since 2.0.1
@@ -170,11 +158,6 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
-
-    /**
-     *
-     */
-    CalypsoCardClass mCalypsoCardClass;
 
     /**
      *

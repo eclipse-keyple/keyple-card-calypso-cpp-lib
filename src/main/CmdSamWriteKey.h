@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,17 +16,12 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -40,13 +35,13 @@ public:
      * (package-private)<br>
      * CalypsoSamCardSelectorBuilder constructor
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param writingMode the writing mode (P1).
      * @param keyReference the key reference (P2).
      * @param keyData the key data.
      * @since 2.0.1
      */
-    CmdSamWriteKey(const CalypsoSam::ProductType productType, 
+    CmdSamWriteKey(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                    const uint8_t writingMode,
                    const uint8_t keyReference,
                    const std::vector<uint8_t>& keyData);

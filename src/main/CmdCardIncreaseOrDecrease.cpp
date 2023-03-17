@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -38,18 +38,19 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardIncreaseOrDecrease::CmdCardIncreaseOrDecrease(
   const bool isDecreaseCommand,
-  const CalypsoCardClass calypsoCardClass,
+  const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
   const uint8_t sfi,
   const uint8_t counterNumber,
   const int incDecValue)
-: AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE : 
+: AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE :
                                           CalypsoCardCommand::INCREASE,
-                      0),
+                      0,
+                      calypsoCard),
   mSfi(sfi),
   mCounterNumber(counterNumber),
   mIncDecValue(incDecValue)
 {
-    const uint8_t cla = calypsoCardClass.getValue();
+    const uint8_t cla = calypsoCard->getCardClass().getValue();
 
     /*
      * Convert the integer value into a 3-byte buffer
@@ -83,6 +84,14 @@ CmdCardIncreaseOrDecrease::CmdCardIncreaseOrDecrease(
     extraInfo << ":" << incDecValue;
 
     addSubName(extraInfo.str());
+}
+
+void CmdCardIncreaseOrDecrease::parseApduResponse(
+    const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractCardCommand::parseApduResponse(apduResponse);
+
+    getCalypsoCard()->setCounter(mSfi, mCounterNumber, apduResponse->getDataOut());
 }
 
 bool CmdCardIncreaseOrDecrease::isSessionBufferUsed() const

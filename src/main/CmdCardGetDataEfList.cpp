@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -40,7 +40,18 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardGetDataEfList::STATUS_TABLE = initStatusTable();
 
 CmdCardGetDataEfList::CmdCardGetDataEfList(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0)
+: AbstractCardCommand(mCommand, 0, nullptr)
+{
+    buildCommand(calypsoCardClass);
+}
+
+CmdCardGetDataEfList::CmdCardGetDataEfList(const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+: AbstractCardCommand(mCommand, 0, calypsoCard)
+{
+    buildCommand(calypsoCard->getCardClass());
+}
+
+void CmdCardGetDataEfList::buildCommand(const CalypsoCardClass calypsoCardClass)
 {
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
@@ -49,6 +60,19 @@ CmdCardGetDataEfList::CmdCardGetDataEfList(const CalypsoCardClass calypsoCardCla
                             0x00,
                             0xC0,
                             0x00)));
+}
+
+void CmdCardGetDataEfList::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
+{
+    AbstractCardCommand::parseApduResponse(apduResponse);
+
+    const std::map<const std::shared_ptr<FileHeaderAdapter>, const uint8_t> fileHeaderToSfiMap =
+        getEfHeaders();
+
+    for (const auto& entry : fileHeaderToSfiMap) {
+
+        getCalypsoCard()->setFileHeader(entry.second, entry.first);
+    }
 }
 
 bool CmdCardGetDataEfList::isSessionBufferUsed() const

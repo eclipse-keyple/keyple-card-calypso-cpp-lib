@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -15,11 +15,16 @@
 /* Calypsonet Terminal Card */
 #include "ParseException.h"
 
+/* Calypsonet Terminal Calypso */
+#include "InconsistentDataException.h"
+#include "UnexpectedCommandStatusException.h"
+
 /* Keyple Card Calypso */
 #include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 #include "CalypsoCardConstant.h"
-#include "CalypsoCardUtilAdapter.h"
+#include "CardCommandException.h"
+#include "CardDataAccessException.h"
 #include "CardSelectionRequestAdapter.h"
 #include "CmdCardGetDataFci.h"
 #include "CmdCardGetDataFcp.h"
@@ -45,6 +50,7 @@ namespace card {
 namespace calypso {
 
 using namespace calypsonet::terminal::card::spi;
+using namespace calypsonet::terminal::calypso::transaction;
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
@@ -52,6 +58,8 @@ using namespace keyple::core::util::cpp::exception;
 const int CalypsoCardSelectionAdapter::AID_MIN_LENGTH = 5;
 const int CalypsoCardSelectionAdapter::AID_MAX_LENGTH = 16;
 const int CalypsoCardSelectionAdapter::SW_CARD_INVALIDATED = 0x6283;
+const std::string CalypsoCardSelectionAdapter::MSG_CARD_COMMAND_ERROR =
+    "A card command error occurred ";
 
 CalypsoCardSelectionAdapter::CalypsoCardSelectionAdapter()
 : mCardSelector(std::make_shared<CardSelectorAdapter>()) {}
@@ -237,14 +245,18 @@ const std::shared_ptr<CardSelectionRequestSpi>
     std::vector<std::shared_ptr<ApduRequestSpi>> cardSelectionApduRequests;
 
     if (!mCommands.empty()) {
+
         for (const auto& command : mCommands) {
+
             cardSelectionApduRequests.push_back(command->getApduRequest());
         }
 
         return std::make_shared<CardSelectionRequestAdapter>(
                    mCardSelector,
                    std::make_shared<CardRequestAdapter>(cardSelectionApduRequests, false));
+
     } else {
+
         return std::make_shared<CardSelectionRequestAdapter>(mCardSelector, nullptr);
     }
 }
@@ -253,32 +265,29 @@ const std::shared_ptr<SmartCardSpi> CalypsoCardSelectionAdapter::parse(
     const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse)
 {
     const std::shared_ptr<CardResponseApi> cardResponse = cardSelectionResponse->getCardResponse();
-    std::vector<std::shared_ptr<ApduResponseApi>> apduResponses;
 
-    if (cardResponse != nullptr) {
-        apduResponses = cardResponse->getApduResponses();
-    } else {
-        apduResponses = {};
-    }
+    std::vector<std::shared_ptr<ApduResponseApi>> apduResponses =
+        cardResponse != nullptr ?
+        cardResponse->getApduResponses() : std::vector<std::shared_ptr<ApduResponseApi>>();
 
     if (mCommands.size() != apduResponses.size()) {
+
         throw ParseException("Mismatch in the number of requests/responses.");
     }
 
     std::shared_ptr<CalypsoCardAdapter> calypsoCard;
+
     try {
-        calypsoCard = std::make_shared<CalypsoCardAdapter>();
-        if (cardSelectionResponse->getSelectApplicationResponse() != nullptr) {
-            calypsoCard->initializeWithFci(cardSelectionResponse->getSelectApplicationResponse());
-        } else if (cardSelectionResponse->getPowerOnData() != "") {
-            calypsoCard->initializeWithPowerOnData(cardSelectionResponse->getPowerOnData());
-        }
+
+        calypsoCard = std::make_shared<CalypsoCardAdapter>(cardSelectionResponse);
 
         if (!mCommands.empty()) {
-            CalypsoCardUtilAdapter::updateCalypsoCard(calypsoCard, mCommands, apduResponses, false);
+
+            parseApduResponses(calypsoCard, mCommands, apduResponses);
         }
 
     } catch (const Exception& e) {
+
         throw ParseException("Invalid card response: " + e.getMessage(),
                              std::make_shared<Exception>(e));
     }
@@ -286,11 +295,98 @@ const std::shared_ptr<SmartCardSpi> CalypsoCardSelectionAdapter::parse(
     if (calypsoCard->getProductType() == CalypsoCard::ProductType::UNKNOWN &&
         cardSelectionResponse->getSelectApplicationResponse() == nullptr &&
         cardSelectionResponse->getPowerOnData() == "") {
+
         throw ParseException("Unable to create a CalypsoCard: no power-on data and no FCI " \
                              "provided.");
     }
 
     return calypsoCard;
+}
+
+void CalypsoCardSelectionAdapter::parseApduResponses(
+    const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
+    const std::vector<std::shared_ptr<AbstractApduCommand>>& commands,
+    const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses)
+{
+    /*
+     * If there are more responses than requests, then we are unable to fill the card image. In this
+     * case we stop processing immediately because it may be a case of fraud, and we throw a
+     * desynchronized exception.
+     */
+    if (apduResponses.size() > commands.size()) {
+
+        throw InconsistentDataException("The number of commands/responses does not match: nb " \
+                                        "commands = " +
+                                        std::to_string(commands.size()) +
+                                        ", nb responses = " +
+                                        std::to_string(apduResponses.size()));
+    }
+
+    /*
+     * We go through all the responses (and not the requests) because there may be fewer in the
+     * case of an error that occurred in strict mode. In this case the last response will raise an
+     * exception.
+     */
+    for (int i = 0; i < static_cast<int>(apduResponses.size()); i++) {
+
+        auto command = std::dynamic_pointer_cast<AbstractCardCommand>(commands[i]);
+
+        try {
+
+            command->parseApduResponse(apduResponses[i], calypsoCard);
+
+        } catch (const CardCommandException& e) {
+
+            const CalypsoCardCommand& commandRef =
+                std::dynamic_pointer_cast<AbstractCardCommand>(command)->getCommandRef();
+
+            try {
+
+                dynamic_cast<const CardDataAccessException&>(e);
+
+                if (commandRef == CalypsoCardCommand::READ_RECORDS) {
+
+                    /*
+                     * Best effort mode, do not throw exception for "file not found" and "record not
+                     * found errors.
+                     */
+                    if (command->getApduResponse()->getStatusWord() != 0x6A82 &&
+                        command->getApduResponse()->getStatusWord() != 0x6A83) {
+
+                        throw e;
+                    }
+
+                } else {
+
+                    throw UnexpectedCommandStatusException(
+                          std::string(MSG_CARD_COMMAND_ERROR) +
+                          "while processing responses to card commands: " +
+                          e.getCommand().getName(),
+                          std::make_shared<CardCommandException>(e));
+                }
+
+            } catch (const std::bad_cast& ex) {
+
+                throw UnexpectedCommandStatusException(
+                          std::string(MSG_CARD_COMMAND_ERROR) +
+                          "while processing responses to card commands: " +
+                          e.getCommand().getName(),
+                          std::make_shared<CardCommandException>(e));
+            }
+        }
+    }
+
+    /*
+     * Finally, if no error has occurred and there are fewer responses than requests, then we
+     * throw a desynchronized exception.
+     */
+    if (apduResponses.size() < commands.size()) {
+        throw InconsistentDataException("The number of commands/responses does not match: nb " \
+                                        "commands = " +
+                                        std::to_string(commands.size()) +
+                                        ", nb responses = " +
+                                        std::to_string(apduResponses.size()));
+    }
 }
 
 }

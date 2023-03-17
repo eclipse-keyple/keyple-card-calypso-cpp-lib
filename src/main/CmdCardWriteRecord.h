@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -17,9 +17,13 @@
 #include <memory>
 #include <vector>
 
+/* Calypsonet Terminal Card */
+#include "ApduResponseApi.h"
+
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 #include "SearchCommandDataAdapter.h"
 
@@ -46,7 +50,7 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardWriteRecord.
      *
-     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     * @param calypsoCard The Calypso card.
      * @param sfi the sfi to select.
      * @param recordNumber the record number to write.
      * @param newRecordData the new record data to write.
@@ -54,10 +58,17 @@ public:
      * @throw IllegalArgumentException If the request is inconsistent
      * @since 2.0.1
      */
-    CmdCardWriteRecord(const CalypsoCardClass calypsoCardClass,
+    CmdCardWriteRecord(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                        const uint8_t sfi,
                        const uint8_t recordNumber,
                        const std::vector<uint8_t>& newRecordData);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
      * {@inheritDoc}
@@ -66,30 +77,6 @@ public:
      * @since 2.0.1
      */
     bool isSessionBufferUsed() const override;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return the SFI of the accessed file
-     * @since 2.0.1
-     */
-    uint8_t getSfi() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return the number of the accessed record
-     * @since 2.0.1
-     */
-    uint8_t getRecordNumber() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return the data sent to the card
-     * @since 2.0.1
-     */
-    const std::vector<uint8_t>& getData() const;
 
     /**
      * {@inheritDoc}

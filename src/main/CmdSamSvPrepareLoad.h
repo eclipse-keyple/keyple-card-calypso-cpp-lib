@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,9 +16,6 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractSamCommand.h"
@@ -26,8 +23,6 @@
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 using StatusProperties = AbstractApduCommand::StatusProperties;
 
@@ -46,13 +41,13 @@ public:
      * <p>Build the SvPrepareLoad APDU from the SvGet command and response, the SvReload partial
      * command
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param svGetHeader the SV Get command header.
      * @param svGetData a byte array containing the data from the SV get command and response.
      * @param svReloadCmdBuildData the SV reload command data.
      * @since 2.0.1
      */
-    CmdSamSvPrepareLoad(const CalypsoSam::ProductType productType,
+    CmdSamSvPrepareLoad(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                         const std::vector<uint8_t>& svGetHeader,
                         const std::vector<uint8_t>& svGetData,
                         const std::vector<uint8_t>& svReloadCmdBuildData);

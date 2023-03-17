@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -21,6 +21,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 namespace keyple {
@@ -44,6 +45,15 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdCardGetDataTrace.
      *
+     * @param calypsoCard The Calypso card.
+     * @since 2.2.3
+     */
+    CmdCardGetDataTraceabilityInformation(const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
+
+    /**
+     * (package-private)<br>
+     * Instantiates a new CmdCardGetDataTrace.
+     *
      * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
      * @since 2.1.0
      */
@@ -56,6 +66,13 @@ public:
      * @since 2.1.0
      */
     bool isSessionBufferUsed() const override;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.2.3
+     */
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
      * {@inheritDoc}
@@ -80,6 +97,14 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
+
+    /**
+     * (private)<br>
+     * Builds the command.
+     *
+     * @param calypsoCardClass indicates which CLA byte should be used for the Apdu.
+     */
+    void buildCommand(const CalypsoCardClass calypsoCardClass);
 };
 
 }

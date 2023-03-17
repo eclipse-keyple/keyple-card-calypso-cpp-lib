@@ -20,6 +20,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -45,14 +46,14 @@ public:
      * (package-private)<br>
      * Constructor.
      *
-     * @param calypsoCardClass The CLA field value.
+     * @param calypsoCard The Calypso card.
      * @param sfi The SFI.
      * @param recordNumber The number of the first record to read.
      * @param offset The offset from which to read in each record.
      * @param length The number of bytes to read in each record.
      * @since 2.1.0
      */
-    CmdCardReadRecordMultiple(const CalypsoCardClass calypsoCardClass,
+    CmdCardReadRecordMultiple(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                               const uint8_t sfi,
                               const uint8_t recordNumber,
                               const uint8_t offset,
@@ -80,31 +81,6 @@ public:
      * @since 2.1.0
      */
     void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return The SFI.
-     * @since 2.1.0
-     */
-    uint8_t getSfi() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return The offset.
-     * @since 2.1.0
-     */
-    uint8_t getOffset() const;
-
-    /**
-     * (package-private)<br>
-     *
-     * @return A not empty sorted map of read bytes by record number, or an empty map if no data is
-     *     available.
-     * @since 2.1.0
-     */
-    const std::map<const uint8_t, const std::vector<uint8_t>>& getResults() const;
 
 private:
     /**
@@ -137,11 +113,6 @@ private:
      *
      */
     const uint8_t mLength;
-
-    /**
-     *
-     */
-    std::map<const uint8_t, const std::vector<uint8_t>> mResults;
 
     /**
      *

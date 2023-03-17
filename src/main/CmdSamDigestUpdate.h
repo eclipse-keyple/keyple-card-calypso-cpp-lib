@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -16,9 +16,6 @@
 #include <map>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 #include "CalypsoSamCommand.h"
@@ -26,8 +23,6 @@
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -44,13 +39,13 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdSamDigestUpdate.
      *
-     * @param productType of the SAM.
+     * @param calypsoSam The Calypso SAM.
      * @param encryptedSession the encrypted session flag, true if encrypted.
      * @param digestData all bytes from command sent by the card or response from the command.
      * @throws IllegalArgumentException If the digest data is null or has a length &gt; 255
      * @since 2.0.1
      */
-    CmdSamDigestUpdate(const CalypsoSam::ProductType productType,
+    CmdSamDigestUpdate(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                        const bool encryptedSession,
                        const std::vector<uint8_t>& digestData);
 

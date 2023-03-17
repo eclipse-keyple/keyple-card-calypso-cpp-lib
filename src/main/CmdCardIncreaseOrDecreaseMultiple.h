@@ -21,6 +21,7 @@
 /* Keyple Card Calypso */
 #include "AbstractApduCommand.h"
 #include "AbstractCardCommand.h"
+#include "CalypsoCardAdapter.h"
 #include "CalypsoCardClass.h"
 
 /* Keyple Core Util */
@@ -48,7 +49,7 @@ public:
      *
      * @param isDecreaseCommand True if it is a "Decrease Multiple" command, false if it is an
      *        "Increase Multiple" command.
-     * @param calypsoCardClass The CLA field value.
+     * @param calypsoCard The Calypso card.
      * @param sfi The SFI.
      * @param counterNumberToIncDecValueMap The map containing the counter numbers to be incremented
      *        and their associated increment values.
@@ -56,7 +57,7 @@ public:
      */
     CmdCardIncreaseOrDecreaseMultiple(
         const bool isDecreaseCommand,
-        const CalypsoCardClass calypsoCardClass,
+        const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
         const uint8_t sfi,
         const std::map<const int, const int> counterNumberToIncDecValueMap);
 
@@ -100,14 +101,6 @@ public:
      * @since 2.1.0
      */
     const std::map<const int, const int>& getCounterNumberToIncDecValueMap() const;
-    /**
-     * (package-private)<br>
-     *
-     * @return A not empty sorted map of counter values as 3-byte array by counter number, or an
-     *         empty map if no data is available.
-     * @since 2.1.0
-     */
-    const std::map<const uint8_t, const std::vector<uint8_t>>& getNewCounterValues() const;
 
 private:
     /**
@@ -130,11 +123,6 @@ private:
      *
      */
     const std::map<const int, const int> mCounterNumberToIncDecValueMap;
-
-    /**
-     *
-     */
-    std::map<const uint8_t, const std::vector<uint8_t>> mNewCounterValues;
 
     /**
      *

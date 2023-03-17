@@ -15,18 +15,14 @@
 #include <map>
 #include <memory>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
+#include "CalypsoSamAdapter.h"
 #include "TraceableSignatureVerificationDataAdapter.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -40,11 +36,11 @@ public:
      * (package-private)<br>
      * Builds a new instance based on the provided signature verification data.
      *
-     * @param productType The SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param data The signature verification data.
      * @since 2.2.0
      */
-    CmdSamPsoVerifySignature(const CalypsoSam::ProductType productType,
+    CmdSamPsoVerifySignature(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                              const std::shared_ptr<TraceableSignatureVerificationDataAdapter> data);
 
     /**

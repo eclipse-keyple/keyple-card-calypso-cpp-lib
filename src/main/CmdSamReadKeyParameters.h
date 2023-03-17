@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -17,17 +17,12 @@
 #include <ostream>
 #include <vector>
 
-/* Calypsonet Terminal Calypso */
-#include "CalypsoSam.h"
-
 /* Keyple Card Calypso */
 #include "AbstractSamCommand.h"
 
 namespace keyple {
 namespace card {
 namespace calypso {
-
-using namespace calypsonet::terminal::calypso::sam;
 
 /**
  * (package-private)<br>
@@ -45,7 +40,7 @@ public:
          * Work key
          */
         WORK_KEY,
-        
+
         /**
          * System key
          */
@@ -60,7 +55,7 @@ public:
          * First
          */
         FIRST,
-        
+
         /**
          * Next
          */
@@ -71,58 +66,59 @@ public:
      * (package-private)<br>
      * Instantiates a new CmdSamReadKeyParameters for the null key.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @since 2.0.1
      */
-    CmdSamReadKeyParameters(const CalypsoSam::ProductType productType);
+    CmdSamReadKeyParameters(const std::shared_ptr<CalypsoSamAdapter> calypsoSam);
 
     /**
      * (package-private)<br>
      * Instantiates a new CmdSamReadKeyParameters for the provided kif.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param kif the kif
      * @since 2.0.1
      */
-    CmdSamReadKeyParameters(const CalypsoSam::ProductType productType, const uint8_t kif);
+    CmdSamReadKeyParameters(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+                            const uint8_t kif);
 
     /**
      * (package-private)<br>
      * Instantiates a new CmdSamReadKeyParameters for the provided kif and kvc.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param kif the kif
      * @param kvc the kvc
      * @since 2.0.1
      */
-    CmdSamReadKeyParameters(const CalypsoSam::ProductType productType, 
-                            const uint8_t kif, 
+    CmdSamReadKeyParameters(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+                            const uint8_t kif,
                             const uint8_t kvc);
 
     /**
      * (package-private)<br>
      * Instantiates a new CmdSamReadKeyParameters for the provided key reference and record number.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param sourceKeyRef the source key reference
      * @param recordNumber the record number
      * @since 2.0.1
      */
-    CmdSamReadKeyParameters(const CalypsoSam::ProductType productType, 
-                            const SourceRef sourceKeyRef, 
+    CmdSamReadKeyParameters(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+                            const SourceRef sourceKeyRef,
                             const int recordNumber);
 
     /**
      * (package-private)<br>
      * Instantiates a new CmdSamReadKeyParameters for the provided kif and navigation control flag.
      *
-     * @param productType the SAM product type.
+     * @param calypsoSam The Calypso SAM.
      * @param kif the kif
      * @param navControl the navigation control flag
      * @since 2.0.1
      */
-    CmdSamReadKeyParameters(const CalypsoSam::ProductType productType, 
-                            const uint8_t kif, 
+    CmdSamReadKeyParameters(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+                            const uint8_t kif,
                             const NavControl navControl);
 
     /**
@@ -135,11 +131,11 @@ public:
     const std::vector<uint8_t> getKeyParameters() const;
 
     /**
-     * 
+     *
      */
     friend std::ostream& operator<<(std::ostream& os, const SourceRef& sr);
     /**
-     * 
+     *
      */
     friend std::ostream& operator<<(std::ostream& os, const NavControl& nc);
 
@@ -158,7 +154,7 @@ private:
     static const CalypsoSamCommand mCommand;
 
     /**
-     * 
+     *
      */
     static const int MAX_WORK_KEY_REC_NUMB;
 

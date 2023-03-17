@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -33,12 +33,13 @@ using namespace keyple::core::util::cpp::exception;
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamSelectDiversifier::STATUS_TABLE = initStatusTable();
 
-CmdSamSelectDiversifier::CmdSamSelectDiversifier(const CalypsoSam::ProductType productType,
-                                                 std::vector<uint8_t>& diversifier)
-: AbstractSamCommand(CalypsoSamCommand::SELECT_DIVERSIFIER, 0)
+CmdSamSelectDiversifier::CmdSamSelectDiversifier(
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+  std::vector<uint8_t>& diversifier)
+: AbstractSamCommand(CalypsoSamCommand::SELECT_DIVERSIFIER, 0, calypsoSam)
 {
     /* Format the diversifier on 4 or 8 bytes if needed */
-    if (static_cast<int>(diversifier.size()) != 4 && 
+    if (static_cast<int>(diversifier.size()) != 4 &&
         static_cast<int>(diversifier.size()) != 8) {
         const int newLength = static_cast<int>(diversifier.size()) < 4 ? 4 : 8;
         std::vector<uint8_t> tmp(newLength);
@@ -48,7 +49,7 @@ CmdSamSelectDiversifier::CmdSamSelectDiversifier(const CalypsoSam::ProductType p
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(SamUtilAdapter::getClassByte(productType),
+            ApduUtil::build(SamUtilAdapter::getClassByte(calypsoSam->getProductType()),
                             getCommandRef().getInstructionByte(),
                             0,
                             0,

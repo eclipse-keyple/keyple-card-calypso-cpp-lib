@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -39,32 +39,36 @@ const CalypsoSamCommand CmdSamSvCheck::mCommand = CalypsoSamCommand::SV_CHECK;
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamSvCheck::STATUS_TABLE = initStatusTable();
 
-CmdSamSvCheck::CmdSamSvCheck(const CalypsoSam::ProductType productType,
+CmdSamSvCheck::CmdSamSvCheck(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                              const std::vector<uint8_t>& svCardSignature)
-: AbstractSamCommand(mCommand, 0)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
     if (!svCardSignature.empty() && svCardSignature.size() != 3 && svCardSignature.size() != 6) {
+
         throw IllegalArgumentException("Invalid svCardSignature.");
     }
 
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;
 
     if (!svCardSignature.empty()) {
+
         /* The operation is not "abort" */
         std::vector<uint8_t> data(svCardSignature.size());
         System::arraycopy(svCardSignature, 0, data, 0, svCardSignature.size());
         setApduRequest(
             std::make_shared<ApduRequestAdapter>(
                 ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, data)));
+
     } else {
+
         setApduRequest(
             std::make_shared<ApduRequestAdapter>(
-                ApduUtil::build(cla, 
-                                mCommand.getInstructionByte(), 
-                                p1, 
-                                p2, 
+                ApduUtil::build(cla,
+                                mCommand.getInstructionByte(),
+                                p1,
+                                p2,
                                 std::vector<uint8_t>{0x00})));
     }
 }

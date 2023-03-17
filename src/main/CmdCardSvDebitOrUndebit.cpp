@@ -40,18 +40,18 @@ const int CmdCardSvDebitOrUndebit::SV_POSTPONED_DATA_IN_SESSION = 0x6200;
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardSvDebitOrUndebit::STATUS_TABLE = initStatusTable();
 
-CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
-                                                 const CalypsoCardClass calypsoCardClass,
-                                                 const int amount,
-                                                 const uint8_t kvc,
-                                                 const std::vector<uint8_t>& date,
-                                                 const std::vector<uint8_t>& time,
-                                                 const bool isExtendedModeAllowed)
+CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(
+  const bool isDebitCommand,
+  const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
+  const int amount,
+  const std::vector<uint8_t>& date,
+  const std::vector<uint8_t>& time,
+  const bool isExtendedModeAllowed)
 : AbstractCardCommand(isDebitCommand ? CalypsoCardCommand::SV_DEBIT :
                                        CalypsoCardCommand::SV_UNDEBIT,
-                      0),
+                      0,
+                      calypsoCard),
   /* Keeps a copy of these fields until the command is finalized */
-  mCalypsoCardClass(calypsoCardClass),
   mIsExtendedModeAllowed(isExtendedModeAllowed)
 {
     /*
@@ -59,15 +59,18 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
      * CL-SV-DEBITVAL.1
      */
     if (amount < 0 || amount > 32767) {
+
         throw IllegalArgumentException("Amount is outside allowed boundaries (0 <= amount <= " \
                                        "32767)");
     }
 
     if (date.empty() || time.empty()) {
+
         throw IllegalArgumentException("date and time cannot be null");
     }
 
     if (date.size() != 2 || time.size() != 2) {
+
         throw IllegalArgumentException("date and time must be 2-byte arrays");
     }
 
@@ -78,15 +81,15 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(const bool isDebitCommand,
     mDataIn = std::vector<uint8_t>(15 + (isExtendedModeAllowed ? 10 : 5));
 
     /* mDataIn[0] will be filled in at the finalization phase */
-    const short amountShort =
-        isDebitCommand ? static_cast<short>(-amount) : static_cast<short>(amount);
+    const short amountShort = isDebitCommand ?
+                              static_cast<short>(-amount) : static_cast<short>(amount);
     mDataIn[1] = ((amountShort >> 8) & 0xFF);
     mDataIn[2] = (amountShort & 0xFF);
     mDataIn[3] = date[0];
     mDataIn[4] = date[1];
     mDataIn[5] = time[0];
     mDataIn[6] = time[1];
-    mDataIn[7] = kvc;
+    mDataIn[7] = calypsoCard->getSvKvc();
     /* mDataIn[8]..dataIn[8+7+sigLen] will be filled in at the finalization phase */
 }
 
@@ -95,6 +98,7 @@ void CmdCardSvDebitOrUndebit::finalizeCommand(
 {
     if ((mIsExtendedModeAllowed && debitOrUndebitComplementaryData.size() != 20) ||
         (!mIsExtendedModeAllowed && debitOrUndebitComplementaryData.size() != 15)) {
+
         throw IllegalArgumentException("Bad SV prepare load data length.");
     }
 
@@ -110,7 +114,7 @@ void CmdCardSvDebitOrUndebit::finalizeCommand(
                       15,
                       debitOrUndebitComplementaryData.size() - 10);
 
-    const uint8_t cardClass = mCalypsoCardClass == CalypsoCardClass::LEGACY ?
+    const uint8_t cardClass = getCalypsoCard()->getCardClass() == CalypsoCardClass::LEGACY ?
                                   CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :
                                   CalypsoCardClass::ISO.getValue();
 
@@ -152,14 +156,13 @@ void CmdCardSvDebitOrUndebit::parseApduResponse(const std::shared_ptr<ApduRespon
     AbstractCardCommand::parseApduResponse(apduResponse);
 
     const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+
     if (dataOut.size() != 0 && dataOut.size() != 3 && dataOut.size() != 6) {
+
         throw IllegalStateException("Bad length in response to SV Debit/Undebit command.");
     }
-}
 
-const std::vector<uint8_t> CmdCardSvDebitOrUndebit::getSignatureLo() const
-{
-    return getApduResponse()->getDataOut();
+    getCalypsoCard()->setSvOperationSignature(apduResponse->getDataOut());
 }
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>

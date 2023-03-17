@@ -35,21 +35,44 @@ const CalypsoCardCommand CmdCardReadRecords::mCommand = CalypsoCardCommand::READ
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardReadRecords::STATUS_TABLE = initStatusTable();
 
+CmdCardReadRecords::CmdCardReadRecords(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
+                                       const int sfi,
+                                       const int firstRecordNumber,
+                                       const ReadMode readMode,
+                                       const int expectedLength)
+: AbstractCardCommand(mCommand, expectedLength, calypsoCard)
+{
+    buildCommand(calypsoCard->getCardClass(), sfi, firstRecordNumber, readMode, expectedLength);
+}
+
 CmdCardReadRecords::CmdCardReadRecords(const CalypsoCardClass calypsoCardClass,
                                        const uint8_t sfi,
                                        const uint8_t firstRecordNumber,
                                        const ReadMode readMode,
                                        const uint8_t expectedLength)
-: AbstractCardCommand(mCommand, expectedLength),
-  mSfi(sfi),
-  mFirstRecordNumber(firstRecordNumber),
-  mReadMode(readMode)
+: AbstractCardCommand(mCommand, expectedLength, nullptr)
 {
+    buildCommand(calypsoCardClass, sfi, firstRecordNumber, readMode, expectedLength);
+}
+
+void CmdCardReadRecords::buildCommand(const CalypsoCardClass calypsoCardClass,
+                                      const int sfi,
+                                      const int firstRecordNumber,
+                                      const ReadMode readMode,
+                                      const int expectedLength)
+{
+    mSfi = sfi;
+    mFirstRecordNumber = firstRecordNumber;
+    mReadMode = readMode;
+
     const uint8_t p1 = static_cast<uint8_t>(firstRecordNumber);
     uint8_t p2 = sfi == 0x00 ? 0x05 : static_cast<uint8_t>((sfi * 8) + 5);
+
     if (readMode == ReadMode::ONE_RECORD) {
+
         p2 -= 0x01;
     }
+
     const uint8_t le = expectedLength;
 
     setApduRequest(
@@ -116,20 +139,27 @@ void CmdCardReadRecords::parseApduResponse(const std::shared_ptr<ApduResponseApi
 {
     AbstractCardCommand::parseApduResponse(apduResponse);
 
-    if (apduResponse->getDataOut().size() > 0) {
-        if (mReadMode == CmdCardReadRecords::ReadMode::ONE_RECORD) {
-            mRecords.insert({mFirstRecordNumber, apduResponse->getDataOut()});
-        } else {
-            const std::vector<uint8_t> mApdu = apduResponse->getDataOut();
-            uint8_t apduLen = static_cast<uint8_t>(mApdu.size());
-            uint8_t index = 0;
-            while (apduLen > 0) {
-                const uint8_t recordNb = mApdu[index++];
-                const uint8_t len = mApdu[index++];
-                mRecords.insert({recordNb, Arrays::copyOfRange(mApdu, index, index + len)});
-                index = index + len;
-                apduLen -= (2 + len);
-            }
+    if (mReadMode == CmdCardReadRecords::ReadMode::ONE_RECORD) {
+
+        getCalypsoCard()->setContent(mSfi, mFirstRecordNumber, apduResponse->getDataOut());
+
+    } else {
+
+        const std::vector<uint8_t> mApdu = apduResponse->getDataOut();
+        uint8_t apduLen = static_cast<uint8_t>(mApdu.size());
+        uint8_t index = 0;
+
+        while (apduLen > 0) {
+
+            const uint8_t recordNb = mApdu[index++];
+            const uint8_t len = mApdu[index++];
+
+            getCalypsoCard()->setContent(mSfi,
+                                            recordNb,
+                                            Arrays::copyOfRange(mApdu, index, index + len));
+
+            index = index + len;
+            apduLen -= (2 + len);
         }
     }
 }
@@ -147,11 +177,6 @@ uint8_t CmdCardReadRecords::getFirstRecordNumber() const
 CmdCardReadRecords::ReadMode CmdCardReadRecords::getReadMode() const
 {
     return mReadMode;
-}
-
-const std::map<const uint8_t, const std::vector<uint8_t>>& CmdCardReadRecords::getRecords() const
-{
-    return mRecords;
 }
 
 std::ostream& operator<<(std::ostream& os, const CmdCardReadRecords::ReadMode rm)

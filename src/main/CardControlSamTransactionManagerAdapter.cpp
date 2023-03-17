@@ -108,7 +108,7 @@ std::shared_ptr<CmdSamGetChallenge> CardControlSamTransactionManagerAdapter::pre
 {
     prepareSelectDiversifierIfNeeded();
 
-    const auto cmd = std::make_shared<CmdSamGetChallenge>(mControlSam->getProductType(),
+    const auto cmd = std::make_shared<CmdSamGetChallenge>(mControlSam,
                                                           mTargetCard->isExtendedModeSupported() ?
                                                               8 : 4);
     getSamCommands().push_back(cmd);
@@ -120,7 +120,7 @@ void CardControlSamTransactionManagerAdapter::prepareGiveRandom()
 {
     prepareSelectDiversifierIfNeeded();
 
-    getSamCommands().push_back(std::make_shared<CmdSamGiveRandom>(mControlSam->getProductType(),
+    getSamCommands().push_back(std::make_shared<CmdSamGiveRandom>(mControlSam,
                                                                   mTargetCard->getCardChallenge()));
 }
 
@@ -130,7 +130,7 @@ const std::shared_ptr<CmdSamCardGenerateKey>
                                                                     const uint8_t sourceKif,
                                                                     const uint8_t sourceKvc)
 {
-    const auto cmd = std::make_shared<CmdSamCardGenerateKey>(mControlSam->getProductType(),
+    const auto cmd = std::make_shared<CmdSamCardGenerateKey>(mControlSam,
                                                              cipheringKif,
                                                              cipheringKvc,
                                                              sourceKif,
@@ -178,7 +178,7 @@ const std::shared_ptr<CmdSamCardCipherPin>
         }
     }
 
-    const auto cmd = std::make_shared<CmdSamCardCipherPin>(mControlSam->getProductType(),
+    const auto cmd = std::make_shared<CmdSamCardCipherPin>(mControlSam,
                                                            pinCipheringKif,
                                                            pinCipheringKvc,
                                                            currentPin,
@@ -195,7 +195,7 @@ const std::shared_ptr<CmdSamSvPrepareLoad>
         const std::shared_ptr<CmdCardSvReload> cmdCardSvReload)
 {
     prepareSelectDiversifierIfNeeded();
-    const auto cmd = std::make_shared<CmdSamSvPrepareLoad>(mControlSam->getProductType(),
+    const auto cmd = std::make_shared<CmdSamSvPrepareLoad>(mControlSam,
                                                            svGetHeader,
                                                            svGetData,
                                                            cmdCardSvReload->getSvReloadData());
@@ -214,7 +214,7 @@ const std::shared_ptr<CmdSamSvPrepareDebitOrUndebit>
     prepareSelectDiversifierIfNeeded();
     const auto cmd = std::make_shared<CmdSamSvPrepareDebitOrUndebit>(
                          isDebitCommand,
-                         mControlSam->getProductType(),
+                         mControlSam,
                          svGetHeader,
                          svGetData,
                          cmdCardSvDebitOrUndebit->getSvDebitOrUndebitData());
@@ -226,7 +226,7 @@ const std::shared_ptr<CmdSamSvPrepareDebitOrUndebit>
 void CardControlSamTransactionManagerAdapter::prepareSvCheck(
     const std::vector<uint8_t>& svOperationData)
 {
-    getSamCommands().push_back(std::make_shared<CmdSamSvCheck>(mControlSam->getProductType(),
+    getSamCommands().push_back(std::make_shared<CmdSamSvCheck>(mControlSam,
                                                                svOperationData));
 }
 
@@ -267,7 +267,7 @@ void CardControlSamTransactionManagerAdapter::prepareDigestAuthenticate(
     const std::vector<uint8_t>& cardSignatureLo)
 {
     getSamCommands().push_back(std::make_shared<CmdSamDigestAuthenticate>(
-                                   mControlSam->getProductType(),
+                                   mControlSam,
                                    cardSignatureLo));
 }
 
@@ -314,6 +314,7 @@ void CardControlSamTransactionManagerAdapter::DigestManager::prepareCommands()
 {
     /* Prepare the "Digest Init" command if not already done */
     if (!mIsDigestInitDone) {
+
         prepareDigestInit();
     }
 
@@ -329,7 +330,7 @@ void CardControlSamTransactionManagerAdapter::DigestManager::prepareDigestInit()
 {
     /* CL-SAM-DINIT.1 */
     mParent->getSamCommands().push_back(std::make_shared<CmdSamDigestInit>(
-                                            mParent->mControlSam->getProductType(),
+                                            mParent->mControlSam,
                                             mIsVerificationMode,
                                             mParent->mTargetCard->isExtendedModeSupported(),
                                             mSessionKif,
@@ -357,7 +358,9 @@ void CardControlSamTransactionManagerAdapter::DigestManager::prepareDigestUpdate
         int i = 0;
 
         for (const auto& cardApdu : mCardApdus) {
+
             if (static_cast<int>(i + cardApdu.size()) > 254) {
+
                 /* Copy buffer to digestDataList and reset buffer */
                 digestDataList.push_back(Arrays::copyOf(buffer, i));
                 i = 0;
@@ -374,16 +377,19 @@ void CardControlSamTransactionManagerAdapter::DigestManager::prepareDigestUpdate
 
         /* Add commands */
         for (const auto& dataIn : digestDataList) {
+
             mParent->getSamCommands().push_back(
-                std::make_shared<CmdSamDigestUpdateMultiple>(mParent->mControlSam->getProductType(),
+                std::make_shared<CmdSamDigestUpdateMultiple>(mParent->mControlSam,
                                                              dataIn));
         }
 
     } else {
+
         /* Digest Update (simple) */
         for (const auto& cardApdu : mCardApdus) {
+
             mParent->getSamCommands().push_back(
-                std::make_shared<CmdSamDigestUpdate>(mParent->mControlSam->getProductType(),
+                std::make_shared<CmdSamDigestUpdate>(mParent->mControlSam,
                                                      mIsSessionEncrypted,
                                                      cardApdu));
         }
@@ -394,7 +400,7 @@ void CardControlSamTransactionManagerAdapter::DigestManager::prepareDigestClose(
 {
     /* CL-SAM-DCLOSE.1 */
     mParent->getSamCommands().push_back(std::make_shared<CmdSamDigestClose>(
-                                            mParent->mControlSam->getProductType(),
+                                            mParent->mControlSam,
                                             mParent->mTargetCard->isExtendedModeSupported() ?
                                                 8 : 4));
 }

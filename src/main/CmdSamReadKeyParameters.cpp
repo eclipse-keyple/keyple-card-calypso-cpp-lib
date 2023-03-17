@@ -38,11 +38,11 @@ const int CmdSamReadKeyParameters::MAX_WORK_KEY_REC_NUMB = 126;
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamReadKeyParameters::STATUS_TABLE = initStatusTable();
 
-CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType productType)
-: AbstractSamCommand(mCommand, 0)
+CmdSamReadKeyParameters::CmdSamReadKeyParameters(const std::shared_ptr<CalypsoSamAdapter> calypsoSam)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
+
     const uint8_t p2 = 0xE0;
     const std::vector<uint8_t> sourceKeyId = {0x00, 0x00};
 
@@ -51,12 +51,13 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType p
             ApduUtil::build(cla, mCommand.getInstructionByte(), 0x00, p2, sourceKeyId, 0x00)));
 }
 
-CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType productType,
-                                                 const uint8_t kif)
-: AbstractSamCommand(mCommand, 0)
+CmdSamReadKeyParameters::CmdSamReadKeyParameters(
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+  const uint8_t kif)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
+
     const uint8_t p2 = 0xC0;
     std::vector<uint8_t> sourceKeyId = {0x00, 0x00};
 
@@ -67,13 +68,14 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType p
             ApduUtil::build(cla, mCommand.getInstructionByte(), 0x00, p2, sourceKeyId, 0x00)));
 }
 
-CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType productType,
-                                                 const uint8_t kif,
-                                                 const uint8_t kvc)
-: AbstractSamCommand(mCommand, 0)
+CmdSamReadKeyParameters::CmdSamReadKeyParameters(
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+  const uint8_t kif,
+  const uint8_t kvc)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
+
     const uint8_t p2 = 0xF0;
     std::vector<uint8_t> sourceKeyId = {0x00, 0x00};
 
@@ -85,34 +87,39 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType p
             ApduUtil::build(cla, mCommand.getInstructionByte(), 0x00, p2, sourceKeyId, 0x00)));
 }
 
-CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType productType,
-                                                 const SourceRef sourceKeyRef, 
-                                                 const int recordNumber)
-: AbstractSamCommand(mCommand, 0)
+CmdSamReadKeyParameters::CmdSamReadKeyParameters(
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+  const SourceRef sourceKeyRef,
+  const int recordNumber)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
     if (recordNumber < 1 || recordNumber > MAX_WORK_KEY_REC_NUMB) {
-        throw IllegalArgumentException("Record Number must be between 1 and " + 
-                                       std::to_string(MAX_WORK_KEY_REC_NUMB) + 
+
+        throw IllegalArgumentException("Record Number must be between 1 and " +
+                                       std::to_string(MAX_WORK_KEY_REC_NUMB) +
                                        ".");
     }
 
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
+
     uint8_t p2;
     std::vector<uint8_t> sourceKeyId = {0x00, 0x00};
 
     switch (sourceKeyRef) {
-    case SourceRef::WORK_KEY:
-        p2 = static_cast<uint8_t>(recordNumber);
-        break;
-    case SourceRef::SYSTEM_KEY:
-        p2 = static_cast<uint8_t>(0xC0 + recordNumber);
-        break;
-    default:
-        std::stringstream ss;
-        ss << sourceKeyRef;
-        throw IllegalStateException("Unsupported SourceRef parameter " + 
-                                    ss.str());
+
+        case SourceRef::WORK_KEY:
+            p2 = static_cast<uint8_t>(recordNumber);
+            break;
+
+        case SourceRef::SYSTEM_KEY:
+            p2 = static_cast<uint8_t>(0xC0 + recordNumber);
+            break;
+
+        default:
+            std::stringstream ss;
+            ss << sourceKeyRef;
+            throw IllegalStateException("Unsupported SourceRef parameter " +
+                                        ss.str());
     }
 
     setApduRequest(
@@ -120,32 +127,36 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType p
             ApduUtil::build(cla, mCommand.getInstructionByte(), 0x00, p2, sourceKeyId, 0x00)));
 }
 
-CmdSamReadKeyParameters::CmdSamReadKeyParameters(const CalypsoSam::ProductType productType,
-                                                 const uint8_t kif, 
-                                                 const NavControl navControl)
-: AbstractSamCommand(mCommand, 0)
+CmdSamReadKeyParameters::CmdSamReadKeyParameters(
+  const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
+  const uint8_t kif,
+  const NavControl navControl)
+: AbstractSamCommand(mCommand, 0, calypsoSam)
 {
-    const uint8_t cla = SamUtilAdapter::getClassByte(productType);
-    
+    const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
+
     uint8_t p2;
     std::vector<uint8_t> sourceKeyId = {0x00, 0x00};
 
     switch (navControl) {
-    case NavControl::FIRST:
-        p2 = 0xF8;
-        break;
-    case NavControl::NEXT:
-        p2 = 0xFA;
-        break;
-    default:
-        std::stringstream ss;
-        ss << navControl;
-        throw IllegalStateException("Unsupported NavControl parameter " + 
-                                    ss.str());
+
+        case NavControl::FIRST:
+            p2 = 0xF8;
+            break;
+
+        case NavControl::NEXT:
+            p2 = 0xFA;
+            break;
+
+        default:
+            std::stringstream ss;
+            ss << navControl;
+            throw IllegalStateException("Unsupported NavControl parameter " +
+                                        ss.str());
     }
 
     sourceKeyId[0] = kif;
-    
+
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(cla, mCommand.getInstructionByte(), 0x00, p2, sourceKeyId, 0x00)));
