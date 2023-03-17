@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['updatecalypsocard_0',['updateCalypsoCard',['../classkeyple_1_1card_1_1calypso_1_1_calypso_card_util_adapter.html#a44b888faff051edbe2410cce05126b70',1,'keyple::card::calypso::CalypsoCardUtilAdapter::updateCalypsoCard(std::shared_ptr&lt; CalypsoCardAdapter &gt; calypsoCard, const std::shared_ptr&lt; AbstractCardCommand &gt; command, const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse, const bool isSessionOpen)'],['../classkeyple_1_1card_1_1calypso_1_1_calypso_card_util_adapter.html#a9bea05078ef67e8ba45b7fc85a0f582a',1,'keyple::card::calypso::CalypsoCardUtilAdapter::updateCalypsoCard(std::shared_ptr&lt; CalypsoCardAdapter &gt; calypsoCard, const std::vector&lt; std::shared_ptr&lt; AbstractApduCommand &gt; &gt; &amp;commands, const std::vector&lt; std::shared_ptr&lt; ApduResponseApi &gt; &gt; &amp;apduResponses, const bool isSessionOpen)']]],
-  ['updatemissinginfofrom_1',['updateMissingInfoFrom',['../classkeyple_1_1card_1_1calypso_1_1_file_header_adapter.html#a4fb61f814da5187cb79c2dcd24fb47a5',1,'keyple::card::calypso::FileHeaderAdapter']]],
-  ['updatesession_2',['updateSession',['../classkeyple_1_1card_1_1calypso_1_1_card_control_sam_transaction_manager_adapter.html#a5b0e900050974dbc3d272083501bd8ac',1,'keyple::card::calypso::CardControlSamTransactionManagerAdapter']]]
+  ['updatemissinginfofrom_0',['updateMissingInfoFrom',['../classkeyple_1_1card_1_1calypso_1_1_file_header_adapter.html#a4fb61f814da5187cb79c2dcd24fb47a5',1,'keyple::card::calypso::FileHeaderAdapter']]],
+  ['updatesession_1',['updateSession',['../classkeyple_1_1card_1_1calypso_1_1_card_control_sam_transaction_manager_adapter.html#a5b0e900050974dbc3d272083501bd8ac',1,'keyple::card::calypso::CardControlSamTransactionManagerAdapter']]]
 ];

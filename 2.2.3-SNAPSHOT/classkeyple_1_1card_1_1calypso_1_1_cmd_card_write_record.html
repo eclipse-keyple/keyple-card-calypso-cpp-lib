@@ -99,29 +99,27 @@ Collaboration diagram for keyple::card::calypso::CmdCardWriteRecord:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:abe50642a389c9d1a4a5d1ff36e3374de"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#abe50642a389c9d1a4a5d1ff36e3374de">CmdCardWriteRecord</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_class.html">CalypsoCardClass</a> calypsoCardClass, const uint8_t sfi, const uint8_t recordNumber, const std::vector&lt; uint8_t &gt; &amp;newRecordData)</td></tr>
-<tr class="separator:abe50642a389c9d1a4a5d1ff36e3374de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d34271525dc59e21feba4797320922c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#a9d34271525dc59e21feba4797320922c">CmdCardWriteRecord</a> (const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard, const uint8_t sfi, const uint8_t recordNumber, const std::vector&lt; uint8_t &gt; &amp;newRecordData)</td></tr>
+<tr class="separator:a9d34271525dc59e21feba4797320922c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c04f3e74d388695262ddbcc6f675e1a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#a8c04f3e74d388695262ddbcc6f675e1a">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse) override</td></tr>
+<tr class="separator:a8c04f3e74d388695262ddbcc6f675e1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6520d6c8a72caaf451b69f3299795978"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#a6520d6c8a72caaf451b69f3299795978">isSessionBufferUsed</a> () const override</td></tr>
 <tr class="separator:a6520d6c8a72caaf451b69f3299795978"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a67e5c648915e937f34a5ba92ea607e79"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#a67e5c648915e937f34a5ba92ea607e79">getSfi</a> () const</td></tr>
-<tr class="separator:a67e5c648915e937f34a5ba92ea607e79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a61764fa89763de7d9e15402b08e34ece"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#a61764fa89763de7d9e15402b08e34ece">getRecordNumber</a> () const</td></tr>
-<tr class="separator:a61764fa89763de7d9e15402b08e34ece"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69aeb937d2c364ebbe0500e4e21e722e"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint8_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#a69aeb937d2c364ebbe0500e4e21e722e">getData</a> () const</td></tr>
-<tr class="separator:a69aeb937d2c364ebbe0500e4e21e722e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a289e9a01b8e3b25c94bb7d864a4b127a"><td class="memItemLeft" align="right" valign="top">const std::map&lt; const int, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command_1_1_status_properties.html">StatusProperties</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#a289e9a01b8e3b25c94bb7d864a4b127a">getStatusTable</a> () const override</td></tr>
 <tr class="separator:a289e9a01b8e3b25c94bb7d864a4b127a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html">keyple::card::calypso::AbstractCardCommand</a></td></tr>
-<tr class="memitem:a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7">AbstractCardCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;commandRef, const int le)</td></tr>
-<tr class="separator:a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac17277718c9917719f77c34599940e9 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#aac17277718c9917719f77c34599940e9">AbstractCardCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;commandRef, const int le, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard)</td></tr>
+<tr class="separator:aac17277718c9917719f77c34599940e9 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f3de892af7a09b8ad16442c6828249c inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a7f3de892af7a09b8ad16442c6828249c">getCommandRef</a> () const override</td></tr>
 <tr class="separator:a7f3de892af7a09b8ad16442c6828249c inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d0fb9de0cbe1ecd28f8a3da3a8b7a7f inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_apdu_command_exception.html">CalypsoApduCommandException</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a6d0fb9de0cbe1ecd28f8a3da3a8b7a7f">buildCommandException</a> (const std::type_info &amp;exceptionClass, const std::string &amp;message) const final</td></tr>
 <tr class="separator:a6d0fb9de0cbe1ecd28f8a3da3a8b7a7f inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac7746e1781854413a9b3c4ea0e0db3ef inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_apdu_command_exception.html">CalypsoApduCommandException</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#ac7746e1781854413a9b3c4ea0e0db3ef">buildUnexpectedResponseLengthException</a> (const std::string &amp;message) const final</td></tr>
 <tr class="separator:ac7746e1781854413a9b3c4ea0e0db3ef inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77f119b9e3faef6cdb32c2792ca680db inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a77f119b9e3faef6cdb32c2792ca680db">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse) override</td></tr>
-<tr class="separator:a77f119b9e3faef6cdb32c2792ca680db inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9a123a333fdc1b465ad007f4d2f7eaf inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#ad9a123a333fdc1b465ad007f4d2f7eaf">getCalypsoCard</a> () const</td></tr>
+<tr class="separator:ad9a123a333fdc1b465ad007f4d2f7eaf inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9804b87277750ab11553852b5439edd6 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a9804b87277750ab11553852b5439edd6">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard)</td></tr>
+<tr class="separator:a9804b87277750ab11553852b5439edd6 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html">keyple::card::calypso::AbstractApduCommand</a></td></tr>
 <tr class="memitem:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a4b11901db3fff8eb5555f395c8934b11">AbstractApduCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_card_command.html">CardCommand</a> &amp;commandRef, const int le)</td></tr>
 <tr class="separator:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -151,10 +149,10 @@ Additional Inherited Members</h2></td></tr>
  Builds the "Write Record" APDU command.</p>
 <dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8h_source.html#l00043">43</a> of file <a class="el" href="_cmd_card_write_record_8h_source.html">CmdCardWriteRecord.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8h_source.html#l00047">47</a> of file <a class="el" href="_cmd_card_write_record_8h_source.html">CmdCardWriteRecord.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="abe50642a389c9d1a4a5d1ff36e3374de" name="abe50642a389c9d1a4a5d1ff36e3374de"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abe50642a389c9d1a4a5d1ff36e3374de">&#9670;&nbsp;</a></span>CmdCardWriteRecord()</h2>
+<a id="a9d34271525dc59e21feba4797320922c" name="a9d34271525dc59e21feba4797320922c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d34271525dc59e21feba4797320922c">&#9670;&nbsp;</a></span>CmdCardWriteRecord()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -162,8 +160,8 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">keyple::card::calypso::CmdCardWriteRecord::CmdCardWriteRecord </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_class.html">CalypsoCardClass</a>&#160;</td>
-          <td class="paramname"><em>calypsoCardClass</em>, </td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td>
+          <td class="paramname"><em>calypsoCard</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -194,7 +192,7 @@ Additional Inherited Members</h2></td></tr>
  Instantiates a new <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html">CmdCardWriteRecord</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">calypsoCardClass</td><td>indicates which CLA byte should be used for the Apdu. </td></tr>
+    <tr><td class="paramname">calypsoCard</td><td>The Calypso card. </td></tr>
     <tr><td class="paramname">sfi</td><td>the sfi to select. </td></tr>
     <tr><td class="paramname">recordNumber</td><td>the record number to write. </td></tr>
     <tr><td class="paramname">newRecordData</td><td>the new record data to write. </td></tr>
@@ -215,75 +213,6 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a69aeb937d2c364ebbe0500e4e21e722e" name="a69aeb937d2c364ebbe0500e4e21e722e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a69aeb937d2c364ebbe0500e4e21e722e">&#9670;&nbsp;</a></span>getData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::vector&lt; uint8_t &gt; &amp; keyple::card::calypso::CmdCardWriteRecord::getData </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
-</p>
-<dl class="section return"><dt>Returns</dt><dd>the data sent to the card </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8cpp_source.html#l00079">79</a> of file <a class="el" href="_cmd_card_write_record_8cpp_source.html">CmdCardWriteRecord.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a61764fa89763de7d9e15402b08e34ece" name="a61764fa89763de7d9e15402b08e34ece"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a61764fa89763de7d9e15402b08e34ece">&#9670;&nbsp;</a></span>getRecordNumber()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint8_t keyple::card::calypso::CmdCardWriteRecord::getRecordNumber </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
-</p>
-<dl class="section return"><dt>Returns</dt><dd>the number of the accessed record </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8cpp_source.html#l00074">74</a> of file <a class="el" href="_cmd_card_write_record_8cpp_source.html">CmdCardWriteRecord.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a67e5c648915e937f34a5ba92ea607e79" name="a67e5c648915e937f34a5ba92ea607e79"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a67e5c648915e937f34a5ba92ea607e79">&#9670;&nbsp;</a></span>getSfi()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint8_t keyple::card::calypso::CmdCardWriteRecord::getSfi </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
-</p>
-<dl class="section return"><dt>Returns</dt><dd>the SFI of the accessed file </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8cpp_source.html#l00069">69</a> of file <a class="el" href="_cmd_card_write_record_8cpp_source.html">CmdCardWriteRecord.cpp</a>.</p>
-
-</div>
-</div>
 <a id="a289e9a01b8e3b25c94bb7d864a4b127a" name="a289e9a01b8e3b25c94bb7d864a4b127a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a289e9a01b8e3b25c94bb7d864a4b127a">&#9670;&nbsp;</a></span>getStatusTable()</h2>
 
@@ -314,7 +243,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a561c91ce3628145a188d1a627a34049a">keyple::card::calypso::AbstractApduCommand</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8cpp_source.html#l00126">126</a> of file <a class="el" href="_cmd_card_write_record_8cpp_source.html">CmdCardWriteRecord.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8cpp_source.html#l00118">118</a> of file <a class="el" href="_cmd_card_write_record_8cpp_source.html">CmdCardWriteRecord.cpp</a>.</p>
 
 </div>
 </div>
@@ -348,6 +277,53 @@ Additional Inherited Members</h2></td></tr>
 <dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
 
 <p>Implements <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a2179f36954eea09a016d9b81497b46bf">keyple::card::calypso::AbstractCardCommand</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8cpp_source.html#l00071">71</a> of file <a class="el" href="_cmd_card_write_record_8cpp_source.html">CmdCardWriteRecord.cpp</a>.</p>
+
+</div>
+</div>
+<a id="a8c04f3e74d388695262ddbcc6f675e1a" name="a8c04f3e74d388695262ddbcc6f675e1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c04f3e74d388695262ddbcc6f675e1a">&#9670;&nbsp;</a></span>parseApduResponse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void keyple::card::calypso::CmdCardWriteRecord::parseApduResponse </td>
+          <td>(</td>
+          <td class="paramtype">const std::shared_ptr&lt; ApduResponseApi &gt;&#160;</td>
+          <td class="paramname"><em>apduResponse</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p >(package-private)<br  />
+ Parses the response ApduResponseApi and check the status word.<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">apduResponse</td><td>The APDU response. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_apdu_command_exception.html">CalypsoApduCommandException</a></td><td>if status is not successful or if the length of the response is not equal to the LE field in the request. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section since"><dt>Since</dt><dd>2.0.1</dd></dl>
+<dl class="section since"><dt>Since</dt><dd>2.0.1</dd></dl>
+</p>
+<dl class="section since"><dt>Since</dt><dd>2.2.3 </dd></dl>
+
+<p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a77f119b9e3faef6cdb32c2792ca680db">keyple::card::calypso::AbstractCardCommand</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="_cmd_card_write_record_8cpp_source.html#l00064">64</a> of file <a class="el" href="_cmd_card_write_record_8cpp_source.html">CmdCardWriteRecord.cpp</a>.</p>
 

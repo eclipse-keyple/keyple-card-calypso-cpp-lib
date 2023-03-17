@@ -123,8 +123,8 @@ Collaboration diagram for keyple::card::calypso::AbstractCardCommand:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7">AbstractCardCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;commandRef, const int le)</td></tr>
-<tr class="separator:a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac17277718c9917719f77c34599940e9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#aac17277718c9917719f77c34599940e9">AbstractCardCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;commandRef, const int le, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard)</td></tr>
+<tr class="separator:aac17277718c9917719f77c34599940e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f3de892af7a09b8ad16442c6828249c"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a7f3de892af7a09b8ad16442c6828249c">getCommandRef</a> () const override</td></tr>
 <tr class="separator:a7f3de892af7a09b8ad16442c6828249c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2179f36954eea09a016d9b81497b46bf"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a2179f36954eea09a016d9b81497b46bf">isSessionBufferUsed</a> () const =0</td></tr>
@@ -135,6 +135,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac7746e1781854413a9b3c4ea0e0db3ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77f119b9e3faef6cdb32c2792ca680db"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a77f119b9e3faef6cdb32c2792ca680db">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse) override</td></tr>
 <tr class="separator:a77f119b9e3faef6cdb32c2792ca680db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9a123a333fdc1b465ad007f4d2f7eaf"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#ad9a123a333fdc1b465ad007f4d2f7eaf">getCalypsoCard</a> () const</td></tr>
+<tr class="separator:ad9a123a333fdc1b465ad007f4d2f7eaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9804b87277750ab11553852b5439edd6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a9804b87277750ab11553852b5439edd6">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard)</td></tr>
+<tr class="separator:a9804b87277750ab11553852b5439edd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html">keyple::card::calypso::AbstractApduCommand</a></td></tr>
 <tr class="memitem:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a4b11901db3fff8eb5555f395c8934b11">AbstractApduCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_card_command.html">CardCommand</a> &amp;commandRef, const int le)</td></tr>
 <tr class="separator:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -166,10 +170,10 @@ Additional Inherited Members</h2></td></tr>
  Superclass for all card commands.</p>
 <dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8h_source.html#l00029">29</a> of file <a class="el" href="_abstract_card_command_8h_source.html">AbstractCardCommand.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8h_source.html#l00032">32</a> of file <a class="el" href="_abstract_card_command_8h_source.html">AbstractCardCommand.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7" name="a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7">&#9670;&nbsp;</a></span>AbstractCardCommand()</h2>
+<a id="aac17277718c9917719f77c34599940e9" name="aac17277718c9917719f77c34599940e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac17277718c9917719f77c34599940e9">&#9670;&nbsp;</a></span>AbstractCardCommand()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -184,7 +188,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const int&#160;</td>
-          <td class="paramname"><em>le</em>&#160;</td>
+          <td class="paramname"><em>le</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td>
+          <td class="paramname"><em>calypsoCard</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -199,6 +209,7 @@ Additional Inherited Members</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">commandRef</td><td>a command reference from the Calypso command table. </td></tr>
     <tr><td class="paramname">le</td><td>The value of the LE field. </td></tr>
+    <tr><td class="paramname">calypsoCard</td><td>The Calypso card (it may be null if the card selection has not yet been made). </td></tr>
   </table>
   </dd>
 </dl>
@@ -258,7 +269,7 @@ A not null value </dd></dl>
 
 <p>Implements <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#ade91df659e59eb951c82f07f9bc61962">keyple::card::calypso::AbstractApduCommand</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00042">42</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00044">44</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
 
 </div>
 </div>
@@ -299,7 +310,30 @@ A not null value </dd></dl>
 
 <p>Implements <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a920c504ea0dda5bc632da6ba5e07d63b">keyple::card::calypso::AbstractApduCommand</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00073">73</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00075">75</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
+
+</div>
+</div>
+<a id="ad9a123a333fdc1b465ad007f4d2f7eaf" name="ad9a123a333fdc1b465ad007f4d2f7eaf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9a123a333fdc1b465ad007f4d2f7eaf">&#9670;&nbsp;</a></span>getCalypsoCard()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; keyple::card::calypso::AbstractCardCommand::getCalypsoCard </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >(package-private)<br  />
+ Returns the Calypso card.</p>
+<dl class="section return"><dt>Returns</dt><dd>Null if the card selection has not yet been made. </dd></dl>
+<dl class="section since"><dt>Since</dt><dd>2.2.3 </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00089">89</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
 
 </div>
 </div>
@@ -333,7 +367,7 @@ A not null value </dd></dl>
 
 <p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a7a8d957937f55e0019967d6488d84c74">keyple::card::calypso::AbstractApduCommand</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00037">37</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00039">39</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
 
 </div>
 </div>
@@ -370,7 +404,7 @@ A not null value </dd></dl>
 </div>
 </div>
 <a id="a77f119b9e3faef6cdb32c2792ca680db" name="a77f119b9e3faef6cdb32c2792ca680db"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a77f119b9e3faef6cdb32c2792ca680db">&#9670;&nbsp;</a></span>parseApduResponse()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a77f119b9e3faef6cdb32c2792ca680db">&#9670;&nbsp;</a></span>parseApduResponse() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -411,9 +445,42 @@ A not null value </dd></dl>
 
 <p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#af84d38dd6e52cd37f624f35356bb46ec">keyple::card::calypso::AbstractApduCommand</a>.</p>
 
-<p>Reimplemented in <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_close_session.html#a15a62cd00f6b883179a35d9565c12592">keyple::card::calypso::CmdCardCloseSession</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_get_data_fci.html#a48eb7463231d67a9100c365d62d21fd4">keyple::card::calypso::CmdCardGetDataFci</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_increase_or_decrease_multiple.html#abf7f283b173d8924a0c9575327e48034">keyple::card::calypso::CmdCardIncreaseOrDecreaseMultiple</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_open_session.html#ac01c89c30079bac78885939f5f8b6b57">keyple::card::calypso::CmdCardOpenSession</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_record_multiple.html#a8a756675cfb758cbb84241011f309de8">keyple::card::calypso::CmdCardReadRecordMultiple</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_records.html#a6f4d655cdda19e46276d4d09df27a87b">keyple::card::calypso::CmdCardReadRecords</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_search_record_multiple.html#a4d1fc71b079ebdeebfdb39e3471f2b4b">keyple::card::calypso::CmdCardSearchRecordMultiple</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_debit_or_undebit.html#aac95aaff9df93d8a15998288f328b878">keyple::card::calypso::CmdCardSvDebitOrUndebit</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#ab7701e4f43ceb2eddcdc2cfdbf126653">keyple::card::calypso::CmdCardSvGet</a>, and <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_reload.html#a6d4050f99c0269936be142e0d2611dde">keyple::card::calypso::CmdCardSvReload</a>.</p>
+<p>Reimplemented in <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_get_challenge.html#aa08e0b234b084b6642e36bc91f7f8412">keyple::card::calypso::CmdCardGetChallenge</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_append_record.html#afb99e266a62e3f9d3e044fbc71e25f4a">keyple::card::calypso::CmdCardAppendRecord</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_close_session.html#a15a62cd00f6b883179a35d9565c12592">keyple::card::calypso::CmdCardCloseSession</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_get_data_ef_list.html#a73fac87d3837050e993461e6935b5938">keyple::card::calypso::CmdCardGetDataEfList</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_get_data_fci.html#a48eb7463231d67a9100c365d62d21fd4">keyple::card::calypso::CmdCardGetDataFci</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_get_data_fcp.html#ac8cf6d74cddf4592ab8c7083a22dcae8">keyple::card::calypso::CmdCardGetDataFcp</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_get_data_traceability_information.html#aa145b7b105e884b9eec9898d6f00ef84">keyple::card::calypso::CmdCardGetDataTraceabilityInformation</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_increase_or_decrease.html#a1744e49f1b372d2380bd665064e42028">keyple::card::calypso::CmdCardIncreaseOrDecrease</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_increase_or_decrease_multiple.html#abf7f283b173d8924a0c9575327e48034">keyple::card::calypso::CmdCardIncreaseOrDecreaseMultiple</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_open_session.html#ac01c89c30079bac78885939f5f8b6b57">keyple::card::calypso::CmdCardOpenSession</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_binary.html#a4ccf86896f469da258b89e9d4a413bd9">keyple::card::calypso::CmdCardReadBinary</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_record_multiple.html#a8a756675cfb758cbb84241011f309de8">keyple::card::calypso::CmdCardReadRecordMultiple</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_records.html#a6f4d655cdda19e46276d4d09df27a87b">keyple::card::calypso::CmdCardReadRecords</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_search_record_multiple.html#a4d1fc71b079ebdeebfdb39e3471f2b4b">keyple::card::calypso::CmdCardSearchRecordMultiple</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_select_file.html#afb272cd380410cc56a124af34055ca71">keyple::card::calypso::CmdCardSelectFile</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_debit_or_undebit.html#aac95aaff9df93d8a15998288f328b878">keyple::card::calypso::CmdCardSvDebitOrUndebit</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#ab7701e4f43ceb2eddcdc2cfdbf126653">keyple::card::calypso::CmdCardSvGet</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_reload.html#a6d4050f99c0269936be142e0d2611dde">keyple::card::calypso::CmdCardSvReload</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_update_record.html#a2879df122c85cf173adff1b5c9713141">keyple::card::calypso::CmdCardUpdateRecord</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_verify_pin.html#a0a33d1d28e9c18c255880a2c780e5b37">keyple::card::calypso::CmdCardVerifyPin</a>, <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_write_record.html#a8c04f3e74d388695262ddbcc6f675e1a">keyple::card::calypso::CmdCardWriteRecord</a>, and <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_update_or_write_binary.html#a7ff722ce1c354b1285fbe4736c95cb60">keyple::card::calypso::CmdCardUpdateOrWriteBinary</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00082">82</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00084">84</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
+
+</div>
+</div>
+<a id="a9804b87277750ab11553852b5439edd6" name="a9804b87277750ab11553852b5439edd6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9804b87277750ab11553852b5439edd6">&#9670;&nbsp;</a></span>parseApduResponse() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void keyple::card::calypso::AbstractCardCommand::parseApduResponse </td>
+          <td>(</td>
+          <td class="paramtype">const std::shared_ptr&lt; ApduResponseApi &gt;&#160;</td>
+          <td class="paramname"><em>apduResponse</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td>
+          <td class="paramname"><em>calypsoCard</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >(package-private)<br  />
+ Sets the Calypso card and invoke the parseApduResponse(ApduResponseApi) method.</p>
+<dl class="section since"><dt>Since</dt><dd>2.2.3 </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="_abstract_card_command_8cpp_source.html#l00094">94</a> of file <a class="el" href="_abstract_card_command_8cpp_source.html">AbstractCardCommand.cpp</a>.</p>
 
 </div>
 </div>

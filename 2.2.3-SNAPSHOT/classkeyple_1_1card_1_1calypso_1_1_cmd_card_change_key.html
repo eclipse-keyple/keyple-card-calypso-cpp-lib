@@ -99,15 +99,15 @@ Collaboration diagram for keyple::card::calypso::CmdCardChangeKey:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a50b67366e899ee93fc50a946e6a0e71f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_change_key.html#a50b67366e899ee93fc50a946e6a0e71f">CmdCardChangeKey</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_class.html">CalypsoCardClass</a> calypsoCardClass, const uint8_t keyIndex, const std::vector&lt; uint8_t &gt; &amp;cryptogram)</td></tr>
-<tr class="separator:a50b67366e899ee93fc50a946e6a0e71f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a560830b3684ce414e0351146d3696599"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_change_key.html#a560830b3684ce414e0351146d3696599">CmdCardChangeKey</a> (const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard, const uint8_t keyIndex, const std::vector&lt; uint8_t &gt; &amp;cryptogram)</td></tr>
+<tr class="separator:a560830b3684ce414e0351146d3696599"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81e0c73f86edc9429f2181c0e40af519"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_change_key.html#a81e0c73f86edc9429f2181c0e40af519">isSessionBufferUsed</a> () const override</td></tr>
 <tr class="separator:a81e0c73f86edc9429f2181c0e40af519"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae01a4e81cc4e99f1739dfc96fcbc17c6"><td class="memItemLeft" align="right" valign="top">const std::map&lt; const int, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command_1_1_status_properties.html">StatusProperties</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_change_key.html#ae01a4e81cc4e99f1739dfc96fcbc17c6">getStatusTable</a> () const override</td></tr>
 <tr class="separator:ae01a4e81cc4e99f1739dfc96fcbc17c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html">keyple::card::calypso::AbstractCardCommand</a></td></tr>
-<tr class="memitem:a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7">AbstractCardCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;commandRef, const int le)</td></tr>
-<tr class="separator:a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac17277718c9917719f77c34599940e9 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#aac17277718c9917719f77c34599940e9">AbstractCardCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;commandRef, const int le, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard)</td></tr>
+<tr class="separator:aac17277718c9917719f77c34599940e9 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f3de892af7a09b8ad16442c6828249c inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a7f3de892af7a09b8ad16442c6828249c">getCommandRef</a> () const override</td></tr>
 <tr class="separator:a7f3de892af7a09b8ad16442c6828249c inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d0fb9de0cbe1ecd28f8a3da3a8b7a7f inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_apdu_command_exception.html">CalypsoApduCommandException</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a6d0fb9de0cbe1ecd28f8a3da3a8b7a7f">buildCommandException</a> (const std::type_info &amp;exceptionClass, const std::string &amp;message) const final</td></tr>
@@ -116,6 +116,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac7746e1781854413a9b3c4ea0e0db3ef inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77f119b9e3faef6cdb32c2792ca680db inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a77f119b9e3faef6cdb32c2792ca680db">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse) override</td></tr>
 <tr class="separator:a77f119b9e3faef6cdb32c2792ca680db inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9a123a333fdc1b465ad007f4d2f7eaf inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#ad9a123a333fdc1b465ad007f4d2f7eaf">getCalypsoCard</a> () const</td></tr>
+<tr class="separator:ad9a123a333fdc1b465ad007f4d2f7eaf inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9804b87277750ab11553852b5439edd6 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a9804b87277750ab11553852b5439edd6">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard)</td></tr>
+<tr class="separator:a9804b87277750ab11553852b5439edd6 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html">keyple::card::calypso::AbstractApduCommand</a></td></tr>
 <tr class="memitem:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a4b11901db3fff8eb5555f395c8934b11">AbstractApduCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_card_command.html">CardCommand</a> &amp;commandRef, const int le)</td></tr>
 <tr class="separator:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -145,10 +149,10 @@ Additional Inherited Members</h2></td></tr>
  Builds the Change key APDU command.</p>
 <dl class="section since"><dt>Since</dt><dd>2.1.0 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_card_change_key_8h_source.html#l00050">50</a> of file <a class="el" href="_cmd_card_change_key_8h_source.html">CmdCardChangeKey.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_card_change_key_8h_source.html#l00051">51</a> of file <a class="el" href="_cmd_card_change_key_8h_source.html">CmdCardChangeKey.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a50b67366e899ee93fc50a946e6a0e71f" name="a50b67366e899ee93fc50a946e6a0e71f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a50b67366e899ee93fc50a946e6a0e71f">&#9670;&nbsp;</a></span>CmdCardChangeKey()</h2>
+<a id="a560830b3684ce414e0351146d3696599" name="a560830b3684ce414e0351146d3696599"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a560830b3684ce414e0351146d3696599">&#9670;&nbsp;</a></span>CmdCardChangeKey()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -156,8 +160,8 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">keyple::card::calypso::CmdCardChangeKey::CmdCardChangeKey </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_class.html">CalypsoCardClass</a>&#160;</td>
-          <td class="paramname"><em>calypsoCardClass</em>, </td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td>
+          <td class="paramname"><em>calypsoCard</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -182,7 +186,7 @@ Additional Inherited Members</h2></td></tr>
  Change Key Calypso command</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">calypsoCardClass</td><td>indicates which CLA byte should be used for the Apdu. </td></tr>
+    <tr><td class="paramname">calypsoCard</td><td>The Calypso card. </td></tr>
     <tr><td class="paramname">keyIndex</td><td>index of the key of the current DF to change. </td></tr>
     <tr><td class="paramname">cryptogram</td><td>key encrypted with Issuer key (key #1). </td></tr>
   </table>

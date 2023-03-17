@@ -99,39 +99,27 @@ Collaboration diagram for keyple::card::calypso::CmdCardSvGet:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aec6f6e4b4b9ca805d67408c213e1f259"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#aec6f6e4b4b9ca805d67408c213e1f259">CmdCardSvGet</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_class.html">CalypsoCardClass</a> calypsoCardClass, const SvOperation svOperation, const bool useExtendedMode)</td></tr>
-<tr class="separator:aec6f6e4b4b9ca805d67408c213e1f259"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a505f77d736dae8176013742173430893"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#a505f77d736dae8176013742173430893">CmdCardSvGet</a> (const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard, const SvOperation svOperation, const bool useExtendedMode)</td></tr>
+<tr class="separator:a505f77d736dae8176013742173430893"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9732db80a4f3bf084e5b9c8666be2bcd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#a9732db80a4f3bf084e5b9c8666be2bcd">isSessionBufferUsed</a> () const override</td></tr>
 <tr class="separator:a9732db80a4f3bf084e5b9c8666be2bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7701e4f43ceb2eddcdc2cfdbf126653"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#ab7701e4f43ceb2eddcdc2cfdbf126653">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse) override</td></tr>
 <tr class="separator:ab7701e4f43ceb2eddcdc2cfdbf126653"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6cfcc1f3388f358abd8c1ebca382352"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint8_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#ae6cfcc1f3388f358abd8c1ebca382352">getSvGetCommandHeader</a> () const</td></tr>
-<tr class="separator:ae6cfcc1f3388f358abd8c1ebca382352"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad38bae47987e4f73bc3efc77e3ca9d84"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#ad38bae47987e4f73bc3efc77e3ca9d84">getCurrentKVC</a> () const</td></tr>
-<tr class="separator:ad38bae47987e4f73bc3efc77e3ca9d84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9305c81e2bb74514b60aaac76e014eb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#ac9305c81e2bb74514b60aaac76e014eb">getTransactionNumber</a> () const</td></tr>
-<tr class="separator:ac9305c81e2bb74514b60aaac76e014eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb1edfde98c7d0dad03c8ba291505bbc"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint8_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#aeb1edfde98c7d0dad03c8ba291505bbc">getPreviousSignatureLo</a> () const</td></tr>
-<tr class="separator:aeb1edfde98c7d0dad03c8ba291505bbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae4e3285bc9be3a7e1cdb59422af9f63e"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint8_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#ae4e3285bc9be3a7e1cdb59422af9f63e">getChallengeOut</a> () const</td></tr>
-<tr class="separator:ae4e3285bc9be3a7e1cdb59422af9f63e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b852ab29cc5ec39e239efe20eb18d2b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#a8b852ab29cc5ec39e239efe20eb18d2b">getBalance</a> () const</td></tr>
-<tr class="separator:a8b852ab29cc5ec39e239efe20eb18d2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0032528f7f8bc9da4dbd6da44ce8ca6f"><td class="memItemLeft" align="right" valign="top">const std::shared_ptr&lt; SvLoadLogRecord &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#a0032528f7f8bc9da4dbd6da44ce8ca6f">getLoadLog</a> () const</td></tr>
-<tr class="separator:a0032528f7f8bc9da4dbd6da44ce8ca6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98ebf9b4641471db2ccb392660e1678f"><td class="memItemLeft" align="right" valign="top">const std::shared_ptr&lt; SvDebitLogRecord &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#a98ebf9b4641471db2ccb392660e1678f">getDebitLog</a> () const</td></tr>
-<tr class="separator:a98ebf9b4641471db2ccb392660e1678f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af651978386dc6570ee42c3bacabcaa18"><td class="memItemLeft" align="right" valign="top">const std::map&lt; const int, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command_1_1_status_properties.html">StatusProperties</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html#af651978386dc6570ee42c3bacabcaa18">getStatusTable</a> () const override</td></tr>
 <tr class="separator:af651978386dc6570ee42c3bacabcaa18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html">keyple::card::calypso::AbstractCardCommand</a></td></tr>
-<tr class="memitem:a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7">AbstractCardCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;commandRef, const int le)</td></tr>
-<tr class="separator:a3b0e6f0bf1f8ea246a4d49a8fbb0ffb7 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac17277718c9917719f77c34599940e9 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#aac17277718c9917719f77c34599940e9">AbstractCardCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;commandRef, const int le, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard)</td></tr>
+<tr class="separator:aac17277718c9917719f77c34599940e9 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f3de892af7a09b8ad16442c6828249c inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_command.html">CalypsoCardCommand</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a7f3de892af7a09b8ad16442c6828249c">getCommandRef</a> () const override</td></tr>
 <tr class="separator:a7f3de892af7a09b8ad16442c6828249c inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d0fb9de0cbe1ecd28f8a3da3a8b7a7f inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_apdu_command_exception.html">CalypsoApduCommandException</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a6d0fb9de0cbe1ecd28f8a3da3a8b7a7f">buildCommandException</a> (const std::type_info &amp;exceptionClass, const std::string &amp;message) const final</td></tr>
 <tr class="separator:a6d0fb9de0cbe1ecd28f8a3da3a8b7a7f inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac7746e1781854413a9b3c4ea0e0db3ef inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_apdu_command_exception.html">CalypsoApduCommandException</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#ac7746e1781854413a9b3c4ea0e0db3ef">buildUnexpectedResponseLengthException</a> (const std::string &amp;message) const final</td></tr>
 <tr class="separator:ac7746e1781854413a9b3c4ea0e0db3ef inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9a123a333fdc1b465ad007f4d2f7eaf inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#ad9a123a333fdc1b465ad007f4d2f7eaf">getCalypsoCard</a> () const</td></tr>
+<tr class="separator:ad9a123a333fdc1b465ad007f4d2f7eaf inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9804b87277750ab11553852b5439edd6 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a9804b87277750ab11553852b5439edd6">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard)</td></tr>
+<tr class="separator:a9804b87277750ab11553852b5439edd6 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html">keyple::card::calypso::AbstractApduCommand</a></td></tr>
 <tr class="memitem:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a4b11901db3fff8eb5555f395c8934b11">AbstractApduCommand</a> (const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_card_command.html">CardCommand</a> &amp;commandRef, const int le)</td></tr>
 <tr class="separator:a4b11901db3fff8eb5555f395c8934b11 inherit pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -163,8 +151,8 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8h_source.html#l00049">49</a> of file <a class="el" href="_cmd_card_sv_get_8h_source.html">CmdCardSvGet.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aec6f6e4b4b9ca805d67408c213e1f259" name="aec6f6e4b4b9ca805d67408c213e1f259"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec6f6e4b4b9ca805d67408c213e1f259">&#9670;&nbsp;</a></span>CmdCardSvGet()</h2>
+<a id="a505f77d736dae8176013742173430893" name="a505f77d736dae8176013742173430893"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a505f77d736dae8176013742173430893">&#9670;&nbsp;</a></span>CmdCardSvGet()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -172,8 +160,8 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">keyple::card::calypso::CmdCardSvGet::CmdCardSvGet </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_class.html">CalypsoCardClass</a>&#160;</td>
-          <td class="paramname"><em>calypsoCardClass</em>, </td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt;&#160;</td>
+          <td class="paramname"><em>calypsoCard</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -198,7 +186,7 @@ Additional Inherited Members</h2></td></tr>
  Instantiates a new <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_sv_get.html">CmdCardSvGet</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">calypsoCardClass</td><td>Indicated which CLA byte should be used for the Apdu. </td></tr>
+    <tr><td class="paramname">calypsoCard</td><td>The Calypso card. </td></tr>
     <tr><td class="paramname">svOperation</td><td>the desired SV operation. </td></tr>
     <tr><td class="paramname">useExtendedMode</td><td>True if the extended mode must be used </td></tr>
   </table>
@@ -212,151 +200,11 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 <dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00044">44</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00045">45</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a8b852ab29cc5ec39e239efe20eb18d2b" name="a8b852ab29cc5ec39e239efe20eb18d2b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8b852ab29cc5ec39e239efe20eb18d2b">&#9670;&nbsp;</a></span>getBalance()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int keyple::card::calypso::CmdCardSvGet::getBalance </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets the current SV balance</p>
-<dl class="section return"><dt>Returns</dt><dd>The value of the SV balance </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00144">144</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
-
-</div>
-</div>
-<a id="ae4e3285bc9be3a7e1cdb59422af9f63e" name="ae4e3285bc9be3a7e1cdb59422af9f63e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae4e3285bc9be3a7e1cdb59422af9f63e">&#9670;&nbsp;</a></span>getChallengeOut()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::vector&lt; uint8_t &gt; &amp; keyple::card::calypso::CmdCardSvGet::getChallengeOut </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets the new challenge value generated by the command</p>
-<dl class="section return"><dt>Returns</dt><dd>A byte array containing the challenge </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00139">139</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
-
-</div>
-</div>
-<a id="ad38bae47987e4f73bc3efc77e3ca9d84" name="ad38bae47987e4f73bc3efc77e3ca9d84"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad38bae47987e4f73bc3efc77e3ca9d84">&#9670;&nbsp;</a></span>getCurrentKVC()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint8_t keyple::card::calypso::CmdCardSvGet::getCurrentKVC </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets the current SV KVC</p>
-<dl class="section return"><dt>Returns</dt><dd>The value of the current KVC </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00124">124</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a98ebf9b4641471db2ccb392660e1678f" name="a98ebf9b4641471db2ccb392660e1678f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a98ebf9b4641471db2ccb392660e1678f">&#9670;&nbsp;</a></span>getDebitLog()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::shared_ptr&lt; SvDebitLogRecord &gt; keyple::card::calypso::CmdCardSvGet::getDebitLog </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets a <a class="el" href="">SvDebitLogRecord</a> containing the last debit record <br  />
- May return null if the debit record is not available (load case for card rev &lt; 3.2)</p>
-<dl class="section return"><dt>Returns</dt><dd>A <a class="el" href="">SvDebitLogRecord</a> object containing the log data or null </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00154">154</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a0032528f7f8bc9da4dbd6da44ce8ca6f" name="a0032528f7f8bc9da4dbd6da44ce8ca6f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0032528f7f8bc9da4dbd6da44ce8ca6f">&#9670;&nbsp;</a></span>getLoadLog()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::shared_ptr&lt; SvLoadLogRecord &gt; keyple::card::calypso::CmdCardSvGet::getLoadLog </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets a SvLoadLogRecord containing the load record <br  />
- May return null if the load record is not available (debit/undebit case for card rev &lt; 3.2)</p>
-<dl class="section return"><dt>Returns</dt><dd>A SvLoadLogRecord object containing the log data or null </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00149">149</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
-
-</div>
-</div>
-<a id="aeb1edfde98c7d0dad03c8ba291505bbc" name="aeb1edfde98c7d0dad03c8ba291505bbc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb1edfde98c7d0dad03c8ba291505bbc">&#9670;&nbsp;</a></span>getPreviousSignatureLo()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::vector&lt; uint8_t &gt; &amp; keyple::card::calypso::CmdCardSvGet::getPreviousSignatureLo </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets the SignatureLo value of the last SV transaction (reload, debit, undebit)</p>
-<dl class="section return"><dt>Returns</dt><dd>A byte array containing the signature data </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00134">134</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
-
-</div>
-</div>
 <a id="af651978386dc6570ee42c3bacabcaa18" name="af651978386dc6570ee42c3bacabcaa18"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af651978386dc6570ee42c3bacabcaa18">&#9670;&nbsp;</a></span>getStatusTable()</h2>
 
@@ -387,53 +235,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command.html#a561c91ce3628145a188d1a627a34049a">keyple::card::calypso::AbstractApduCommand</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00186">186</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
-
-</div>
-</div>
-<a id="ae6cfcc1f3388f358abd8c1ebca382352" name="ae6cfcc1f3388f358abd8c1ebca382352"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae6cfcc1f3388f358abd8c1ebca382352">&#9670;&nbsp;</a></span>getSvGetCommandHeader()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const std::vector&lt; uint8_t &gt; &amp; keyple::card::calypso::CmdCardSvGet::getSvGetCommandHeader </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets the command header used to build the prepared "load/debit/undebit" SAM commands</p>
-<dl class="section return"><dt>Returns</dt><dd>A byte array containing the header data </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00119">119</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
-
-</div>
-</div>
-<a id="ac9305c81e2bb74514b60aaac76e014eb" name="ac9305c81e2bb74514b60aaac76e014eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9305c81e2bb74514b60aaac76e014eb">&#9670;&nbsp;</a></span>getTransactionNumber()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int keyple::card::calypso::CmdCardSvGet::getTransactionNumber </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >(package-private)<br  />
- Gets the SV transaction number</p>
-<dl class="section return"><dt>Returns</dt><dd>The value of the SV transaction number </dd></dl>
-<dl class="section since"><dt>Since</dt><dd>2.0.1 </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00129">129</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00170">170</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
 
 </div>
 </div>
@@ -468,7 +270,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a2179f36954eea09a016d9b81497b46bf">keyple::card::calypso::AbstractCardCommand</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00071">71</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00072">72</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
 
 </div>
 </div>
@@ -515,7 +317,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Reimplemented from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html#a77f119b9e3faef6cdb32c2792ca680db">keyple::card::calypso::AbstractCardCommand</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00076">76</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_cmd_card_sv_get_8cpp_source.html#l00077">77</a> of file <a class="el" href="_cmd_card_sv_get_8cpp_source.html">CmdCardSvGet.cpp</a>.</p>
 
 </div>
 </div>

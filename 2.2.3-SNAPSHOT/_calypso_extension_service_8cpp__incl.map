@@ -1,52 +1,52 @@
 <map id="/github/workspace/src/main/CalypsoExtensionService.cpp" name="/github/workspace/src/main/CalypsoExtensionService.cpp">
-<area shape="rect" id="node1" title=" " alt="" coords="2397,5,2625,47"/>
-<area shape="rect" id="node2" href="$_calypso_extension_service_8h.html" title=" " alt="" coords="1251,102,1430,129"/>
-<area shape="rect" id="node21" href="$_card_transaction_manager_adapter_8h.html" title=" " alt="" coords="2139,191,2361,218"/>
-<area shape="rect" id="node32" href="$_card_security_setting_adapter_8h.html" title=" " alt="" coords="1985,370,2177,397"/>
-<area shape="rect" id="node41" title=" " alt="" coords="2099,102,2236,129"/>
-<area shape="rect" id="node42" title=" " alt="" coords="2260,102,2411,129"/>
-<area shape="rect" id="node43" href="$_basic_signature_computation_data_adapter_8h.html" title=" " alt="" coords="2908,95,3091,136"/>
-<area shape="rect" id="node45" href="$_basic_signature_verification_data_adapter_8h.html" title=" " alt="" coords="2487,95,2661,136"/>
-<area shape="rect" id="node46" href="$_calypso_sam_resource_profile_extension_adapter_8h.html" title=" " alt="" coords="197,363,383,404"/>
-<area shape="rect" id="node47" href="$_traceable_signature_computation_data_adapter_8h.html" title=" " alt="" coords="3115,95,3321,136"/>
-<area shape="rect" id="node48" href="$_traceable_signature_verification_data_adapter_8h.html" title=" " alt="" coords="2685,95,2884,136"/>
-<area shape="rect" id="node49" title=" " alt="" coords="3346,102,3509,129"/>
-<area shape="rect" id="node50" title=" " alt="" coords="3533,102,3642,129"/>
-<area shape="rect" id="node3" title=" " alt="" coords="1135,452,1203,479"/>
-<area shape="rect" id="node4" title=" " alt="" coords="1301,452,1356,479"/>
-<area shape="rect" id="node5" title=" " alt="" coords="2908,184,3091,225"/>
-<area shape="rect" id="node6" title=" " alt="" coords="2487,184,2661,225"/>
-<area shape="rect" id="node7" title=" " alt="" coords="1723,452,1828,479"/>
-<area shape="rect" id="node8" title=" " alt="" coords="911,452,1069,479"/>
-<area shape="rect" id="node9" title=" " alt="" coords="236,452,395,479"/>
-<area shape="rect" id="node10" title=" " alt="" coords="3233,452,3379,479"/>
-<area shape="rect" id="node11" title=" " alt="" coords="1328,281,1505,307"/>
-<area shape="rect" id="node12" title=" " alt="" coords="3394,273,3597,315"/>
-<area shape="rect" id="node13" title=" " alt="" coords="1529,273,1723,315"/>
-<area shape="rect" id="node14" title=" " alt="" coords="1429,191,1575,218"/>
-<area shape="rect" id="node15" title=" " alt="" coords="1600,191,1777,218"/>
-<area shape="rect" id="node16" title=" " alt="" coords="992,281,1151,307"/>
-<area shape="rect" id="node17" href="$_calypso_card_selection_adapter_8h.html" title=" " alt="" coords="1087,370,1291,397"/>
-<area shape="rect" id="node18" href="$_keyple_card_calypso_export_8h.html" title=" " alt="" coords="1401,452,1581,479"/>
-<area shape="rect" id="node19" href="$_calypso_sam_selection_adapter_8h.html" title=" " alt="" coords="705,370,909,397"/>
-<area shape="rect" id="node35" href="$_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="408,370,631,397"/>
-<area shape="rect" id="node36" href="$_search_command_data_adapter_8h.html" title=" " alt="" coords="896,191,1100,218"/>
-<area shape="rect" id="node37" title=" " alt="" coords="3115,184,3321,225"/>
-<area shape="rect" id="node38" title=" " alt="" coords="2685,184,2884,225"/>
-<area shape="rect" id="node39" title=" " alt="" coords="565,191,719,218"/>
-<area shape="rect" id="node40" title=" " alt="" coords="5,452,212,479"/>
-<area shape="rect" id="node20" title=" " alt="" coords="750,452,865,479"/>
-<area shape="rect" id="node22" title=" " alt="" coords="2363,281,2425,307"/>
-<area shape="rect" id="node23" title=" " alt="" coords="1909,452,1978,479"/>
-<area shape="rect" id="node24" title=" " alt="" coords="2449,281,2534,307"/>
-<area shape="rect" id="node25" title=" " alt="" coords="2206,452,2345,479"/>
-<area shape="rect" id="node26" title=" " alt="" coords="2030,452,2169,479"/>
-<area shape="rect" id="node27" title=" " alt="" coords="2559,281,2685,307"/>
-<area shape="rect" id="node28" title=" " alt="" coords="2710,281,2846,307"/>
-<area shape="rect" id="node29" title=" " alt="" coords="2870,281,2990,307"/>
-<area shape="rect" id="node30" title=" " alt="" coords="3015,281,3139,307"/>
-<area shape="rect" id="node31" href="$_calypso_card_adapter_8h.html" title=" " alt="" coords="1799,370,1949,397"/>
-<area shape="rect" id="node33" href="$_card_control_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="2001,273,2187,315"/>
-<area shape="rect" id="node34" title=" " alt="" coords="3163,281,3217,307"/>
-<area shape="rect" id="node44" href="$_common_signature_computation_data_adapter_8h.html" title=" " alt="" coords="3346,184,3549,225"/>
+<area shape="rect" id="node1" title=" " alt="" coords="4169,5,4397,47"/>
+<area shape="rect" id="node2" href="$_calypso_extension_service_8h.html" title=" " alt="" coords="2779,102,2957,129"/>
+<area shape="rect" id="node21" href="$_card_transaction_manager_adapter_8h.html" title=" " alt="" coords="1094,191,1317,218"/>
+<area shape="rect" id="node32" href="$_card_security_setting_adapter_8h.html" title=" " alt="" coords="1275,370,1467,397"/>
+<area shape="rect" id="node42" title=" " alt="" coords="4570,102,4707,129"/>
+<area shape="rect" id="node43" title=" " alt="" coords="4731,102,4882,129"/>
+<area shape="rect" id="node44" href="$_basic_signature_computation_data_adapter_8h.html" title=" " alt="" coords="3661,95,3843,136"/>
+<area shape="rect" id="node45" href="$_basic_signature_verification_data_adapter_8h.html" title=" " alt="" coords="3867,95,4042,136"/>
+<area shape="rect" id="node46" href="$_calypso_sam_resource_profile_extension_adapter_8h.html" title=" " alt="" coords="3460,363,3647,404"/>
+<area shape="rect" id="node47" href="$_traceable_signature_computation_data_adapter_8h.html" title=" " alt="" coords="4066,95,4273,136"/>
+<area shape="rect" id="node48" href="$_traceable_signature_verification_data_adapter_8h.html" title=" " alt="" coords="4297,95,4495,136"/>
+<area shape="rect" id="node49" title=" " alt="" coords="4907,102,5069,129"/>
+<area shape="rect" id="node50" title=" " alt="" coords="5093,102,5203,129"/>
+<area shape="rect" id="node3" title=" " alt="" coords="2511,452,2579,479"/>
+<area shape="rect" id="node4" title=" " alt="" coords="2177,452,2231,479"/>
+<area shape="rect" id="node5" title=" " alt="" coords="3661,184,3843,225"/>
+<area shape="rect" id="node6" title=" " alt="" coords="3867,184,4042,225"/>
+<area shape="rect" id="node7" title=" " alt="" coords="2350,452,2455,479"/>
+<area shape="rect" id="node8" title=" " alt="" coords="2686,452,2845,479"/>
+<area shape="rect" id="node9" title=" " alt="" coords="3343,452,3502,479"/>
+<area shape="rect" id="node10" title=" " alt="" coords="1347,452,1493,479"/>
+<area shape="rect" id="node11" title=" " alt="" coords="1887,281,2065,307"/>
+<area shape="rect" id="node12" title=" " alt="" coords="2191,273,2393,315"/>
+<area shape="rect" id="node13" title=" " alt="" coords="1670,273,1863,315"/>
+<area shape="rect" id="node14" title=" " alt="" coords="3007,191,3153,218"/>
+<area shape="rect" id="node15" title=" " alt="" coords="3178,191,3355,218"/>
+<area shape="rect" id="node16" title=" " alt="" coords="2570,281,2729,307"/>
+<area shape="rect" id="node17" href="$_calypso_card_selection_adapter_8h.html" title=" " alt="" coords="2242,370,2446,397"/>
+<area shape="rect" id="node18" href="$_keyple_card_calypso_export_8h.html" title=" " alt="" coords="1962,452,2142,479"/>
+<area shape="rect" id="node19" href="$_calypso_sam_selection_adapter_8h.html" title=" " alt="" coords="2935,370,3139,397"/>
+<area shape="rect" id="node36" href="$_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="3163,370,3386,397"/>
+<area shape="rect" id="node37" href="$_search_command_data_adapter_8h.html" title=" " alt="" coords="2575,191,2779,218"/>
+<area shape="rect" id="node38" title=" " alt="" coords="4066,184,4273,225"/>
+<area shape="rect" id="node39" title=" " alt="" coords="4297,184,4495,225"/>
+<area shape="rect" id="node40" title=" " alt="" coords="3380,191,3535,218"/>
+<area shape="rect" id="node41" title=" " alt="" coords="3553,452,3759,479"/>
+<area shape="rect" id="node20" title=" " alt="" coords="2980,452,3095,479"/>
+<area shape="rect" id="node22" title=" " alt="" coords="1323,281,1384,307"/>
+<area shape="rect" id="node23" title=" " alt="" coords="1745,452,1815,479"/>
+<area shape="rect" id="node24" title=" " alt="" coords="1408,281,1493,307"/>
+<area shape="rect" id="node25" title=" " alt="" coords="1021,452,1160,479"/>
+<area shape="rect" id="node26" title=" " alt="" coords="1184,452,1323,479"/>
+<area shape="rect" id="node27" title=" " alt="" coords="27,281,154,307"/>
+<area shape="rect" id="node28" title=" " alt="" coords="179,281,315,307"/>
+<area shape="rect" id="node29" title=" " alt="" coords="339,281,459,307"/>
+<area shape="rect" id="node30" title=" " alt="" coords="483,281,607,307"/>
+<area shape="rect" id="node31" href="$_calypso_card_adapter_8h.html" title=" " alt="" coords="1965,370,2115,397"/>
+<area shape="rect" id="node33" href="$_card_command_exception_8h.html" title=" " alt="" coords="631,281,806,307"/>
+<area shape="rect" id="node34" href="$_card_control_sam_transaction_manager_adapter_8h.html" title=" " alt="" coords="1113,273,1298,315"/>
+<area shape="rect" id="node35" title=" " alt="" coords="830,281,885,307"/>
 </map>
