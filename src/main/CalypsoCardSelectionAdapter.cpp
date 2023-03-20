@@ -17,6 +17,7 @@
 
 /* Calypsonet Terminal Calypso */
 #include "InconsistentDataException.h"
+#include "SelectFileException.h"
 #include "UnexpectedCommandStatusException.h"
 
 /* Keyple Card Calypso */
@@ -356,7 +357,12 @@ void CalypsoCardSelectionAdapter::parseApduResponses(
                         throw e;
                     }
 
-                } else {
+                } else if (commandRef == CalypsoCardCommand::SELECT_FILE) {
+
+                    throw SelectFileException("File not found",
+                                              std::make_shared<CardCommandException>(e));
+
+                }else {
 
                     throw UnexpectedCommandStatusException(
                           std::string(MSG_CARD_COMMAND_ERROR) +

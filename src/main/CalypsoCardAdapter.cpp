@@ -77,8 +77,6 @@ CalypsoCardAdapter::CalypsoCardAdapter(
   mProductType(ProductType::UNKNOWN),
   mModificationsCounterMax(0),
   mIsModificationCounterInBytes(true),
-  mCurrentSfi(0),
-  mCurrentLid(0),
   mSvLastTNum(0),
   mIsHce(false),
   mSvKvc(0),
@@ -571,43 +569,44 @@ const std::vector<std::shared_ptr<ElementaryFile>>& CalypsoCardAdapter::getFiles
     return mFiles;
 }
 
-void CalypsoCardAdapter::updateCurrentSfi(const uint8_t sfi)
+const std::shared_ptr<ElementaryFileAdapter> CalypsoCardAdapter::getOrCreateFile(const uint8_t sfi,
+                                                                                 const uint16_t lid)
 {
+    if (sfi == 0 && lid == 0 && mCurrentEf != nullptr) {
+
+        return mCurrentEf;
+    }
+
     if (sfi != 0) {
-        mCurrentSfi = sfi;
-    }
-}
 
-void CalypsoCardAdapter::updateCurrentLid(const uint16_t lid)
-{
-    if (lid != 0) {
-        mCurrentLid = lid;
-    }
-}
-
-const std::shared_ptr<ElementaryFileAdapter> CalypsoCardAdapter::getOrCreateFile()
-{
-    if (mCurrentSfi != 0) {
         /* Search by SFI */
         for (const auto& ef : mFiles) {
-            if (ef->getSfi() == mCurrentSfi) {
-                return std::dynamic_pointer_cast<ElementaryFileAdapter>(ef);
+
+            if (ef->getSfi() == sfi) {
+
+                mCurrentEf = std::dynamic_pointer_cast<ElementaryFileAdapter>(ef);
+                return mCurrentEf;
             }
         }
-    } else if (mCurrentLid != 0) {
+
+    } else if (lid != 0) {
+
         /* Search by LID */
         for (const auto& ef : mFiles) {
-            if (ef->getHeader() != nullptr && ef->getHeader()->getLid() == mCurrentLid) {
-                return std::dynamic_pointer_cast<ElementaryFileAdapter>(ef);
+
+            if (ef->getHeader() != nullptr && ef->getHeader()->getLid() == lid) {
+
+                mCurrentEf = std::dynamic_pointer_cast<ElementaryFileAdapter>(ef);
+                return mCurrentEf;
             }
         }
     }
 
     /* Create a new EF with the provided SFI */
-    const auto ef = std::make_shared<ElementaryFileAdapter>(mCurrentSfi);
-    mFiles.push_back(ef);
+    mCurrentEf = std::make_shared<ElementaryFileAdapter>(sfi);
+    mFiles.push_back(mCurrentEf);
 
-    return ef;
+    return mCurrentEf;
 }
 
 bool CalypsoCardAdapter::isPinBlocked() const
@@ -632,13 +631,13 @@ void CalypsoCardAdapter::setPinAttemptRemaining(const int pinAttemptCounter)
 void CalypsoCardAdapter::setFileHeader(const uint8_t sfi,
                                        const std::shared_ptr<FileHeaderAdapter> header)
 {
-    updateCurrentSfi(sfi);
-    updateCurrentLid(header->getLid());
-
-    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile();
+    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, header->getLid());
     if (ef->getHeader() == nullptr) {
+
         ef->setHeader(header);
+
     } else {
+
         std::dynamic_pointer_cast<FileHeaderAdapter>(ef->getHeader())
             ->updateMissingInfoFrom(header);
     }
@@ -648,8 +647,7 @@ void CalypsoCardAdapter::setContent(const uint8_t sfi,
                                     const uint8_t numRecord,
                                     const std::vector<uint8_t>& content)
 {
-    updateCurrentSfi(sfi);
-    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile();
+    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())->setContent(numRecord, content);
 }
 
@@ -657,8 +655,7 @@ void CalypsoCardAdapter::setCounter(const uint8_t sfi,
                                     const uint8_t numCounter,
                                     const std::vector<uint8_t>& content)
 {
-    updateCurrentSfi(sfi);
-    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile();
+    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())->setCounter(numCounter, content);
 }
 
@@ -667,8 +664,7 @@ void CalypsoCardAdapter::setContent(const uint8_t sfi,
                                     const std::vector<uint8_t>& content,
                                     const uint8_t offset)
 {
-    updateCurrentSfi(sfi);
-    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile();
+    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())
         ->setContent(numRecord, content, offset);
 }
@@ -678,16 +674,14 @@ void CalypsoCardAdapter::fillContent(const uint8_t sfi,
                                      const std::vector<uint8_t>& content,
                                      const uint8_t offset)
 {
-    updateCurrentSfi(sfi);
-    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile();
+    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())
         ->fillContent(numRecord, content, offset);
 }
 
 void CalypsoCardAdapter::addCyclicContent(const uint8_t sfi, const std::vector<uint8_t> content)
 {
-    updateCurrentSfi(sfi);
-    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile();
+    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())->addCyclicContent(content);
 }
 
@@ -794,8 +788,6 @@ std::ostream& operator<<(std::ostream& os, const CalypsoCardAdapter& cca)
        << "DIRECTORY_HEADER: " << cca.mDirectoryHeader << ", "
        << "FILES: " << cca.mFiles << ", "
        << "FILES_BACKUP: " << cca.mFilesBackup << ", "
-       << "CURRENT_SFI: " << cca.mCurrentSfi << ", "
-       << "CURRENT_LID: " << cca.mCurrentLid << ", "
        << "ID_DF_RATIFIED: " << cca.mIsDfRatified << ", "
        << "PIN_ATTEMPT_COUNTER: " << cca.mPinAttemptCounter << ", "
        << "SV_BALANCE: " << cca.mSvBalance << ", "

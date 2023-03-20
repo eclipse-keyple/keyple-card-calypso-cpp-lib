@@ -103,11 +103,6 @@ private:
     /**
      *
      */
-    std::vector<uint8_t> mProprietaryInformation;
-
-    /**
-     *
-     */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> initStatusTable();
 
     /**

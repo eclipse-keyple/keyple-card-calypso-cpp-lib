@@ -32,6 +32,7 @@
 #include "CardBrokenCommunicationException.h"
 #include "CardResponseApi.h"
 #include "ReaderBrokenCommunicationException.h"
+#include "SelectFileException.h"
 
 /* Keyple Card Calypso */
 #include "CalypsoCardConstant.h"
@@ -565,6 +566,11 @@ void CardTransactionManagerAdapter::parseApduResponses(
                     commandRef == CalypsoCardCommand::READ_BINARY) {
 
                     checkResponseStatusForStrictAndBestEffortMode(commands[i], e);
+
+                } else if (commandRef == CalypsoCardCommand::SELECT_FILE) {
+
+                    throw SelectFileException("File not found",
+                                              std::make_shared<CardCommandException>(e));
 
                 } else {
 

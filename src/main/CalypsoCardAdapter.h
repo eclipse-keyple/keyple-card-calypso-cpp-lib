@@ -771,12 +771,7 @@ private:
     /**
      *
      */
-    uint8_t mCurrentSfi;
-
-    /**
-     *
-     */
-    uint16_t mCurrentLid;
+    std::shared_ptr<ElementaryFileAdapter> mCurrentEf;
 
     /**
      *
@@ -873,30 +868,17 @@ private:
 
     /**
      * (private)<br>
-     * Updates the SFI information of the current selected file.
+     * Returns a reference to the currently selected EF.<br>
+     * If the file having the provided non-zero SFI or LID does not exist, then a new EF is created.
+     * <br>
+     * If the SFI and LID are both equal to 0, then the previously selected EF is returned.
      *
-     * @param sfi The SFI.
-     */
-    void updateCurrentSfi(const uint8_t sfi);
-
-    /**
-     * (private)<br>
-     * Updates the LID information of the current selected file.
-     *
-     * @param lid The LID.
-     */
-    void updateCurrentLid(const uint16_t lid);
-
-    /**
-     * (private)<br>
-     * Gets or creates the EF having the current non-zero SFI, or the current non-zero LID if the
-     * SFI is 0.
-     *
-     * <p>The current SFI and LID cannot both be equal to 0.
-     *
+     * @param sfi The SFI (0 if not specified in the current command).
+     * @param lid The LID (0 if not specified in the current command).
      * @return a not null reference.
      */
-    const std::shared_ptr<ElementaryFileAdapter> getOrCreateFile();
+    const std::shared_ptr<ElementaryFileAdapter> getOrCreateFile(const uint8_t sfi,
+                                                                 const uint16_t lid);
 
      /**
      * (private)<br>
