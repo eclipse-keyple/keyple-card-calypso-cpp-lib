@@ -1751,7 +1751,20 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecords(
                                      CalypsoCardConstant::NB_REC_MAX,
                                      "toRecordNumber");
 
-    if (toRecordNumber == fromRecordNumber) {
+    if (toRecordNumber == fromRecordNumber ||
+        (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3 &&
+         mCard->getProductType() != CalypsoCard::ProductType::LIGHT)) {
+
+        /* Creates N unitary "Read Records" commands */
+        for (int i = fromRecordNumber; i <= toRecordNumber; i++) {
+
+            mCardCommands.push_back(
+                std::make_shared<CmdCardReadRecords>(mCard,
+                                                     sfi,
+                                                     i,
+                                                     CmdCardReadRecords::ReadMode::ONE_RECORD,
+                                                     recordSize));
+        }
 
         /* Create the command and add it to the list of commands */
         mCardCommands.push_back(
