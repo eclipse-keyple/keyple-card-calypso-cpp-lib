@@ -179,33 +179,33 @@ public:
      */
     void putEventCeiling(const int eventCeilingNumber, const int eventCeilingValue);
 
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.2.3
-     */
-    std::shared_ptr<int> getEventCounter(const int eventCounterNumber) const; // override;
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // std::shared_ptr<int> getEventCounter(const int eventCounterNumber) const; // override;
 
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.2.3
-     */
-    const std::map<int, int>& getEventCounters() const; // override;
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // const std::map<int, int>& getEventCounters() const; // override;
 
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.2.3
-     */
-    std::shared_ptr<int> getEventCeiling(const int eventCeilingNumber) const; // override;
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // std::shared_ptr<int> getEventCeiling(const int eventCeilingNumber) const; // override;
 
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.2.3
-     */
-    const std::map<int, int>& getEventCeilings() const; // override;
+    // /**
+    //  * {@inheritDoc}
+    //  *
+    //  * @since 2.2.3
+    //  */
+    // const std::map<int, int>& getEventCeilings() const; // override;
 
 private:
     /**

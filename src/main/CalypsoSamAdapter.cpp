@@ -201,35 +201,35 @@ void CalypsoSamAdapter::putEventCeiling(const int eventCeilingNumber, const int 
     mEventCeilings.insert({eventCeilingNumber, eventCeilingValue});
 }
 
-std::shared_ptr<int> CalypsoSamAdapter::getEventCounter(const int eventCounterNumber) const
-{
-    const auto it = mEventCounters.find(eventCounterNumber);
-    if (it != mEventCounters.end()) {
-        return std::make_shared<int>(it->second);
-    } else {
-        return nullptr;
-    }
-}
+// std::shared_ptr<int> CalypsoSamAdapter::getEventCounter(const int eventCounterNumber) const
+// {
+//     const auto it = mEventCounters.find(eventCounterNumber);
+//     if (it != mEventCounters.end()) {
+//         return std::make_shared<int>(it->second);
+//     } else {
+//         return nullptr;
+//     }
+// }
 
-const std::map<int, int>& CalypsoSamAdapter::getEventCounters() const
-{
-    return mEventCounters;
-}
+// const std::map<int, int>& CalypsoSamAdapter::getEventCounters() const
+// {
+//     return mEventCounters;
+// }
 
-std::shared_ptr<int> CalypsoSamAdapter::getEventCeiling(const int eventCeilingNumber) const
-{
-    const auto it = mEventCeilings.find(eventCeilingNumber);
-    if (it != mEventCeilings.end()) {
-        return std::make_shared<int>(it->second);
-    } else {
-        return nullptr;
-    }
-}
+// std::shared_ptr<int> CalypsoSamAdapter::getEventCeiling(const int eventCeilingNumber) const
+// {
+//     const auto it = mEventCeilings.find(eventCeilingNumber);
+//     if (it != mEventCeilings.end()) {
+//         return std::make_shared<int>(it->second);
+//     } else {
+//         return nullptr;
+//     }
+// }
 
-const std::map<int, int>& CalypsoSamAdapter::getEventCeilings() const
-{
-    return mEventCeilings;
-}
+// const std::map<int, int>& CalypsoSamAdapter::getEventCeilings() const
+// {
+//     return mEventCeilings;
+// }
 
 }
 }
