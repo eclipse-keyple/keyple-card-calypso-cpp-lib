@@ -471,9 +471,9 @@ static std::shared_ptr<CardSecuritySetting> cardSecuritySetting;
 
 static void initCalypsoCard(const std::string& selectApplicationResponse)
 {
-    calypsoCard =
-        std::make_shared<CalypsoCardAdapter>(
-            std::make_shared<CardSelectionResponseAdapter>(
+    calypsoCard = std::make_shared<CalypsoCardAdapter>();
+    calypsoCard->initialize(
+        std::make_shared<CardSelectionResponseAdapter>(
                 std::make_shared<ApduResponseAdapter>(
                     HexUtil::toByteArray(selectApplicationResponse))));
 

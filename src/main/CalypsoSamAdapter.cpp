@@ -79,7 +79,7 @@ CalypsoSamAdapter::CalypsoSamAdapter(
         System::arraycopy(atrSubElements, 6, mSerialNumber, 0, 4);
 
         std::stringstream ss;
-        ss << "SAM " << mSamProductType
+        ss << "SAM " << mSamProductType << ", "
            << "PLATFORM = " << mPlatform << ", "
            << "APPTYPE = " << mApplicationType << "h, "
            << "APPSUBTYPE = " << mApplicationSubType << "h, "
@@ -90,6 +90,7 @@ CalypsoSamAdapter::CalypsoSamAdapter(
         mLogger->trace("SAM SERIALNUMBER = %\n", HexUtil::toHex(mSerialNumber));
 
     } else {
+
         mSamProductType = ProductType::UNKNOWN;
         mPlatform = 0;
         mApplicationType = 0;

@@ -83,8 +83,11 @@ const CalypsoApduCommandException AbstractSamCommand::buildUnexpectedResponseLen
 void AbstractSamCommand::parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse)
 {
     try {
+
         AbstractApduCommand::parseApduResponse(apduResponse);
+
     } catch (const CalypsoApduCommandException& e) {
+
         throw static_cast<const CalypsoSamCommandException&>(e);
     }
 }

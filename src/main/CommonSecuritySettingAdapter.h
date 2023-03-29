@@ -72,7 +72,7 @@ public:
         mControlSamReader = std::dynamic_pointer_cast<ProxyReaderApi>(samReader);
         mControlSam = std::dynamic_pointer_cast<CalypsoSamAdapter>(calypsoSam);
 
-        return *mCurrentInstance;
+        return dynamic_cast<S&>(*this);
     }
 
     /**
@@ -86,7 +86,7 @@ public:
 
         mSamRevocationServiceSpi = service;
 
-        return *mCurrentInstance;
+        return dynamic_cast<S&>(*this);
     }
 
     /**
@@ -126,11 +126,6 @@ public:
     }
 
 private:
-    /**
-     *
-     */
-    S* mCurrentInstance = dynamic_cast<S*>(this);
-
     /**
      *
      */

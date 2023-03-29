@@ -117,7 +117,8 @@ void CmdSamPsoVerifySignature::parseApduResponse(
         AbstractSamCommand::parseApduResponse(apduResponse);
         mData->setSignatureValid(true);
 
-    } catch(const CalypsoSamSecurityDataException& e) {
+    /* C++: Java catches 'CalypsoSamSecurityDataException' */
+    } catch(const CalypsoSamCommandException& e) {
 
         mData->setSignatureValid(false);
         throw static_cast<const CalypsoSamCommandException&>(e);

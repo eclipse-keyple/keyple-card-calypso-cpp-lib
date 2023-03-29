@@ -64,7 +64,7 @@ static const std::vector<uint8_t> serial = {1, 2, 3, 4, 5, 6};
 static void setUp()
 {
     reader = std::make_shared<ReaderMock>();
-    calypsoCard = std::make_shared<CalypsoCardAdapter>(nullptr);
+    calypsoCard = std::make_shared<CalypsoCardAdapter>();
     cardSecuritySetting = std::make_shared<CardSecuritySettingAdapter>();
     calypsoSamSelection = std::make_shared<CalypsoSamSelectionMock>();
     auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
@@ -348,9 +348,8 @@ TEST(CalypsoExtensionServiceTest,
 {
     setUp();
 
-    calypsoCard = std::make_shared<CalypsoCardAdapter>(
-                      std::make_shared<CardSelectionResponseAdapter>(POWER_ON_DATA));
-
+    calypsoCard = std::make_shared<CalypsoCardAdapter>();
+    calypsoCard->initialize(std::make_shared<CardSelectionResponseAdapter>(POWER_ON_DATA));
 
     auto adapter = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
     adapter->setSamResource(reader, calypsoSam);

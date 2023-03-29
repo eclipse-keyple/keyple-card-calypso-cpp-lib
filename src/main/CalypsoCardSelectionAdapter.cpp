@@ -280,7 +280,8 @@ const std::shared_ptr<SmartCardSpi> CalypsoCardSelectionAdapter::parse(
 
     try {
 
-        calypsoCard = std::make_shared<CalypsoCardAdapter>(cardSelectionResponse);
+        calypsoCard = std::make_shared<CalypsoCardAdapter>();
+        calypsoCard->initialize(cardSelectionResponse);
 
         if (!mCommands.empty()) {
 

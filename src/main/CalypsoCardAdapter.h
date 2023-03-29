@@ -66,7 +66,16 @@ public:
      *
      * @since 2.0.0
      */
-    CalypsoCardAdapter(const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse);
+    CalypsoCardAdapter();
+
+    /**
+     * Post-construction initialization function
+     *
+     * /!\ C++ specific
+     *
+     * @since 2.3.3
+     */
+    void initialize(const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse);
 
     /**
      * (package-private)<br>
@@ -721,7 +730,7 @@ private:
     /**
      *
      */
-    CalypsoCardClass mCalypsoCardClass;
+    CalypsoCardClass mCalypsoCardClass = CalypsoCardClass::UNKNOWN;
 
     /**
      *
@@ -736,7 +745,7 @@ private:
     /**
      *
      */
-    CalypsoCard::ProductType mProductType;
+    CalypsoCard::ProductType mProductType = ProductType::UNKNOWN;
 
     /**
      *
@@ -746,12 +755,12 @@ private:
     /**
      *
      */
-    int mModificationsCounterMax;
+    int mModificationsCounterMax = 0;
 
     /**
      *
      */
-    bool mIsModificationCounterInBytes = false;
+    bool mIsModificationCounterInBytes = true;
 
     /**
      *
@@ -796,7 +805,7 @@ private:
     /**
      *
      */
-    int mSvLastTNum;
+    int mSvLastTNum = 0;
 
     /**
      *
@@ -826,7 +835,7 @@ private:
     /**
      *
      */
-    uint8_t mSvKvc;
+    uint8_t mSvKvc = 0;
 
     /**
      *
@@ -846,17 +855,17 @@ private:
     /**
      *
      */
-    uint8_t mApplicationSubType;
+    uint8_t mApplicationSubType = 0;
 
     /**
      *
      */
-    uint8_t mApplicationType;
+    uint8_t mApplicationType = 0;
 
     /**
      *
      */
-    uint8_t mSessionModification;
+    uint8_t mSessionModification = 0;
 
     /**
      * Resolve the card product type from the application type byte

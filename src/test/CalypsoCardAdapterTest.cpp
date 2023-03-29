@@ -79,15 +79,19 @@ static void tearDown()
 
 static std::shared_ptr<CalypsoCardAdapter> buildCalypsoCard(const std::string& powerOnData)
 {
-    return std::make_shared<CalypsoCardAdapter>(
-               std::make_shared<CardSelectionResponseAdapter>(powerOnData));
+    auto adapter = std::make_shared<CalypsoCardAdapter>();
+    adapter->initialize(std::make_shared<CardSelectionResponseAdapter>(powerOnData));
+
+    return adapter;
 }
 
 static std::shared_ptr<CalypsoCardAdapter> buildCalypsoCard(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    return std::make_shared<CalypsoCardAdapter>(
-               std::make_shared<CardSelectionResponseAdapter>(apduResponse));
+    auto adapter = std::make_shared<CalypsoCardAdapter>();
+    adapter->initialize(std::make_shared<CardSelectionResponseAdapter>(apduResponse));
+
+    return adapter;
 }
 
 /**
@@ -786,15 +790,14 @@ TEST(CalypsoCardAdapterTest, getApplicationSubType_whenValueIs00_shouldThrowIAE)
 {
     setUp();
 
-    calypsoCardAdapter =
+    EXPECT_THROW(
         buildCalypsoCard(
             buildSelectApplicationResponse(
                 DF_NAME,
                 CALYPSO_SERIAL_NUMBER,
                 StringUtils::format(STARTUP_INFO_SUBTYPE_XX.c_str(), 0x00),
-                SW1SW2_OK));
-
-    EXPECT_THROW(calypsoCardAdapter->getApplicationSubtype(), IllegalArgumentException);
+                SW1SW2_OK)),
+        IllegalArgumentException);
 
     tearDown();
 }
@@ -803,15 +806,14 @@ TEST(CalypsoCardAdapterTest, getApplicationSubType_whenValueIsFF_shouldThrowIAE)
 {
     setUp();
 
-    calypsoCardAdapter =
+    EXPECT_THROW(
         buildCalypsoCard(
             buildSelectApplicationResponse(
                 DF_NAME,
                 CALYPSO_SERIAL_NUMBER,
                 StringUtils::format(STARTUP_INFO_SUBTYPE_XX.c_str(), 0xFF),
-                SW1SW2_OK));
-
-    EXPECT_THROW(calypsoCardAdapter->getApplicationSubtype(), IllegalArgumentException);
+                SW1SW2_OK)),
+        IllegalArgumentException);
 
     tearDown();
 }

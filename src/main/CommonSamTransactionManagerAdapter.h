@@ -386,10 +386,12 @@ public:
     SamTransactionManager& processCommands() override
     {
         if (mSamCommands.empty()) {
+
             return *this;
         }
 
         try {
+
             /* Get the list of C-APDU to transmit */
             const std::vector<std::shared_ptr<ApduRequestSpi>> apduRequests =
                 getApduRequests(mSamCommands);
@@ -415,6 +417,7 @@ public:
             * throw an exception.
             */
             if (apduResponses.size() > apduRequests.size()) {
+
                 throw InconsistentDataException("The number of SAM commands/responses does not " \
                                                 "match: nb commands = " +
                                                 std::to_string(apduRequests.size()) +
@@ -429,10 +432,13 @@ public:
             * raise an exception.
             */
             for (int i = 0; i < static_cast<int>(apduResponses.size()); i++) {
+
                 try {
+
                     mSamCommands[i]->parseApduResponse(apduResponses[i]);
 
                 } catch (const Exception& ex) {
+
                     /*
                      * C++: for some reason, it doesn't work if trying to catch directly the
                      * CalypsoSamCommandException exception.
@@ -441,11 +447,13 @@ public:
                         dynamic_cast<const CalypsoSamCommandException&>(ex);
 
                     try {
+
                         const CalypsoSamCommand& commandRef =
                             std::dynamic_pointer_cast<AbstractSamCommand>(mSamCommands[i])
                                 ->getCommandRef();
 
                         if (commandRef == CalypsoSamCommand::DIGEST_AUTHENTICATE) {
+
                             /* C++: cast made outside the if/else condition, will throw if false */
                             (void)static_cast<const CalypsoSamSecurityDataException&>(e);
                             throw InvalidCardSignatureException(
@@ -454,6 +462,7 @@ public:
 
                         } else if (commandRef == CalypsoSamCommand::PSO_VERIFY_SIGNATURE ||
                                    commandRef == CalypsoSamCommand::DATA_CIPHER) {
+
                             /* C++: cast made outside the if/else condition, will throw if false */
                             (void)static_cast<const CalypsoSamSecurityDataException&>(e);
                             throw InvalidSignatureException(
@@ -464,6 +473,7 @@ public:
                                         e.getStatusWord()));
 
                         } else if (commandRef == CalypsoSamCommand::SV_CHECK) {
+
                             /* C++: cast made outside the if/else condition, will throw if false */
                             (void)static_cast<const CalypsoSamSecurityDataException&>(e);
                             throw InvalidCardSignatureException(
@@ -475,10 +485,12 @@ public:
                         }
 
                     } catch (const std::bad_cast& e) {
+
                         /* C++: Fall through... */
                         (void)e;
 
                     } catch (const Exception& e) {
+
                         /* C++: need to rethrow as we are in a try/catch block */
                         (void)e;
                         throw;
@@ -498,6 +510,7 @@ public:
             * throw an exception.
             */
             if (apduResponses.size() < apduRequests.size()) {
+
                 throw InconsistentDataException(
                           "The number of SAM commands/responses does not match:" \
                           " nb commands = " + std::to_string(apduRequests.size()) +
@@ -506,6 +519,7 @@ public:
             }
 
         } catch (const Exception& e) {
+
             /* C++: need to rethrow as we are in a try/catch block */
             (void)e;
 

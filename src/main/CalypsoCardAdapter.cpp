@@ -65,24 +65,10 @@ const std::vector<int> CalypsoCardAdapter::BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE 
     220435, 262144, 311743, 370727, 440871, 524288, 623487, 741455, 881743, 1048576
 };
 
-CalypsoCardAdapter::CalypsoCardAdapter(
-  const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse)
-: mIsExtendedModeSupported(false),
-  mIsRatificationOnDeselectSupported(false),
-  mIsSvFeatureAvailable(false),
-  mIsPinFeatureAvailable(false),
-  mIsPkiModeSupported(false),
-  mIsDfInvalidated(false),
-  mCalypsoCardClass(CalypsoCardClass::UNKNOWN),
-  mProductType(ProductType::UNKNOWN),
-  mModificationsCounterMax(0),
-  mIsModificationCounterInBytes(true),
-  mSvLastTNum(0),
-  mIsHce(false),
-  mSvKvc(0),
-  mApplicationSubType(0),
-  mApplicationType(0),
-  mSessionModification(0)
+CalypsoCardAdapter::CalypsoCardAdapter() {}
+
+void CalypsoCardAdapter::initialize(
+    const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse)
 {
     if (cardSelectionResponse != nullptr) {
 
