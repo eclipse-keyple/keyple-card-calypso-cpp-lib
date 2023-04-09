@@ -169,12 +169,13 @@ void CmdCardSelectFile::parseProprietaryInformation(
         fileType == CalypsoCardConstant::FILE_TYPE_DF) {
 
         std::shared_ptr<DirectoryHeader> directoryHeader =
-            createDirectoryHeader(proprietaryInformation);
+            createDirectoryHeader(proprietaryInformation, calypsoCard);
         calypsoCard->setDirectoryHeader(directoryHeader);
 
     } else if (fileType == CalypsoCardConstant::FILE_TYPE_EF) {
 
-        std::shared_ptr<FileHeaderAdapter> fileHeader = createFileHeader(proprietaryInformation);
+        std::shared_ptr<FileHeaderAdapter> fileHeader =
+            createFileHeader(proprietaryInformation, calypsoCard);
         calypsoCard->setFileHeader(sfi, fileHeader);
 
     } else {
@@ -210,7 +211,9 @@ const std::vector<uint8_t> CmdCardSelectFile::getProprietaryInformation(
 }
 
 const std::shared_ptr<DirectoryHeader> CmdCardSelectFile::createDirectoryHeader(
-    const std::vector<uint8_t>& proprietaryInformation)
+    const std::vector<uint8_t>& proprietaryInformation,
+    const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
+
 {
     std::vector<uint8_t> accessConditions(CalypsoCardConstant::SEL_AC_LENGTH);
     System::arraycopy(proprietaryInformation,
@@ -228,9 +231,12 @@ const std::shared_ptr<DirectoryHeader> CmdCardSelectFile::createDirectoryHeader(
 
     const uint8_t dfStatus = proprietaryInformation[CalypsoCardConstant::SEL_DF_STATUS_OFFSET];
 
-    const uint8_t lid =
-        ((proprietaryInformation[CalypsoCardConstant::SEL_LID_OFFSET] << 8) & 0xff00) |
-        ((proprietaryInformation[CalypsoCardConstant::SEL_LID_OFFSET + 1] & 0x00ff));
+    const int lidOffset =
+        calypsoCard->getProductType() == CalypsoCard::ProductType::PRIME_REVISION_2 ?
+            CalypsoCardConstant::SEL_LID_OFFSET_REV2 : CalypsoCardConstant::SEL_LID_OFFSET;
+
+    const uint8_t lid = ((proprietaryInformation[lidOffset] << 8) & 0xff00) |
+                        ((proprietaryInformation[lidOffset + 1] & 0x00ff));
 
     return DirectoryHeaderAdapter::builder()
                ->lid(lid)
@@ -253,7 +259,8 @@ const std::shared_ptr<DirectoryHeader> CmdCardSelectFile::createDirectoryHeader(
 }
 
 const std::shared_ptr<FileHeaderAdapter> CmdCardSelectFile::createFileHeader(
-        const std::vector<uint8_t>& proprietaryInformation)
+    const std::vector<uint8_t>& proprietaryInformation,
+    const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
 {
     const ElementaryFile::Type fileType =
         getEfTypeFromCardValue(proprietaryInformation[CalypsoCardConstant::SEL_EF_TYPE_OFFSET]);
@@ -294,9 +301,12 @@ const std::shared_ptr<FileHeaderAdapter> CmdCardSelectFile::createFileHeader(
         ((proprietaryInformation[CalypsoCardConstant::SEL_DATA_REF_OFFSET] << 8) & 0xff00) |
         (proprietaryInformation[CalypsoCardConstant::SEL_DATA_REF_OFFSET + 1] & 0x00ff);
 
-    const uint16_t lid =
-        ((proprietaryInformation[CalypsoCardConstant::SEL_LID_OFFSET] << 8) & 0xff00) |
-        (proprietaryInformation[CalypsoCardConstant::SEL_LID_OFFSET + 1] & 0x00ff);
+    const int lidOffset =
+        calypsoCard->getProductType() == CalypsoCard::ProductType::PRIME_REVISION_2 ?
+            CalypsoCardConstant::SEL_LID_OFFSET_REV2 : CalypsoCardConstant::SEL_LID_OFFSET;
+
+    const uint16_t lid = ((proprietaryInformation[lidOffset] << 8) & 0xff00) |
+                         (proprietaryInformation[lidOffset + 1] & 0x00ff);
 
     return FileHeaderAdapter::builder()
                ->lid(lid)

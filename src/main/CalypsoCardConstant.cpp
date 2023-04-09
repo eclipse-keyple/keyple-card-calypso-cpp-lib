@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -72,6 +72,7 @@ const int CalypsoCardConstant::SEL_KVCS_OFFSET = 14;
 const int CalypsoCardConstant::SEL_KIFS_OFFSET = 17;
 const int CalypsoCardConstant::SEL_DATA_REF_OFFSET = 14;
 const int CalypsoCardConstant::SEL_LID_OFFSET = 21;
+const int CalypsoCardConstant::SEL_LID_OFFSET_REV2 = 20;
 
 /* PIN Code */
 const int CalypsoCardConstant::PIN_LENGTH = 4;

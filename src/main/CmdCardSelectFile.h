@@ -198,32 +198,36 @@ private:
 
     /**
      * (private)<br>
-     * Parses the proprietaryInformation field of a file identified as an DF and create a {@link
-     * DirectoryHeader}
+     * Parses the proprietaryInformation field of a file identified as an DF and create a
+     * DirectoryHeader
      *
      * @param proprietaryInformation from the response to a Select File command.
+     * @param calypsoCard the Calypso card.
      * @return A DirectoryHeader object
      */
     static const std::shared_ptr<DirectoryHeader> createDirectoryHeader(
-        const std::vector<uint8_t>& proprietaryInformation);
+        const std::vector<uint8_t>& proprietaryInformation,
+        const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
 
     /**
      * (private)<br>
-     * Parses the proprietaryInformation field of a file identified as an EF and create a {@link
+     * Parses the proprietaryInformation field of a file identified as an EF and create a
      * FileHeaderAdapter}
      *
      * @param proprietaryInformation from the response to a Select File command.
-     * @return A {@link FileHeaderAdapter} object
+     * @param calypsoCard the Calypso card.
+     * @return A FileHeaderAdapter object
      */
     static const std::shared_ptr<FileHeaderAdapter> createFileHeader(
-        const std::vector<uint8_t>& proprietaryInformation);
+        const std::vector<uint8_t>& proprietaryInformation,
+        const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
 
     /**
      * (private)<br>
-     * Converts the EF type value from the card into a {@link ElementaryFile.Type} enum
+     * Converts the EF type value from the card into a ElementaryFile.Type enum
      *
      * @param efType the value returned by the card.
-     * @return The corresponding {@link ElementaryFile.Type}
+     * @return The corresponding ElementaryFile::Type
      */
     static ElementaryFile::Type getEfTypeFromCardValue(const uint8_t efType);
 };

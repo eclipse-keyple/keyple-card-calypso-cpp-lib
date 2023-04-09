@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -82,6 +82,7 @@ public:
     static const int SEL_KIFS_OFFSET;
     static const int SEL_DATA_REF_OFFSET;
     static const int SEL_LID_OFFSET;
+    static const int SEL_LID_OFFSET_REV2;
 
     /* PIN Code */
     static const int PIN_LENGTH;
