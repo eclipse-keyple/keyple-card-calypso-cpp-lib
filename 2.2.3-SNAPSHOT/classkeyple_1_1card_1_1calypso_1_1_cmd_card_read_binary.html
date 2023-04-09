@@ -99,14 +99,14 @@ Collaboration diagram for keyple::card::calypso::CmdCardReadBinary:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aba75a68902f55fbf5a44548e0016b72f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_binary.html#aba75a68902f55fbf5a44548e0016b72f">CmdCardReadBinary</a> (const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard, const uint8_t sfi, const uint8_t offset, const uint8_t length)</td></tr>
-<tr class="separator:aba75a68902f55fbf5a44548e0016b72f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46ee027ed422fa9f5f82034eec110072"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_binary.html#a46ee027ed422fa9f5f82034eec110072">CmdCardReadBinary</a> (const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html">CalypsoCardAdapter</a> &gt; calypsoCard, const uint8_t sfi, const int offset, const uint8_t length)</td></tr>
+<tr class="separator:a46ee027ed422fa9f5f82034eec110072"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ccf86896f469da258b89e9d4a413bd9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_binary.html#a4ccf86896f469da258b89e9d4a413bd9">parseApduResponse</a> (const std::shared_ptr&lt; ApduResponseApi &gt; apduResponse) override</td></tr>
 <tr class="separator:a4ccf86896f469da258b89e9d4a413bd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a45f089676bcb633f9a9e33f364c3b4ea"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_binary.html#a45f089676bcb633f9a9e33f364c3b4ea">isSessionBufferUsed</a> () const override</td></tr>
 <tr class="separator:a45f089676bcb633f9a9e33f364c3b4ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf37e8dfe6d8e21e3cd7d86dfa2691a8"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_binary.html#abf37e8dfe6d8e21e3cd7d86dfa2691a8">getOffset</a> () const</td></tr>
-<tr class="separator:abf37e8dfe6d8e21e3cd7d86dfa2691a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace0343caa0beb33a0f4cd38d339119d6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_binary.html#ace0343caa0beb33a0f4cd38d339119d6">getOffset</a> () const</td></tr>
+<tr class="separator:ace0343caa0beb33a0f4cd38d339119d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac78cc0d6d0fb4064ee17830859177472"><td class="memItemLeft" align="right" valign="top">const std::map&lt; const int, const std::shared_ptr&lt; <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_apdu_command_1_1_status_properties.html">StatusProperties</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_cmd_card_read_binary.html#ac78cc0d6d0fb4064ee17830859177472">getStatusTable</a> () const override</td></tr>
 <tr class="separator:ac78cc0d6d0fb4064ee17830859177472"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classkeyple_1_1card_1_1calypso_1_1_abstract_card_command')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classkeyple_1_1card_1_1calypso_1_1_abstract_card_command.html">keyple::card::calypso::AbstractCardCommand</a></td></tr>
@@ -153,8 +153,8 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="_cmd_card_read_binary_8h_source.html#l00051">51</a> of file <a class="el" href="_cmd_card_read_binary_8h_source.html">CmdCardReadBinary.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aba75a68902f55fbf5a44548e0016b72f" name="aba75a68902f55fbf5a44548e0016b72f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba75a68902f55fbf5a44548e0016b72f">&#9670;&nbsp;</a></span>CmdCardReadBinary()</h2>
+<a id="a46ee027ed422fa9f5f82034eec110072" name="a46ee027ed422fa9f5f82034eec110072"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46ee027ed422fa9f5f82034eec110072">&#9670;&nbsp;</a></span>CmdCardReadBinary()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -174,7 +174,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const uint8_t&#160;</td>
+          <td class="paramtype">const int&#160;</td>
           <td class="paramname"><em>offset</em>, </td>
         </tr>
         <tr>
@@ -208,14 +208,14 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="abf37e8dfe6d8e21e3cd7d86dfa2691a8" name="abf37e8dfe6d8e21e3cd7d86dfa2691a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abf37e8dfe6d8e21e3cd7d86dfa2691a8">&#9670;&nbsp;</a></span>getOffset()</h2>
+<a id="ace0343caa0beb33a0f4cd38d339119d6" name="ace0343caa0beb33a0f4cd38d339119d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace0343caa0beb33a0f4cd38d339119d6">&#9670;&nbsp;</a></span>getOffset()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint8_t keyple::card::calypso::CmdCardReadBinary::getOffset </td>
+          <td class="memname">int keyple::card::calypso::CmdCardReadBinary::getOffset </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>

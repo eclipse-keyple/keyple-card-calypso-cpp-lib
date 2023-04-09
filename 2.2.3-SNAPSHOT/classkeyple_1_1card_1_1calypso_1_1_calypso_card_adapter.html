@@ -200,10 +200,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9586d3c4c86988144946ad9997d4a04e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc52d56cbf8b7bea6371bbcef60616d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html#afc52d56cbf8b7bea6371bbcef60616d1">setCounter</a> (const uint8_t sfi, const uint8_t numCounter, const std::vector&lt; uint8_t &gt; &amp;content)</td></tr>
 <tr class="separator:afc52d56cbf8b7bea6371bbcef60616d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9ce65afd2adfdeeff907d628e31bc8b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html#ab9ce65afd2adfdeeff907d628e31bc8b">setContent</a> (const uint8_t sfi, const uint8_t numRecord, const std::vector&lt; uint8_t &gt; &amp;content, const uint8_t offset)</td></tr>
-<tr class="separator:ab9ce65afd2adfdeeff907d628e31bc8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a417930d7ced380c0b576bdf88ae8097a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html#a417930d7ced380c0b576bdf88ae8097a">fillContent</a> (const uint8_t sfi, const uint8_t numRecord, const std::vector&lt; uint8_t &gt; &amp;content, const uint8_t offset)</td></tr>
-<tr class="separator:a417930d7ced380c0b576bdf88ae8097a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5e03504059cfd1ec0d540475cafa97c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html#ad5e03504059cfd1ec0d540475cafa97c">setContent</a> (const uint8_t sfi, const uint8_t numRecord, const std::vector&lt; uint8_t &gt; &amp;content, const int offset)</td></tr>
+<tr class="separator:ad5e03504059cfd1ec0d540475cafa97c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6bfe246469f0c0cbb9f3e622e14f782"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html#ab6bfe246469f0c0cbb9f3e622e14f782">fillContent</a> (const uint8_t sfi, const uint8_t numRecord, const std::vector&lt; uint8_t &gt; &amp;content, const int offset)</td></tr>
+<tr class="separator:ab6bfe246469f0c0cbb9f3e622e14f782"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a904f26f066398be4598ab454efac8cf2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html#a904f26f066398be4598ab454efac8cf2">addCyclicContent</a> (const uint8_t sfi, const std::vector&lt; uint8_t &gt; content)</td></tr>
 <tr class="separator:a904f26f066398be4598ab454efac8cf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae781120d75cbe19bf90f1e7878bccd00"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classkeyple_1_1card_1_1calypso_1_1_calypso_card_adapter.html#ae781120d75cbe19bf90f1e7878bccd00">backupFiles</a> ()</td></tr>
@@ -333,8 +333,8 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a417930d7ced380c0b576bdf88ae8097a" name="a417930d7ced380c0b576bdf88ae8097a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a417930d7ced380c0b576bdf88ae8097a">&#9670;&nbsp;</a></span>fillContent()</h2>
+<a id="ab6bfe246469f0c0cbb9f3e622e14f782" name="ab6bfe246469f0c0cbb9f3e622e14f782"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6bfe246469f0c0cbb9f3e622e14f782">&#9670;&nbsp;</a></span>fillContent()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -360,7 +360,7 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const uint8_t&#160;</td>
+          <td class="paramtype">const int&#160;</td>
           <td class="paramname"><em>offset</em>&#160;</td>
         </tr>
         <tr>
@@ -381,6 +381,8 @@ Friends</h2></td></tr>
     <tr><td class="paramname">numRecord</td><td>the record number (should be <div class="fragment"><div class="line">&gt;= </div>
 </div><!-- fragment --> 1). </td></tr>
     <tr><td class="paramname">content</td><td>the content (should be not empty). </td></tr>
+    <tr><td class="paramname">offset</td><td>the offset (should be <div class="fragment"><div class="line">&gt;= </div>
+</div><!-- fragment --> 0). </td></tr>
   </table>
   </dd>
 </dl>
@@ -1778,8 +1780,8 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="ab9ce65afd2adfdeeff907d628e31bc8b" name="ab9ce65afd2adfdeeff907d628e31bc8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9ce65afd2adfdeeff907d628e31bc8b">&#9670;&nbsp;</a></span>setContent() <span class="overload">[2/2]</span></h2>
+<a id="ad5e03504059cfd1ec0d540475cafa97c" name="ad5e03504059cfd1ec0d540475cafa97c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5e03504059cfd1ec0d540475cafa97c">&#9670;&nbsp;</a></span>setContent() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1805,7 +1807,7 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const uint8_t&#160;</td>
+          <td class="paramtype">const int&#160;</td>
           <td class="paramname"><em>offset</em>&#160;</td>
         </tr>
         <tr>
