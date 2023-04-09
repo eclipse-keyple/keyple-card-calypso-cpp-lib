@@ -319,8 +319,8 @@ public:
      * @since 2.1.0
      */
     CardTransactionManager& prepareReadBinary(const uint8_t sfi,
-                                              const uint8_t offset,
-                                              const uint8_t nbBytesToRead) override;
+                                              const int offset,
+                                              const int nbBytesToRead) override;
 
     /**
      * {@inheritDoc}
@@ -370,7 +370,7 @@ public:
      * @since 2.1.0
      */
     CardTransactionManager& prepareUpdateBinary(const uint8_t sfi,
-                                                const uint8_t offset,
+                                                const int offset,
                                                 const std::vector<uint8_t>& data) final;
 
     /**
@@ -379,7 +379,7 @@ public:
      * @since 2.1.0
      */
     CardTransactionManager& prepareWriteBinary(const uint8_t sfi,
-                                               const uint8_t offset,
+                                               const int offset,
                                                const std::vector<uint8_t>& data) final;
 
     /**
@@ -1006,7 +1006,7 @@ private:
      */
     CardTransactionManager& prepareUpdateOrWriteBinary(const bool isUpdateCommand,
                                                        const uint8_t sfi,
-                                                       const uint8_t offset,
+                                                       const int offset,
                                                        const std::vector<uint8_t>& data);
 
      /**

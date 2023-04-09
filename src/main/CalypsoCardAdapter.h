@@ -472,12 +472,14 @@ public:
      * @param content the counter value (should be not null and 3 bytes length).
      * @since 2.0.0
      */
-    void setCounter(const uint8_t sfi, const uint8_t numCounter, const std::vector<uint8_t>& content);
+    void setCounter(const uint8_t sfi,
+                    const uint8_t numCounter,
+                    const std::vector<uint8_t>& content);
 
     /**
      * (package-private)<br>
-     * Set or replace the content at the specified offset of record #numRecord of the current selected
-     * file by a copy of the provided content.<br>
+     * Set or replace the content at the specified offset of record #numRecord of the current
+     * selected file by a copy of the provided content.<br>
      * If EF does not exist, then it is created.<br>
      * If actual record content is not set or has a size {@code <} offset, then missing data will be
      * padded with 0.
@@ -491,7 +493,7 @@ public:
     void setContent(const uint8_t sfi,
                     const uint8_t numRecord,
                     const std::vector<uint8_t>& content,
-                    const uint8_t offset);
+                    const int offset);
 
     /**
      * (package-private)<br>
@@ -504,12 +506,13 @@ public:
      * @param sfi the SFI.
      * @param numRecord the record number (should be {@code >=} 1).
      * @param content the content (should be not empty).
+     * @param offset the offset (should be {@code >=} 0).
      * @since 2.1.0
      */
     void fillContent(const uint8_t sfi,
                      const uint8_t numRecord,
                      const std::vector<uint8_t>& content,
-                     const uint8_t offset);
+                     const int offset);
 
     /**
      * (package-private)<br>

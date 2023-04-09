@@ -10,91 +10,68 @@
  * SPDX-License-Identifier: EPL-2.0                                                               *
  **************************************************************************************************/
 
-/* Calypsonet Terminal Card */
-#include "ApduResponseApi.h"
+/* Calypsonet Terminal Calypso */
+#include "SearchCommandData.h"
 
-/* Keyple Core Utils */
-#include "Arrays.h"
-
-using namespace calypsonet::terminal::card;
-using namespace keyple::core::util::cpp;
+using namespace calypsonet::terminal::calypso::transaction;
 
 /**
  * (private)<br>
- * Implementation of {@link ApduResponseApi}.
+ * Implementation of SearchCommandData.
  */
-class ApduResponseAdapterMock final : public ApduResponseApi {
+class SearchCommandDataMock final : public SearchCommandData {
 public:
-    /**
-     * Constructor
-     */
-    ApduResponseAdapterMock(const std::vector<uint8_t>& apdu)
-    : mApdu(apdu),
-      mStatusWord(((apdu[apdu.size() - 2] & 0x000000FF) << 8) +
-                  ((apdu[apdu.size() - 1] & 0x000000FF))) {}
-
-
-    /**
-     * {@inheritDoc}
-     */
-    const std::vector<uint8_t>& getApdu() const override
+    SearchCommandData& setSfi(const uint8_t sfi) override
     {
-        return mApdu;
+        (void)sfi;
+
+        return *this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    const std::vector<uint8_t> getDataOut() const override
+    SearchCommandData& startAtRecord(const uint8_t recordNumber) override
     {
-        return Arrays::copyOfRange(mApdu, 0, mApdu.size() - 2);
+        (void)recordNumber;
+
+        return *this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    int getStatusWord() const override
+    SearchCommandData& setOffset(int offset) override
     {
-        return mStatusWord;
+        (void)offset;
+
+        return *this;
     }
 
-    /**
-     *
-     */
-    friend std::ostream& operator<<(std::ostream& os, const ApduResponseAdapterMock& ara)
+    SearchCommandData& enableRepeatedOffset() override
     {
-        os << "APDU_RESPONSE_ADAPTER: {"
-           << "APDU: " << ara.mApdu << ", "
-           << "STATUS_WORD: " << ara.mStatusWord << ", "
-           << "}";
-
-        return os;
+        return *this;
     }
 
-    /**
-     *
-     */
-    friend std::ostream& operator<<(std::ostream& os,
-                                    const std::shared_ptr<ApduResponseAdapterMock> ara)
+    SearchCommandData& setSearchData(const std::vector<uint8_t>& data) override
     {
-        if (ara == nullptr) {
-            os << "APDU_RESPONSE_ADAPTER: null";
-        } else {
-            os << *ara;
-        }
+        (void)data;
 
-        return os;
+        return *this;
+    }
+
+    SearchCommandData& setMask(const std::vector<uint8_t>& mask) override
+    {
+        (void)mask;
+
+        return *this;
+    }
+
+    SearchCommandData& fetchFirstMatchingResult() override
+    {
+        return *this;
+    }
+
+    std::vector<uint8_t>& getMatchingRecordNumbers() override
+    {
+        return mDummy;
     }
 
 private:
-    /**
-     *
-     */
-    const std::vector<uint8_t> mApdu;
-
-    /**
-     *
-     */
-    const int mStatusWord;
+    std::vector<uint8_t> mDummy;
 };
 

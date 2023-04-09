@@ -17,6 +17,32 @@
 /* Keyple Core Util */
 #include "StringUtils.h"
 
+/* Keyple Card Calypso */
+#include "CardAccessForbiddenException.h"
+#include "CardCommandException.h"
+#include "CardDataAccessException.h"
+#include "CardDataOutOfBoundsException.h"
+#include "CardIllegalArgumentException.h"
+#include "CardIllegalParameterException.h"
+#include "CardPinException.h"
+#include "CardSecurityContextException.h"
+#include "CardSecurityDataException.h"
+#include "CardSessionBufferOverflowException.h"
+#include "CardTerminatedException.h"
+#include "CardUnexpectedResponseLengthException.h"
+#include "CardUnknownStatusException.h"
+
+#include "CalypsoCardCommand.h"
+#include "CalypsoSamAccessForbiddenException.h"
+#include "CalypsoSamCounterOverflowException.h"
+#include "CalypsoSamDataAccessException.h"
+#include "CalypsoSamIllegalArgumentException.h"
+#include "CalypsoSamIllegalParameterException.h"
+#include "CalypsoSamIncorrectInputDataException.h"
+#include "CalypsoSamSecurityDataException.h"
+#include "CalypsoSamUnexpectedResponseLengthException.h"
+#include "CalypsoSamUnknownStatusException.h"
+
 namespace keyple {
 namespace card {
 namespace calypso {
@@ -132,10 +158,36 @@ void AbstractApduCommand::checkStatus()
 
         /* SW is successful, then check the response length (CL-CSS-RESPLE.1) */
         if (mLe != 0 && static_cast<int>(mApduResponse->getDataOut().size()) != mLe) {
-            throw buildUnexpectedResponseLengthException(
-                StringUtils::format("Incorrect APDU response length (expected: %d, actual: %d)",
-                                    mLe,
-                                    mApduResponse->getDataOut().size()));
+
+            /*
+             * Throw the exception
+             *
+             * C++: the buildCommandException() mechanism does not work as all exceptions are casted
+             *      into a generic type that prevents try/catch blocks from catching derived type
+             *      exceptions.
+             *      Copy/pasted the function content here.
+             */
+            try {
+
+                /* Try with Card Command first */
+                dynamic_cast<const CalypsoCardCommand&>(getCommandRef());
+                throw dynamic_cast<const CardUnexpectedResponseLengthException&>(
+                    buildUnexpectedResponseLengthException(
+                        StringUtils::format("Incorrect APDU response length (expected: %d, " \
+                                            "actual: %d)",
+                                            mLe,
+                                            mApduResponse->getDataOut().size())));
+
+            } catch (const std::bad_cast& e) {
+
+                /* Assume it's Sam Command then */
+                throw dynamic_cast<const CalypsoSamUnexpectedResponseLengthException&>(
+                    buildUnexpectedResponseLengthException(
+                        StringUtils::format("Incorrect APDU response length (expected: %d, " \
+                                            "actual: %d)",
+                                            mLe,
+                                            mApduResponse->getDataOut().size())));
+            }
         }
 
         /* SW and response length are correct */
@@ -151,8 +203,105 @@ void AbstractApduCommand::checkStatus()
     /* Message */
     const std::string message = props != nullptr ? props->getInformation() : "Unknown status";
 
-    /* Throw the exception */
-    throw buildCommandException(exceptionClass, message);
+    /*
+     * Throw the exception
+     *
+     * C++: the buildCommandException() mechanism does not work as all exceptions are casted into
+     *      a generic type that prevents try/catch blocks from catching derived type exceptions.
+     *      Copy/pasted the function content here.
+     */
+    //throw buildCommandException(exceptionClass, message);
+
+    try {
+
+        /* Try with Card Command first */
+        const auto& command = dynamic_cast<const CalypsoCardCommand&>(getCommandRef());
+        const auto statusWord = std::make_shared<int>(getApduResponse()->getStatusWord());
+
+        if (exceptionClass == typeid(CardAccessForbiddenException)) {
+
+            throw CardAccessForbiddenException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CardDataAccessException)) {
+
+            throw CardDataAccessException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CardDataOutOfBoundsException)) {
+
+            throw CardDataOutOfBoundsException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CardIllegalArgumentException)) {
+
+            throw CardIllegalArgumentException(message, command);
+
+        } else if (exceptionClass == typeid(CardIllegalParameterException)) {
+
+            throw CardIllegalParameterException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CardPinException)) {
+
+            throw CardPinException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CardSecurityContextException)) {
+
+            throw CardSecurityContextException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CardSecurityDataException)) {
+
+            throw CardSecurityDataException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CardSessionBufferOverflowException)) {
+
+            throw CardSessionBufferOverflowException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CardTerminatedException)) {
+
+            throw CardTerminatedException(message, command, statusWord);
+
+        } else {
+
+            throw CardUnknownStatusException(message, command, statusWord);
+        }
+
+    } catch (const std::bad_cast& e) {
+
+        /* It's a Sam Command */
+        const auto& command = dynamic_cast<const CalypsoSamCommand&>(getCommandRef());
+        const auto statusWord = std::make_shared<int>(getApduResponse()->getStatusWord());
+
+        if (exceptionClass == typeid(CalypsoSamAccessForbiddenException)) {
+
+            throw CalypsoSamAccessForbiddenException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CalypsoSamCounterOverflowException)) {
+
+            throw CalypsoSamCounterOverflowException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CalypsoSamDataAccessException)) {
+
+            throw CalypsoSamDataAccessException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CalypsoSamIllegalArgumentException)) {
+
+            throw CalypsoSamIllegalArgumentException(message, command);
+
+        } else if (exceptionClass == typeid(CalypsoSamIllegalParameterException)) {
+
+            throw CalypsoSamIllegalParameterException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CalypsoSamIncorrectInputDataException)) {
+
+            throw CalypsoSamIncorrectInputDataException(message, command, statusWord);
+
+        } else if (exceptionClass == typeid(CalypsoSamSecurityDataException)) {
+
+            throw CalypsoSamSecurityDataException(message, command, statusWord);
+
+        } else {
+
+            throw CalypsoSamUnknownStatusException(message, command, statusWord);
+        }
+    }
 }
 
 const std::string AbstractApduCommand::getStatusInformation() const

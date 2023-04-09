@@ -648,7 +648,7 @@ void CalypsoCardAdapter::setCounter(const uint8_t sfi,
 void CalypsoCardAdapter::setContent(const uint8_t sfi,
                                     const uint8_t numRecord,
                                     const std::vector<uint8_t>& content,
-                                    const uint8_t offset)
+                                    const int offset)
 {
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())
@@ -658,7 +658,7 @@ void CalypsoCardAdapter::setContent(const uint8_t sfi,
 void CalypsoCardAdapter::fillContent(const uint8_t sfi,
                                      const uint8_t numRecord,
                                      const std::vector<uint8_t>& content,
-                                     const uint8_t offset)
+                                     const int offset)
 {
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())

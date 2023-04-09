@@ -39,7 +39,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardReadBinary::CmdCardReadBinary(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                      const uint8_t sfi,
-                                     const uint8_t offset,
+                                     const int offset,
                                      const uint8_t length)
 : AbstractCardCommand(CalypsoCardCommand::READ_BINARY, length, calypsoCard),
   mSfi(sfi),
@@ -83,7 +83,7 @@ bool CmdCardReadBinary::isSessionBufferUsed() const
     return false;
 }
 
-uint8_t CmdCardReadBinary::getOffset() const
+int CmdCardReadBinary::getOffset() const
 {
     return mOffset;
 }

@@ -15,6 +15,7 @@
 
 /* Calypsonet Terminal Calypso */
 #include "CardTransactionManager.h"
+#include "UnauthorizedKeyException.h"
 
 /* Calypsonet Terminal Card */
 #include "CardSelectionResponseApi.h"
@@ -39,6 +40,7 @@
 #include "CardResponseAdapterMock.h"
 #include "CardSelectionResponseApiMock.h"
 #include "ReaderMock.h"
+#include "SearchCommandDataMock.h"
 
 using namespace testing;
 
@@ -130,9 +132,9 @@ static const uint8_t PIN_CIPHERING_KEY_KVC = 0x22;
 
 static const uint8_t FILE7 = 0x07;
 static const uint8_t FILE8 = 0x08;
-//static const uint8_t FILE9 = 0x09;
-//static const uint8_t FILE10 = 0x10;
-//static const uint8_t FILE11 = 0x11;
+static const uint8_t FILE9 = 0x09;
+static const uint8_t FILE10 = 0x10;
+static const uint8_t FILE11 = 0x11;
 
 static const std::string SW1SW2_OK = "9000";
 static const std::string SW1SW2_KO = "6700";
@@ -666,78 +668,97 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test(expected = UnauthorizedKeyException.class)
-//   public void processOpening_whenKeyNotAuthorized_shouldThrowUnauthorizedKeyException()
-//       throws Exception {
-//     // force the checking of the session key to fail
-//     cardSecuritySetting =
-//         CalypsoExtensionService.getInstance()
-//             .createCardSecuritySetting()
-//             .setControlSamResource(samReader, calypsoSam)
-//             .addAuthorizedSessionKey( 0x00,  0x00);
-//     cardTransactionManager =
-//         CalypsoExtensionService.getInstance()
-//             .createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD);
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_OPEN_SECURE_SESSION_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_OPEN_SECURE_SESSION_RSP);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     processOpening_whenKeyNotAuthorized_shouldThrowUnauthorizedKeyException)
+{
+    setUp();
 
-//   public void processCommands_whenOutOfSession_shouldExchangeApduWithCardOnly() throws Exception {
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_READ_REC_SFI7_REC1_CMD, CARD_READ_REC_SFI8_REC1_CMD, CARD_READ_REC_SFI10_REC1_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(
-//             CARD_READ_REC_SFI7_REC1_RSP, CARD_READ_REC_SFI8_REC1_RSP, CARD_READ_REC_SFI10_REC1_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareReadRecord(FILE7, 1);
-//     cardTransactionManager.prepareReadRecord(FILE8, 1);
-//     cardTransactionManager.prepareReadRecord(FILE10, 1);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    /* Force the checking of the session key to fail */
+    cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam)
+                        .addAuthorizedSessionKey( 0x00,  0x00);
 
-//   @Test
-//   public void processCommands_whenOutOfSession_shouldExchangeApduWithCardOnly()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_READ_REC_SFI7_REC1_CMD, CARD_READ_REC_SFI8_REC1_CMD, CARD_READ_REC_SFI10_REC1_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(
-//             CARD_READ_REC_SFI7_REC1_RSP, CARD_READ_REC_SFI8_REC1_RSP, CARD_READ_REC_SFI10_REC1_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareReadRecord(FILE7, 1);
-//     cardTransactionManager.prepareReadRecord(FILE8, 1);
-//     cardTransactionManager.prepareReadRecord(FILE10, 1);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    cardTransactionManager =
+        CalypsoExtensionService::getInstance()
+        ->createCardTransaction(cardReader, calypsoCard, cardSecuritySetting);
 
-//   @Test(expected = IllegalStateException.class)
-//   public void processClosing_whenNoSessionIsOpen_shouldThrowISE() {
-//     cardTransactionManager.processClosing();
-//   }
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillRepeatedly(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillRepeatedly(Return(cardCardResponse));
+
+    EXPECT_THROW(cardTransactionManager->processOpening(WriteAccessLevel::DEBIT),
+                 UnauthorizedKeyException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     processCommands_whenOutOfSession_shouldExchangeApduWithCardOnly)
+{
+    setUp();
+
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_READ_REC_SFI7_REC1_CMD,
+                           CARD_READ_REC_SFI8_REC1_CMD,
+                           CARD_READ_REC_SFI10_REC1_CMD});
+
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_READ_REC_SFI7_REC1_RSP,
+                            CARD_READ_REC_SFI8_REC1_RSP,
+                            CARD_READ_REC_SFI10_REC1_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareReadRecord(FILE7, 1);
+    cardTransactionManager->prepareReadRecord(FILE8, 1);
+    cardTransactionManager->prepareReadRecord(FILE10, 1);
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     processCardCommands_whenOutOfSession_shouldExchangeApduWithCardOnly)
+{
+    setUp();
+
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_READ_REC_SFI7_REC1_CMD,
+                           CARD_READ_REC_SFI8_REC1_CMD,
+                           CARD_READ_REC_SFI10_REC1_CMD});
+
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_READ_REC_SFI7_REC1_RSP,
+                            CARD_READ_REC_SFI8_REC1_RSP,
+                            CARD_READ_REC_SFI10_REC1_RSP});
+
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareReadRecord(FILE7, 1);
+    cardTransactionManager->prepareReadRecord(FILE8, 1);
+    cardTransactionManager->prepareReadRecord(FILE10, 1);
+    cardTransactionManager->processCardCommands();
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, processClosing_whenNoSessionIsOpen_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->processClosing(), IllegalStateException);
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest,
      processClosing_whenASessionIsOpenAndNotSamC1_shouldExchangeApduWithCardAndSamWithoutDigestUpdateMultiple)
@@ -862,154 +883,137 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test(expected = UnexpectedCommandStatusException.class)
-//   public void processClosing_whenCloseSessionFails_shouldThrowUCSE()
-//       throws Exception {
-//     // open session
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD);
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_OPEN_SECURE_SESSION_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_OPEN_SECURE_SESSION_RSP);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
+TEST(CardTransactionManagerAdapterTest, processClosing_whenCloseSessionFails_shouldThrowUCSE)
+{
+    setUp();
 
-//     InOrder inOrder = inOrder(samReader, cardReader);
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
+    /* Open session */
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
 
-//     samCardRequest =
-//         createCardRequest(SAM_DIGEST_INIT_OPEN_SECURE_SESSION_CMD, SAM_DIGEST_CLOSE_CMD);
-//     cardCardRequest = createCardRequest(CARD_CLOSE_SECURE_SESSION_CMD);
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_DIGEST_CLOSE_RSP);
-//     cardCardResponse = createCardResponse(SW1SW2_INCORRECT_SIGNATURE);
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
 
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+    samCardRequest = createCardRequest({SAM_DIGEST_INIT_OPEN_SECURE_SESSION_CMD,
+                                        SAM_DIGEST_CLOSE_CMD});
+    cardCardRequest = createCardRequest({CARD_CLOSE_SECURE_SESSION_CMD});
+    samCardResponse = createCardResponse({SW1SW2_OK_RSP, SAM_DIGEST_CLOSE_RSP});
+    cardCardResponse = createCardResponse({SW1SW2_INCORRECT_SIGNATURE});
 
-//     cardTransactionManager.processClosing();
-//   }
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//   @Test(expected = InvalidCardSignatureException.class)
-//   public void processClosing_whenCardAuthenticationFails_shouldThrowICSE()
-//       throws Exception {
-//     // open session
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD);
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_OPEN_SECURE_SESSION_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_OPEN_SECURE_SESSION_RSP);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
+    EXPECT_THROW(cardTransactionManager->processClosing(), UnexpectedCommandStatusException);
 
-//     InOrder inOrder = inOrder(samReader, cardReader);
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
+    tearDown();
+}
 
-//     samCardRequest =
-//         createCardRequest(SAM_DIGEST_INIT_OPEN_SECURE_SESSION_CMD, SAM_DIGEST_CLOSE_CMD);
-//     cardCardRequest = createCardRequest(CARD_CLOSE_SECURE_SESSION_CMD);
+TEST(CardTransactionManagerAdapterTest, processClosing_whenCardAuthenticationFails_shouldThrowICSE)
+{
+    setUp();
 
-//     samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_DIGEST_CLOSE_RSP);
-//     cardCardResponse = createCardResponse(CARD_CLOSE_SECURE_SESSION_RSP);
+    /* Open session */
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
 
-//     CardRequestSpi samCardRequest2 = createCardRequest(SAM_DIGEST_AUTHENTICATE_CMD);
-//     CardResponseApi samCardResponse2 = createCardResponse(SW1SW2_INCORRECT_SIGNATURE);
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest2)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse2);
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
 
-//     cardTransactionManager.processClosing();
-//   }
+    samCardRequest =
+        createCardRequest({SAM_DIGEST_INIT_OPEN_SECURE_SESSION_CMD, SAM_DIGEST_CLOSE_CMD});
+    cardCardRequest = createCardRequest({CARD_CLOSE_SECURE_SESSION_CMD});
+    samCardResponse = createCardResponse({SW1SW2_OK_RSP, SAM_DIGEST_CLOSE_RSP});
+    cardCardResponse = createCardResponse({CARD_CLOSE_SECURE_SESSION_RSP});
 
-//   @Test(expected = IllegalStateException.class)
-//   public void processCancel_whenNoSessionIsOpen_shouldThrowISE() {
-//     cardTransactionManager.processCancel();
-//   }
+    const std::shared_ptr<CardRequestSpi> samCardRequest2 =
+        createCardRequest({SAM_DIGEST_AUTHENTICATE_CMD});
+    const std::shared_ptr<CardResponseApi> samCardResponse2 =
+        createCardResponse({SW1SW2_INCORRECT_SIGNATURE});
 
-//   @Test
-//   public void processCancel_whenASessionIsOpen_shouldSendCancelApduToCard() throws Exception {
-//     // open session
-//     CardRequestSpi samCardRequest =
-//         createCardRequest(SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD);
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_OPEN_SECURE_SESSION_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_OPEN_SECURE_SESSION_RSP);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.processOpening(WriteAccessLevel.DEBIT);
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _))
+        .WillOnce(Return(samCardResponse))
+        .WillOnce(Return(samCardResponse2));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     InOrder inOrder = inOrder(samReader, cardReader);
-//     inOrder
-//         .verify(samReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class));
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     cardCardRequest = createCardRequest(CARD_ABORT_SECURE_SESSION_CMD);
-//     cardCardResponse = createCardResponse(SW1SW2_OK);
+    EXPECT_THROW(cardTransactionManager->processClosing(), InvalidCardSignatureException);
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.processCancel();
-//     inOrder = inOrder(samReader, cardReader);
-//     inOrder
-//         .verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void processVerifyPin_whenPINIsNull_shouldThrowIAE() {
-//     cardTransactionManager.processVerifyPin(null);
-//   }
+TEST(CardTransactionManagerAdapterTest, processCancel_whenNoSessionIsOpen_shouldThrowISE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void processVerifyPin_whenPINIsNot4Digits_shouldThrowIAE() {
-//     cardTransactionManager.processVerifyPin(PIN_5_DIGITS.getBytes());
-//   }
+    EXPECT_THROW(cardTransactionManager->processCancel(), IllegalStateException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, processCancel_whenASessionIsOpen_shouldSendCancelApduToCard)
+{
+    setUp();
+
+    /* Open session */
+    std::shared_ptr<CardRequestSpi> samCardRequest =
+        createCardRequest({SAM_SELECT_DIVERSIFIER_CMD, SAM_GET_CHALLENGE_CMD});
+    std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_OPEN_SECURE_SESSION_CMD});
+    std::shared_ptr<CardResponseApi> samCardResponse =
+        createCardResponse({SW1SW2_OK_RSP, SAM_GET_CHALLENGE_RSP});
+    std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_OPEN_SECURE_SESSION_RSP});
+
+    EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
+
+    cardCardRequest = createCardRequest({CARD_ABORT_SECURE_SESSION_CMD});
+    cardCardResponse = createCardResponse({SW1SW2_OK});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->processCancel();
+
+    tearDown();
+}
+
+// C++: PIN comes as a vector reference, cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest, processVerifyPin_whenPINIsNull_shouldThrowIAE)
+// {
+//     setUp();
+//
+//     EXPECT_CALL(cardTransactionManager.processVerifyPin(null), IllegalArgumentException;
+//
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest, processVerifyPin_whenPINIsNot4Digits_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->processVerifyPin(
+                     std::vector<uint8_t>(PIN_5_DIGITS.begin(), PIN_5_DIGITS.end())),
+                 IllegalArgumentException);
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest, processVerifyPin_whenPINIsNotFirstCommand_shouldThrowISE)
 {
@@ -1171,23 +1175,24 @@ TEST(CardTransactionManagerAdapterTest,
     EXPECT_THROW(cardTransactionManager->prepareSelectFile(three), IllegalArgumentException);
 }
 
-//   @Test
-//   public void
-//       prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision3_shouldPrepareSelectFileApduWith1234()
-//           throws Exception {
-//     short lid = 0x1234;
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_SELECT_FILE_1234_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_SELECT_FILE_1234_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareSelectFile(lid);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision3_shouldPrepareSelectFileApduWith1234)
+{
+    setUp();
+
+    const uint16_t lid = 0x1234;
+    const std::shared_ptr<CardRequestSpi> cardCardRequest =
+        createCardRequest({CARD_SELECT_FILE_1234_CMD});
+    const std::shared_ptr<CardResponseApi> cardCardResponse =
+        createCardResponse({CARD_SELECT_FILE_1234_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareSelectFile(lid);
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest,
      prepareSelectFile_whenLidIs1234AndCardIsPrimeRevision2_shouldPrepareSelectFileApduWith1234)
@@ -1209,342 +1214,405 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test
-//   public void
-//       prepareSelectFile_whenSelectFileControlIsFirstEF_shouldPrepareSelectFileApduWithP2_02_P1_00()
-//           throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_SELECT_FILE_FIRST_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_SELECT_FILE_1234_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareSelectFile(SelectFileControl.FIRST_EF);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFile_whenSelectFileControlIsFirstEF_shouldPrepareSelectFileApduWithP2_02_P1_00)
+{
+    setUp();
 
-//   @Test
-//   public void
-//       prepareSelectFile_whenSelectFileControlIsNextEF_shouldPrepareSelectFileApduWithP2_02_P1_02()
-//           throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_SELECT_FILE_NEXT_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_SELECT_FILE_1234_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareSelectFile(SelectFileControl.NEXT_EF);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    const auto cardCardRequest = createCardRequest({CARD_SELECT_FILE_FIRST_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_SELECT_FILE_1234_RSP});
 
-//   @Test
-//   public void
-//       prepareSelectFile_whenSelectFileControlIsCurrentEF_shouldPrepareSelectFileApduWithP2_09_P1_00()
-//           throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_SELECT_FILE_CURRENT_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_SELECT_FILE_1234_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareSelectFile(SelectFileControl.CURRENT_DF);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareGetData_whenGetDataTagIsNull_shouldThrowIAE() {
-//     cardTransactionManager.prepareGetData(null);
-//   }
+    cardTransactionManager->prepareSelectFile(SelectFileControl::FIRST_EF);
+    cardTransactionManager->processCommands();
 
-//   @Test
-//   public void prepareGetData_whenGetDataTagIsFCP_shouldPrepareSelectFileApduWithTagFCP()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_GET_DATA_FCP_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_GET_DATA_FCP_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareGetData(GetDataTag.FCP_FOR_CURRENT_FILE);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    tearDown();
+}
 
-//   @Test
-//   public void prepareGetData_whenGetDataTagIsEF_LIST_shouldPopulateCalypsoCard() throws Exception {
-//     // EF LIST
-//     // C028
-//     // C106 2001 07 02 1D 01
-//     // C106 20FF 09 01 1D 04
-//     // C106 F123 10 04 F3 F4
-//     // C106 F124 11 08 F3 F4
-//     // C106 F125 1F 09 F3 F4
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_GET_DATA_EF_LIST_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_GET_DATA_EF_LIST_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFile_whenSelectFileControlIsNextEF_shouldPrepareSelectFileApduWithP2_02_P1_02)
+{
+    setUp();
 
-//     assertThat(calypsoCard.getFiles()).isEmpty();
+    const auto cardCardRequest = createCardRequest({CARD_SELECT_FILE_NEXT_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_SELECT_FILE_1234_RSP});
 
-//     cardTransactionManager.prepareGetData(GetDataTag.EF_LIST);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     verifyNoMoreInteractions(samReader, cardReader);
+    cardTransactionManager->prepareSelectFile(SelectFileControl::NEXT_EF);
+    cardTransactionManager->processCommands();
 
-//     assertThat(calypsoCard.getFiles()).hasSize(5);
+    tearDown();
+}
 
-//     FileHeader fileHeader07 = calypsoCard.getFileBySfi( 0x07).getHeader();
-//     assertThat(fileHeader07.getLid()).isEqualTo((short) 0x2001);
-//     assertThat(fileHeader07.getEfType()).isEqualTo(ElementaryFile.Type.LINEAR);
-//     assertThat(fileHeader07.getRecordSize()).isEqualTo( 0x1D);
-//     assertThat(fileHeader07.getRecordsNumber()).isEqualTo( 0x01);
+TEST(CardTransactionManagerAdapterTest,
+     prepareSelectFile_whenSelectFileControlIsCurrentEF_shouldPrepareSelectFileApduWithP2_09_P1_00)
+{
+    setUp();
 
-//     FileHeader fileHeader09 = calypsoCard.getFileBySfi( 0x09).getHeader();
-//     assertThat(fileHeader09.getLid()).isEqualTo((short) 0x20FF);
-//     assertThat(fileHeader09.getEfType()).isEqualTo(ElementaryFile.Type.BINARY);
-//     assertThat(fileHeader09.getRecordSize()).isEqualTo( 0x1D);
-//     assertThat(fileHeader09.getRecordsNumber()).isEqualTo( 0x04);
+    const auto cardCardRequest = createCardRequest({CARD_SELECT_FILE_CURRENT_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_SELECT_FILE_1234_RSP});
 
-//     FileHeader fileHeader10 = calypsoCard.getFileBySfi( 0x10).getHeader();
-//     assertThat(fileHeader10.getLid()).isEqualTo((short) 0xF123);
-//     assertThat(fileHeader10.getEfType()).isEqualTo(ElementaryFile.Type.CYCLIC);
-//     assertThat(fileHeader10.getRecordSize()).isEqualTo( 0xF3);
-//     assertThat(fileHeader10.getRecordsNumber()).isEqualTo( 0xF4);
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     FileHeader fileHeader11 = calypsoCard.getFileBySfi( 0x11).getHeader();
-//     assertThat(fileHeader11.getLid()).isEqualTo((short) 0xF124);
-//     assertThat(fileHeader11.getEfType()).isEqualTo(ElementaryFile.Type.SIMULATED_COUNTERS);
-//     assertThat(fileHeader11.getRecordSize()).isEqualTo( 0xF3);
-//     assertThat(fileHeader11.getRecordsNumber()).isEqualTo( 0xF4);
+    cardTransactionManager->prepareSelectFile(SelectFileControl::CURRENT_DF);
+    cardTransactionManager->processCommands();
 
-//     FileHeader fileHeader1F = calypsoCard.getFileBySfi( 0x1F).getHeader();
-//     assertThat(fileHeader1F.getLid()).isEqualTo((short) 0xF125);
-//     assertThat(fileHeader1F.getEfType()).isEqualTo(ElementaryFile.Type.COUNTERS);
-//     assertThat(fileHeader1F.getRecordSize()).isEqualTo( 0xF3);
-//     assertThat(fileHeader1F.getRecordsNumber()).isEqualTo( 0xF4);
+    tearDown();
+}
 
-//     assertThat(calypsoCard.getFileByLid((short) 0x20FF))
-//         .isEqualTo(calypsoCard.getFileBySfi( 0x09));
-//   }
+// C++: data tag cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest, prepareGetData_whenGetDataTagIsNull_shouldThrowIAE)
+// {
+//     setUp();
 
-//   @Test
-//   public void prepareGetData_whenGetDataTagIsTRACEABILITY_INFORMATION_shouldPopulateCalypsoCard()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_GET_DATA_TRACEABILITY_INFORMATION_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_GET_DATA_TRACEABILITY_INFORMATION_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareGetData(GetDataTag.TRACEABILITY_INFORMATION);
+//     EXPECT_THROW(cardTransactionManager->prepareGetData(null), IllegalArgumentException;
 
-//     assertThat(calypsoCard.getTraceabilityInformation()).isEmpty();
+//     tearDown();
+// }
 
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
+TEST(CardTransactionManagerAdapterTest,
+     prepareGetData_whenGetDataTagIsFCP_shouldPrepareSelectFileApduWithTagFCP)
+{
+    setUp();
 
-//     verifyNoMoreInteractions(samReader, cardReader);
+    const auto cardCardRequest = createCardRequest({CARD_GET_DATA_FCP_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_GET_DATA_FCP_RSP});
 
-//     assertThat(calypsoCard.getTraceabilityInformation())
-//         .isEqualTo(HexUtil::toByteArray("00112233445566778899"));
-//   }
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//   @Test
-//   public void prepareGetData_whenGetDataTagIsFCI_shouldPrepareSelectFileApduWithTagFCI()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_GET_DATA_FCI_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_GET_DATA_FCI_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareGetData(GetDataTag.FCI_FOR_CURRENT_DF);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    cardTransactionManager->prepareGetData(GetDataTag::FCP_FOR_CURRENT_FILE);
+    cardTransactionManager->processCommands();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecord_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecord( 31, 1);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecord_whenRecordNumberIsLessThan0_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecord(FILE7, -1);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareGetData_whenGetDataTagIsEF_LIST_shouldPopulateCalypsoCard)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecord_whenRecordNumberIsMoreThan250_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecord(FILE7, 251);
-//   }
+    /*
+     * EF LIST
+     * C028
+     * C106 2001 07 02 1D 01
+     * C106 20FF 09 01 1D 04
+     * C106 F123 10 04 F3 F4
+     * C106 F124 11 08 F3 F4
+     * C106 F125 1F 09 F3 F4
+     */
+    const auto cardCardRequest = createCardRequest({CARD_GET_DATA_EF_LIST_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_GET_DATA_EF_LIST_RSP});
 
-//   @Test
-//   public void prepareReadRecord_whenSfi07RecNumber1_shouldPrepareReadRecordApduWithSfi07RecNumber1()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_READ_REC_SFI7_REC1_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_READ_REC_SFI7_REC1_RSP);
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     cardTransactionManager.prepareReadRecord(FILE7, 1);
-//     cardTransactionManager.processCommands();
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecords_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecords( 31, 1, 1, 1);
-//   }
+    ASSERT_EQ(calypsoCard->getFiles().size(), 0);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecords_whenFromRecordNumberIs0_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecords(FILE7, 0, 1, 1);
-//   }
+    cardTransactionManager->prepareGetData(GetDataTag::EF_LIST);
+    cardTransactionManager->processCommands();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecords_whenFromRecordNumberIsGreaterThan250_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecords(FILE7, 251, 251, 1);
-//   }
+    ASSERT_EQ(calypsoCard->getFiles().size(), 5);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecords_whenToRecordNumberIsLessThanFromRecordNumber_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecords(FILE7, 2, 1, 1);
-//   }
+    const auto fileHeader07 = calypsoCard->getFileBySfi(0x07)->getHeader();
+    ASSERT_EQ(fileHeader07->getLid(), 0x2001);
+    ASSERT_EQ(fileHeader07->getEfType(), ElementaryFile::Type::LINEAR);
+    ASSERT_EQ(fileHeader07->getRecordSize(), 0x1D);
+    ASSERT_EQ(fileHeader07->getRecordsNumber(), 0x01);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecords_whenToRecordNumberIsGreaterThan250_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecords(FILE7, 1, 251, 1);
-//   }
+    const auto fileHeader09 = calypsoCard->getFileBySfi(0x09)->getHeader();
+    ASSERT_EQ(fileHeader09->getLid(), 0x20FF);
+    ASSERT_EQ(fileHeader09->getEfType(), ElementaryFile::Type::BINARY);
+    ASSERT_EQ(fileHeader09->getRecordSize(), 0x1D);
+    ASSERT_EQ(fileHeader09->getRecordsNumber(), 0x04);
 
-//   @Test
-//   public void
-//       prepareReadRecords_whenNbRecordsToReadMultipliedByRecSize2IsLessThanPayLoad_shouldPrepareOneCommand()
-//           throws Exception {
+    const auto fileHeader10 = calypsoCard->getFileBySfi(0x10)->getHeader();
+    ASSERT_EQ(fileHeader10->getLid(), 0xF123);
+    ASSERT_EQ(fileHeader10->getEfType(), ElementaryFile::Type::CYCLIC);
+    ASSERT_EQ(fileHeader10->getRecordSize(), 0xF3);
+    ASSERT_EQ(fileHeader10->getRecordsNumber(), 0xF4);
 
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_READ_RECORDS_FROM1_TO2_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_READ_RECORDS_FROM1_TO2_RSP);
+    const auto fileHeader11 = calypsoCard->getFileBySfi(0x11)->getHeader();
+    ASSERT_EQ(fileHeader11->getLid(), 0xF124);
+    ASSERT_EQ(fileHeader11->getEfType(), ElementaryFile::Type::SIMULATED_COUNTERS);
+    ASSERT_EQ(fileHeader11->getRecordSize(), 0xF3);
+    ASSERT_EQ(fileHeader11->getRecordsNumber(), 0xF4);
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(7);
+    const auto fileHeader1F = calypsoCard->getFileBySfi(0x1F)->getHeader();
+    ASSERT_EQ(fileHeader1F->getLid(), 0xF125);
+    ASSERT_EQ(fileHeader1F->getEfType(), ElementaryFile::Type::COUNTERS);
+    ASSERT_EQ(fileHeader1F->getRecordSize(), 0xF3);
+    ASSERT_EQ(fileHeader1F->getRecordsNumber(), 0xF4);
 
-//     cardTransactionManager.prepareReadRecords( 1, 1, 2, 1);
-//     cardTransactionManager.processCommands();
+    ASSERT_EQ(calypsoCard->getFileByLid(0x20FF), calypsoCard->getFileBySfi(0x09));
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    tearDown();
+}
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(1))
-//         .isEqualTo(HexUtil::toByteArray("11"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(2))
-//         .isEqualTo(HexUtil::toByteArray("22"));
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareGetData_whenGetDataTagIsTRACEABILITY_INFORMATION_shouldPopulateCalypsoCard)
+{
+    setUp();
 
-//   @Test
-//   public void
-//       prepareReadRecords_whenNbRecordsToReadMultipliedByRecSize2IsGreaterThanPayLoad_shouldPrepareMultipleCommands()
-//           throws Exception {
+    const auto cardCardRequest = createCardRequest({CARD_GET_DATA_TRACEABILITY_INFORMATION_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_GET_DATA_TRACEABILITY_INFORMATION_RSP});
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_READ_RECORDS_FROM1_TO2_CMD,
-//             CARD_READ_RECORDS_FROM3_TO4_CMD,
-//             CARD_READ_RECORDS_FROM5_TO5_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(
-//             CARD_READ_RECORDS_FROM1_TO2_RSP,
-//             CARD_READ_RECORDS_FROM3_TO4_RSP,
-//             CARD_READ_RECORDS_FROM5_TO5_RSP);
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(7);
+    cardTransactionManager->prepareGetData(GetDataTag::TRACEABILITY_INFORMATION);
 
-//     cardTransactionManager.prepareReadRecords( 1, 1, 5, 1);
-//     cardTransactionManager.processCommands();
+    ASSERT_EQ(calypsoCard->getTraceabilityInformation().size(), 0);
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    cardTransactionManager->processCommands();
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(1))
-//         .isEqualTo(HexUtil::toByteArray("11"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(2))
-//         .isEqualTo(HexUtil::toByteArray("22"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(3))
-//         .isEqualTo(HexUtil::toByteArray("33"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(4))
-//         .isEqualTo(HexUtil::toByteArray("44"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(5))
-//         .isEqualTo(HexUtil::toByteArray("55"));
-//   }
+    ASSERT_EQ(calypsoCard->getTraceabilityInformation(),
+              HexUtil::toByteArray("00112233445566778899"));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadCounter_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadCounter( 31, 1);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareAppendRecord_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareAppendRecord( 31, new byte[3]);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareGetData_whenGetDataTagIsFCI_shouldPrepareSelectFileApduWithTagFCI)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareAppendRecord_whenRecordDataIsNull_shouldThrowIAE() {
-//     cardTransactionManager.prepareAppendRecord(FILE7, null);
-//   }
+    const auto cardCardRequest = createCardRequest({CARD_GET_DATA_FCI_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_GET_DATA_FCI_RSP});
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateRecord_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateRecord( 31, 1, new byte[1]);
-//   }
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateRecord_whenRecordNumberIsGreaterThan250_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateRecord(FILE7, 251, new byte[1]);
-//   }
+    cardTransactionManager->prepareGetData(GetDataTag::FCI_FOR_CURRENT_DF);
+    cardTransactionManager->processCommands();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateRecord_whenRecordDataIsNull_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateRecord(FILE7, 1, null);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareWriteRecord_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareWriteRecord( 31, 1, new byte[1]);
-//   }
+TEST(CardTransactionManagerAdapterTest, prepareReadRecord_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareWriteRecord_whenRecordNumberIsGreaterThan250_shouldThrowIAE() {
-//     cardTransactionManager.prepareWriteRecord(FILE7, 251, new byte[1]);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareReadRecord(31, 1), IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecord_whenRecordNumberIsLessThan0_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecord(FILE7, -1), IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecord_whenRecordNumberIsMoreThan250_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecord(FILE7, 251), IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecord_whenSfi07RecNumber1_shouldPrepareReadRecordApduWithSfi07RecNumber1)
+{
+    setUp();
+
+    const auto cardCardRequest = createCardRequest({CARD_READ_REC_SFI7_REC1_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_READ_REC_SFI7_REC1_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareReadRecord(FILE7, 1);
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareReadRecords_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecords(31, 1, 1, 1), IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareReadRecords_whenFromRecordNumberIs0_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecords(FILE7, 0, 1, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecords_whenFromRecordNumberIsGreaterThan250_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecords(FILE7, 251, 251, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecords_whenToRecordNumberIsLessThanFromRecordNumber_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecords(FILE7, 2, 1, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecords_whenToRecordNumberIsGreaterThan250_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecords(FILE7, 1, 251, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecords_whenNbRecordsToReadMultipliedByRecSize2IsLessThanPayLoad_shouldPrepareOneCommand)
+{
+    setUp();
+
+    const auto cardCardRequest = createCardRequest({CARD_READ_RECORDS_FROM1_TO2_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_READ_RECORDS_FROM1_TO2_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+    //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillOnce(Return(7));
+
+    cardTransactionManager->prepareReadRecords( 1, 1, 2, 1);
+    cardTransactionManager->processCommands();
+
+    ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(1), HexUtil::toByteArray("11"));
+    ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(2), HexUtil::toByteArray("22"));
+
+    tearDown();
+}
+
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareReadRecords_whenNbRecordsToReadMultipliedByRecSize2IsGreaterThanPayLoad_shouldPrepareMultipleCommands)
+// {
+//     setUp();
+
+//     const auto cardCardRequest = createCardRequest({CARD_READ_RECORDS_FROM1_TO2_CMD,
+//                                                     CARD_READ_RECORDS_FROM3_TO4_CMD,
+//                                                     CARD_READ_RECORDS_FROM5_TO5_CMD});
+//     const auto cardCardResponse = createCardResponse({CARD_READ_RECORDS_FROM1_TO2_RSP,
+//                                                       CARD_READ_RECORDS_FROM3_TO4_RSP,
+//                                                       CARD_READ_RECORDS_FROM5_TO5_RSP});
+
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillOnce(Return(7));
+
+//     cardTransactionManager->prepareReadRecords(1, 1, 5, 1);
+//     cardTransactionManager->processCommands();
+
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(1), HexUtil::toByteArray("11"));
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(2), HexUtil::toByteArray("22"));
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(3), HexUtil::toByteArray("33"));
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(4), HexUtil::toByteArray("44"));
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(5), HexUtil::toByteArray("55"));
+
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest, prepareReadCounter_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadCounter(31, 1), IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,prepareAppendRecord_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareAppendRecord(31, std::vector<uint8_t>(3)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+// C++: vector reference, cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest,prepareAppendRecord_whenRecordDataIsNull_shouldThrowIAE)
+// {
+//     setUp();
+//
+//     EXPECT_THROW(cardTransactionManager->prepareAppendRecord(FILE7, null), IllegalArgumentException);
+//
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest,prepareUpdateRecord_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareUpdateRecord(31, 1, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareUpdateRecord_whenRecordNumberIsGreaterThan250_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareUpdateRecord(FILE7, 251, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+// C++: vector reference, cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest,prepareUpdateRecord_whenRecordDataIsNull_shouldThrowIAE)
+// {
+//     setUp();
+//
+//     EXPECT_THROW(cardTransactionManager->prepareUpdateRecord(FILE7, 1, null),
+//                  IllegalArgumentException);
+//
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest, prepareWriteRecord_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareWriteRecord(31, 1, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareWriteRecord_whenRecordNumberIsGreaterThan250_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareWriteRecord(FILE7, 251, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest,
      prepareSearchRecords_whenProductTypeIsNotPrimeRev3_shouldThrowUOE)
@@ -1559,313 +1627,297 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenDataIsNull_shouldThrowIAE() {
-//     cardTransactionManager.prepareSearchRecords(null);
-//   }
+TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenDataIsNull_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenDataIsNotInstanceOfInternalAdapter_shouldThrowIAE() {
-//     cardTransactionManager.prepareSearchRecords(
-//         new SearchCommandData() {
-//           @Override
-//           public SearchCommandData setSfi(byte sfi) {
-//             return null;
-//           }
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(nullptr), IllegalArgumentException);
 
-//           @Override
-//           public SearchCommandData startAtRecord(int recordNumber) {
-//             return null;
-//           }
+    tearDown();
+}
 
-//           @Override
-//           public SearchCommandData setOffset(int offset) {
-//             return null;
-//           }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenDataIsNotInstanceOfInternalAdapter_shouldThrowIAE)
+{
+    setUp();
 
-//           @Override
-//           public SearchCommandData enableRepeatedOffset() {
-//             return null;
-//           }
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(
+                     std::make_shared<SearchCommandDataMock>()),
+                 IllegalArgumentException);
 
-//           @Override
-//           public SearchCommandData setSearchData(byte[] data) {
-//             return null;
-//           }
+    tearDown();
+}
 
-//           @Override
-//           public SearchCommandData setMask(byte[] mask) {
-//             return null;
-//           }
+TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenSfiIsNegative_shouldThrowIAE)
+{
+    setUp();
 
-//           @Override
-//           public SearchCommandData fetchFirstMatchingResult() {
-//             return null;
-//           }
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSfi(-1).setSearchData(std::vector<uint8_t>(1));
 
-//           @Override
-//           public List<Integer> getMatchingRecordNumbers() {
-//             return null;
-//           }
-//         });
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenSfiIsNegative_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSfi( -1)
-//             .setSearchData(new byte[1]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenSfiGreaterThanSfiMax_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSfi( 31)
-//             .setSearchData(new byte[1]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenSfiGreaterThanSfiMax_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenRecordNumberIs0_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .startAtRecord(0)
-//             .setSearchData(new byte[1]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSfi(31).setSearchData(std::vector<uint8_t>(1));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenRecordNumberIsGreaterThan250_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .startAtRecord(251)
-//             .setSearchData(new byte[1]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenOffsetIsNegative_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setOffset(-1)
-//             .setSearchData(new byte[1]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenOffsetIsGreaterThan249_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setOffset(250)
-//             .setSearchData(new byte[1]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenRecordNumberIs0_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenSearchDataIsNotSet_shouldThrowIAE() {
-//     SearchCommandData data = CalypsoExtensionService.getInstance().createSearchCommandData();
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->startAtRecord(0).setSearchData(std::vector<uint8_t>(1));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenSearchDataIsNull_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance().createSearchCommandData().setSearchData(null);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenSearchDataIsEmpty_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance().createSearchCommandData().setSearchData(new byte[0]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void
-//       prepareSearchRecords_whenSearchDataLengthIsGreaterThan250MinusOffset0_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSearchData(new byte[251]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenRecordNumberIsGreaterThan250_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void
-//       prepareSearchRecords_whenSearchDataLengthIsGreaterThan249MinusOffset1_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setOffset(1)
-//             .setSearchData(new byte[250]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->startAtRecord(251).setSearchData(std::vector<uint8_t>(1));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSearchRecords_whenMaskLengthIsGreaterThanSearchDataLength_shouldThrowIAE() {
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSearchData(new byte[1])
-//             .setMask(new byte[2]);
-//     cardTransactionManager.prepareSearchRecords(data);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//   @Test
-//   public void prepareSearchRecords_whenUsingDefaultParameters_shouldPrepareDefaultCommand()
-//       throws Exception {
+    tearDown();
+}
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_FFFF_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_FFFF_RSP);
+TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenOffsetIsNegative_shouldThrowIAE)
+{
+    setUp();
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setOffset(-1).setSearchData(std::vector<uint8_t>(1));
 
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSearchData(new byte[] {0x12, 0x34});
-//     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCommands();
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    tearDown();
+}
 
-//     assertThat(data.getMatchingRecordNumbers()).containsExactly(4, 6);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenOffsetIsGreaterThan249_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test
-//   public void prepareSearchRecords_whenSetAllParameters_shouldPrepareCustomCommand()
-//       throws Exception {
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setOffset(250).setSearchData(std::vector<uint8_t>(1));
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_SEARCH_RECORD_MULTIPLE_SFI4_REC2_OFFSET3_FROM_FETCH_1234_FFFF_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_SEARCH_RECORD_MULTIPLE_SFI4_REC2_OFFSET3_FROM_FETCH_1234_FFFF_RSP);
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+    tearDown();
+}
 
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSfi( 4)
-//             .startAtRecord(2)
-//             .setOffset(3)
-//             .enableRepeatedOffset()
-//             .setSearchData(new byte[] {0x12, 0x34})
-//             .fetchFirstMatchingResult();
-//     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCommands();
+TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenSearchDataIsNotSet_shouldThrowIAE)
+{
+    setUp();
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
 
-//     assertThat(data.getMatchingRecordNumbers()).containsExactly(4, 6);
-//     assertThat(calypsoCard.getFileBySfi( 4).getData().getContent(4))
-//         .isEqualTo(HexUtil::toByteArray("112233123456"));
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//   @Test
-//   public void prepareSearchRecords_whenNoMask_shouldFillMaskWithFFh() throws Exception {
+    tearDown();
+}
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_FFFF_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_FFFF_RSP);
+// C++: search data comes as a vector reference, cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenSearchDataIsNull_shouldThrowIAE)
+// {
+//     setUp();
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+//     auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+//     data->setSearchData(null);
 
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSearchData(new byte[] {0x12, 0x34});
-//     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCommands();
+//     EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+//     tearDown();
+// }
 
-//     assertThat(data.getMatchingRecordNumbers()).containsExactly(4, 6);
-//   }
+TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenSearchDataIsEmpty_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test
-//   public void prepareSearchRecords_whenPartialMask_shouldRightPadMaskWithFFh() throws Exception {
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSearchData(std::vector<uint8_t>(0));
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_56FF_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_56FF_RSP);
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+    tearDown();
+}
 
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSearchData(new byte[] {0x12, 0x34})
-//             .setMask(new byte[] {0x56});
-//     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCommands();
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenSearchDataLengthIsGreaterThan250MinusOffset0_shouldThrowIAE)
+{
+    setUp();
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSearchData(std::vector<uint8_t>(251));
 
-//     assertThat(data.getMatchingRecordNumbers()).containsExactly(4, 6);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//   @Test
-//   public void prepareSearchRecords_whenFullMask_shouldUseCompleteMask() throws Exception {
+    tearDown();
+}
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_5677_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_5677_RSP);
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenSearchDataLengthIsGreaterThan249MinusOffset1_shouldThrowIAE)
+{
+    setUp();
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setOffset(1).setSearchData(std::vector<uint8_t>(250));
 
-//     SearchCommandData data =
-//         CalypsoExtensionService.getInstance()
-//             .createSearchCommandData()
-//             .setSearchData(new byte[] {0x12, 0x34})
-//             .setMask(new byte[] {0x56, 0x77});
-//     cardTransactionManager.prepareSearchRecords(data);
-//     cardTransactionManager.processCommands();
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    tearDown();
+}
 
-//     assertThat(data.getMatchingRecordNumbers()).containsExactly(4, 6);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenMaskLengthIsGreaterThanSearchDataLength_shouldThrowIAE)
+{
+    setUp();
+
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSearchData(std::vector<uint8_t>(1)).setMask(std::vector<uint8_t>(2));
+
+    EXPECT_THROW(cardTransactionManager->prepareSearchRecords(data), IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenUsingDefaultParameters_shouldPrepareDefaultCommand)
+{
+    setUp();
+
+    auto cardCardRequest =
+        createCardRequest({CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_FFFF_CMD});
+    auto cardCardResponse =
+        createCardResponse({CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_FFFF_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSearchData(std::vector<uint8_t>({0x12, 0x34}));
+
+    cardTransactionManager->prepareSearchRecords(data);
+    cardTransactionManager->processCommands();
+
+    ASSERT_TRUE(Arrays::equals(data->getMatchingRecordNumbers(), {4, 6}));
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenSetAllParameters_shouldPrepareCustomCommand)
+{
+    setUp();
+
+    auto cardCardRequest =
+        createCardRequest({CARD_SEARCH_RECORD_MULTIPLE_SFI4_REC2_OFFSET3_FROM_FETCH_1234_FFFF_CMD});
+    auto cardCardResponse =
+        createCardResponse({CARD_SEARCH_RECORD_MULTIPLE_SFI4_REC2_OFFSET3_FROM_FETCH_1234_FFFF_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSfi(4)
+         .startAtRecord(2)
+         .setOffset(3)
+         .enableRepeatedOffset()
+         .setSearchData(std::vector<uint8_t>({0x12, 0x34}))
+         .fetchFirstMatchingResult();
+
+    cardTransactionManager->prepareSearchRecords(data);
+    cardTransactionManager->processCommands();
+
+
+    ASSERT_TRUE(Arrays::equals(data->getMatchingRecordNumbers(), {4, 6}));
+    ASSERT_EQ(calypsoCard->getFileBySfi(4)->getData()->getContent(4),
+              HexUtil::toByteArray("112233123456"));
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenNoMask_shouldFillMaskWithFFh)
+{
+    setUp();
+
+    auto cardCardRequest =
+        createCardRequest({CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_FFFF_CMD});
+    auto cardCardResponse =
+        createCardResponse({CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_FFFF_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSearchData(std::vector<uint8_t>({0x12, 0x34}));
+
+    cardTransactionManager->prepareSearchRecords(data);
+    cardTransactionManager->processCommands();
+
+    ASSERT_TRUE(Arrays::equals(data->getMatchingRecordNumbers(), {4, 6}));
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSearchRecords_whenPartialMask_shouldRightPadMaskWithFFh)
+{
+    setUp();
+
+    auto cardCardRequest =
+        createCardRequest({CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_56FF_CMD});
+    auto cardCardResponse =
+        createCardResponse({CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_56FF_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSearchData(std::vector<uint8_t>({0x12, 0x34})).setMask(std::vector<uint8_t>({0x56}));
+
+    cardTransactionManager->prepareSearchRecords(data);
+    cardTransactionManager->processCommands();
+
+    ASSERT_TRUE(Arrays::equals(data->getMatchingRecordNumbers(), {4, 6}));
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareSearchRecords_whenFullMask_shouldUseCompleteMask)
+{
+    setUp();
+
+    auto cardCardRequest =
+        createCardRequest({CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_5677_CMD});
+    auto cardCardResponse =
+        createCardResponse({CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NOFETCH_1234_5677_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    auto data = CalypsoExtensionService::getInstance()->createSearchCommandData();
+    data->setSearchData(std::vector<uint8_t>({0x12, 0x34})).setMask(std::vector<uint8_t>({0x56, 0x77}));
+
+    cardTransactionManager->prepareSearchRecords(data);
+    cardTransactionManager->processCommands();
+
+    ASSERT_TRUE(Arrays::equals(data->getMatchingRecordNumbers(), {4, 6}));
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest,
      prepareReadRecordsPartially_whenProductTypeIsNotPrimeRev3OrLight_shouldThrowUOE)
@@ -1880,128 +1932,174 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecordsPartially_whenSfiIsNegative_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( -1, 1, 1, 1, 1);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenSfiIsNegative_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecordsPartially_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 31, 1, 1, 1, 1);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(-1, 1, 1, 1, 1),
+                 IllegalArgumentException);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecordsPartially_whenFromRecordNumberIsZero_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 0, 1, 1, 1);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecordsPartially_whenFromRecordNumberGreaterThan250_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 251, 251, 1, 1);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void
-//       prepareReadRecordsPartially_whenToRecordNumberLessThanFromRecordNumber_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 2, 1, 1, 1);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(31, 1, 1, 1, 1),
+                 IllegalArgumentException);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void
-//       prepareReadRecordsPartially_whenToRecordNumberGreaterThan250MinusFromRecordNumber_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 251, 1, 1);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecordsPartially_whenOffsetIsNegative_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 1, -1, 1);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenFromRecordNumberIsZero_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecordsPartially_whenOffsetGreaterThan249_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 1, 250, 1);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(1, 0, 1, 1, 1),
+                 IllegalArgumentException);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadRecordsPartially_whenNbBytesToReadIsZero_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 1, 1, 0);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void
-//       prepareReadRecordsPartially_whenNbBytesToReadIsGreaterThan250MinusOffset_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 1, 3, 248);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenFromRecordNumberGreaterThan250_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test
-//   public void
-//       prepareReadRecordsPartially_whenNbRecordsToReadMultipliedByNbBytesToReadIsLessThanPayLoad_shouldPrepareOneCommand()
-//           throws Exception {
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(1, 251, 251, 1, 1),
+                 IllegalArgumentException);
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_READ_RECORD_MULTIPLE_REC1_OFFSET3_NBBYTE1_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_READ_RECORD_MULTIPLE_REC1_OFFSET3_NBBYTE1_RSP);
+    tearDown();
+}
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(3);
+TEST(CardTransactionManagerAdapterTest,
+      prepareReadRecordsPartially_whenToRecordNumberLessThanFromRecordNumber_shouldThrowIAE)
+{
+    setUp();
 
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 2, 3, 1);
-//     cardTransactionManager.processCommands();
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially( 1, 2, 1, 1, 1),
+                 IllegalArgumentException);
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    tearDown();
+}
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(1))
-//         .isEqualTo(HexUtil::toByteArray("00000011"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(2))
-//         .isEqualTo(HexUtil::toByteArray("00000022"));
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenToRecordNumberGreaterThan250MinusFromRecordNumber_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test
-//   public void
-//       prepareReadRecordsPartially_whenNbRecordsToReadMultipliedByNbBytesToReadIsGreaterThanPayLoad_shouldPrepareMultipleCommands()
-//           throws Exception {
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially( 1, 1, 251, 1, 1),
+                 IllegalArgumentException);
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_READ_RECORD_MULTIPLE_REC1_OFFSET3_NBBYTE1_CMD,
-//             CARD_READ_RECORD_MULTIPLE_REC3_OFFSET3_NBBYTE1_CMD,
-//             CARD_READ_RECORD_MULTIPLE_REC5_OFFSET3_NBBYTE1_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(
-//             CARD_READ_RECORD_MULTIPLE_REC1_OFFSET3_NBBYTE1_RSP,
-//             CARD_READ_RECORD_MULTIPLE_REC3_OFFSET3_NBBYTE1_RSP,
-//             CARD_READ_RECORD_MULTIPLE_REC5_OFFSET3_NBBYTE1_RSP);
+    tearDown();
+}
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenOffsetIsNegative_shouldThrowIAE)
+{
+    setUp();
 
-//     cardTransactionManager.prepareReadRecordsPartially( 1, 1, 5, 3, 1);
-//     cardTransactionManager.processCommands();
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(1, 1, 1, -1, 1),
+                 IllegalArgumentException);
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    tearDown();
+}
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(1))
-//         .isEqualTo(HexUtil::toByteArray("00000011"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(2))
-//         .isEqualTo(HexUtil::toByteArray("00000022"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(3))
-//         .isEqualTo(HexUtil::toByteArray("00000033"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(4))
-//         .isEqualTo(HexUtil::toByteArray("00000044"));
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent(5))
-//         .isEqualTo(HexUtil::toByteArray("00000055"));
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenOffsetGreaterThan249_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(1, 1, 1, 250, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenNbBytesToReadIsZero_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(1, 1, 1, 1, 0),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+      prepareReadRecordsPartially_whenNbBytesToReadIsGreaterThan250MinusOffset_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareReadRecordsPartially(1, 1, 1, 3, 248),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadRecordsPartially_whenNbRecordsToReadMultipliedByNbBytesToReadIsLessThanPayLoad_shouldPrepareOneCommand)
+{
+    setUp();
+
+    auto cardCardRequest =
+        createCardRequest({CARD_READ_RECORD_MULTIPLE_REC1_OFFSET3_NBBYTE1_CMD});
+    auto cardCardResponse =
+        createCardResponse({CARD_READ_RECORD_MULTIPLE_REC1_OFFSET3_NBBYTE1_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+    //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillAlways(Return(3));
+
+    cardTransactionManager->prepareReadRecordsPartially(1, 1, 2, 3, 1);
+    cardTransactionManager->processCommands();
+
+    ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(1),
+              HexUtil::toByteArray("00000011"));
+    ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(2),
+              HexUtil::toByteArray("00000022"));
+
+    tearDown();
+}
+
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareReadRecordsPartially_whenNbRecordsToReadMultipliedByNbBytesToReadIsGreaterThanPayLoad_shouldPrepareMultipleCommands)
+// {
+//     setUp();
+
+//     auto cardCardRequest = createCardRequest({CARD_READ_RECORD_MULTIPLE_REC1_OFFSET3_NBBYTE1_CMD,
+//                                               CARD_READ_RECORD_MULTIPLE_REC3_OFFSET3_NBBYTE1_CMD,
+//                                               CARD_READ_RECORD_MULTIPLE_REC5_OFFSET3_NBBYTE1_CMD});
+//     auto cardCardResponse = createCardResponse({CARD_READ_RECORD_MULTIPLE_REC1_OFFSET3_NBBYTE1_RSP,
+//                                                 CARD_READ_RECORD_MULTIPLE_REC3_OFFSET3_NBBYTE1_RSP,
+//                                                 CARD_READ_RECORD_MULTIPLE_REC5_OFFSET3_NBBYTE1_RSP});
+
+
+
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillAlways(Return(2));
+
+//     cardTransactionManager->prepareReadRecordsPartially(1, 1, 5, 3, 1);
+//     cardTransactionManager->processCommands();
+
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(1),
+//               HexUtil::toByteArray("00000011"));
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(2),
+//               HexUtil::toByteArray("00000022"));
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(3),
+//               HexUtil::toByteArray("00000033"));
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(4),
+//               HexUtil::toByteArray("00000044"));
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(5),
+//               HexUtil::toByteArray("00000055"));
+
+//     tearDown();
+// }
 
 TEST(CardTransactionManagerAdapterTest,
      prepareUpdateBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE)
@@ -2016,216 +2114,243 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadBinary_whenSfiIsNegative_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadBinary( -1, 1, 1);
-//   }
+TEST(CardTransactionManagerAdapterTest, prepareReadBinary_whenSfiIsNegative_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadBinary_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadBinary( 31, 1, 1);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareReadBinary(-1, 1, 1),
+                 IllegalArgumentException);
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadBinary_whenOffsetIsNegative_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadBinary( 1, -1, 1);
-//   }
+    tearDown();
+}
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadBinary_whenOffsetIsGreaterThan32767_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadBinary( 1, 32768, 1);
-//   }
+TEST(CardTransactionManagerAdapterTest, prepareReadBinary_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareReadBinary_whenNbBytesToReadIsLessThan1_shouldThrowIAE() {
-//     cardTransactionManager.prepareReadBinary( 1, 1, 0);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareReadBinary(31, 1, 1),
+                 IllegalArgumentException);
 
-//   @Test
-//   public void
-//       prepareReadBinary_whenSfiIsNot0AndOffsetIsGreaterThan255_shouldAddFirstAReadBinaryCommand()
-//           throws Exception {
+    tearDown();
+}
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD, CARD_READ_BINARY_SFI0_OFFSET256_1B_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(
-//             CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP, CARD_READ_BINARY_SFI0_OFFSET256_1B_RSP);
+TEST(CardTransactionManagerAdapterTest, prepareReadBinary_whenOffsetIsNegative_shouldThrowIAE)
+{
+    setUp();
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+    EXPECT_THROW(cardTransactionManager->prepareReadBinary(1, -1, 1),
+                 IllegalArgumentException);
 
-//     cardTransactionManager.prepareReadBinary( 1, 256, 1);
-//     cardTransactionManager.processCommands();
+    tearDown();
+}
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+TEST(CardTransactionManagerAdapterTest, prepareReadBinary_whenOffsetIsGreaterThan32767_shouldThrowIAE)
+{
+    setUp();
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .startsWith(HexUtil::toByteArray("1100"))
-//         .endsWith(HexUtil::toByteArray("0066"))
-//         .hasSize(257);
-//   }
+    EXPECT_THROW(cardTransactionManager->prepareReadBinary(1, 32768, 1),
+                 IllegalArgumentException);
 
-//   @Test
-//   public void prepareReadBinary_whenNbBytesToReadIsLessThanPayLoad_shouldPrepareOneCommand()
-//       throws Exception {
+    tearDown();
+}
 
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP);
+TEST(CardTransactionManagerAdapterTest, prepareReadBinary_whenNbBytesToReadIsLessThan1_shouldThrowIAE)
+{
+    setUp();
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
+    EXPECT_THROW(cardTransactionManager->prepareReadBinary(1, 1, 0),
+                 IllegalArgumentException);
 
-//     cardTransactionManager.prepareReadBinary( 1, 0, 1);
-//     cardTransactionManager.processCommands();
+    tearDown();
+}
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+TEST(CardTransactionManagerAdapterTest,
+     prepareReadBinary_whenSfiIsNot0AndOffsetIsGreaterThan255_shouldAddFirstAReadBinaryCommand)
+{
+    setUp();
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(HexUtil::toByteArray("11"));
-//   }
+    const auto cardCardRequest = createCardRequest({CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD,
+                                                    CARD_READ_BINARY_SFI0_OFFSET256_1B_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP,
+                                                      CARD_READ_BINARY_SFI0_OFFSET256_1B_RSP});
 
-//   @Test
-//   public void
-//       prepareReadBinary_whenNbBytesToReadIsGreaterThanPayLoad_shouldPrepareMultipleCommands()
-//           throws Exception {
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP);
+    cardTransactionManager->prepareReadBinary(1, 256, 1);
+    cardTransactionManager->processCommands();
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
+    const auto content = calypsoCard->getFileBySfi(1)->getData()->getContent();
 
-//     cardTransactionManager.prepareReadBinary( 1, 0, 1);
-//     cardTransactionManager.processCommands();
+    ASSERT_EQ(content.size(), 257);
+    ASSERT_TRUE(Arrays::startsWith(content, HexUtil::toByteArray("1100")));
+    ASSERT_TRUE(Arrays::endsWith(content, HexUtil::toByteArray("0066")));
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    tearDown();
+}
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(HexUtil::toByteArray("11"));
-//   }
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareReadBinary_whenNbBytesToReadIsLessThanPayLoad_shouldPrepareOneCommand)
+// {
+//     setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateBinary_whenSfiIsNegative_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateBinary( -1, 1, new byte[1]);
-//   }
+//     const auto cardCardRequest = createCardRequest({CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD});
+//     const auto cardCardResponse = createCardResponse({CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP});
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateBinary_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateBinary( 31, 1, new byte[1]);
-//   }
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillAlways(Return(2));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateBinary_whenOffsetIsNegative_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateBinary( 1, -1, new byte[1]);
-//   }
+//     cardTransactionManager->prepareReadBinary(1, 0, 1);
+//     cardTransactionManager->processCommands();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateBinary_whenOffsetIsGreaterThan32767_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateBinary( 1, 32768, new byte[1]);
-//   }
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(), HexUtil::toByteArray("11"));
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateBinary_whenDataIsNull_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateBinary( 1, 1, null);
-//   }
+//     tearDown();
+// }
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareUpdateBinary_whenDataIsEmpty_shouldThrowIAE() {
-//     cardTransactionManager.prepareUpdateBinary( 1, 1, new byte[0]);
-//   }
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareReadBinary_whenNbBytesToReadIsGreaterThanPayLoad_shouldPrepareMultipleCommands)
+// {
+//     setUp();
 
-//   @Test
-//   public void
-//       prepareUpdateBinary_whenSfiIsNot0AndOffsetIsGreaterThan255_shouldAddFirstAReadBinaryCommand()
-//           throws Exception {
+//     const auto cardCardRequest = createCardRequest({CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD});
+//     const auto cardCardResponse = createCardResponse({CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP});
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD, CARD_UPDATE_BINARY_SFI0_OFFSET256_1B_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP, SW1SW2_OK_RSP);
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillAlways(Return(2));
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
+//     cardTransactionManager->prepareReadBinary(1, 0, 1);
+//     cardTransactionManager->processCommands();
 
-//     cardTransactionManager.prepareUpdateBinary( 1, 256, HexUtil::toByteArray("66"));
-//     cardTransactionManager.processCommands();
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(), HexUtil::toByteArray("11"));
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
+//     tearDown();
+// }
 
-//   @Test
-//   public void prepareUpdateBinary_whenDataLengthIsLessThanPayLoad_shouldPrepareOneCommand()
-//       throws Exception {
+TEST(CardTransactionManagerAdapterTest, prepareUpdateBinary_whenSfiIsNegative_shouldThrowIAE)
+{
+    setUp();
 
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_UPDATE_BINARY_SFI1_OFFSET4_1B_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK_RSP);
+    EXPECT_THROW(cardTransactionManager->prepareUpdateBinary(-1, 1, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
+    tearDown();
+}
 
-//     cardTransactionManager.prepareUpdateBinary( 1, 4, HexUtil::toByteArray("55"));
-//     cardTransactionManager.processCommands();
+TEST(CardTransactionManagerAdapterTest, prepareUpdateBinary_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    EXPECT_THROW(cardTransactionManager->prepareUpdateBinary(31, 1, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(HexUtil::toByteArray("0000000055"));
-//   }
+    tearDown();
+}
 
-//   @Test
-//   public void prepareUpdateBinary_whenDataLengthIsGreaterThanPayLoad_shouldPrepareMultipleCommands()
-//       throws Exception {
+TEST(CardTransactionManagerAdapterTest, prepareUpdateBinary_whenOffsetIsNegative_shouldThrowIAE)
+{
+    setUp();
 
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_UPDATE_BINARY_SFI1_OFFSET0_2B_CMD,
-//             CARD_UPDATE_BINARY_SFI1_OFFSET2_2B_CMD,
-//             CARD_UPDATE_BINARY_SFI1_OFFSET4_1B_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(SW1SW2_OK_RSP, SW1SW2_OK_RSP, SW1SW2_OK_RSP);
+    EXPECT_THROW(cardTransactionManager->prepareUpdateBinary(1, -1, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
 
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
+    tearDown();
+}
 
-//     cardTransactionManager.prepareUpdateBinary( 1, 0, HexUtil::toByteArray("1122334455"));
-//     cardTransactionManager.processCommands();
+TEST(CardTransactionManagerAdapterTest,
+     prepareUpdateBinary_whenOffsetIsGreaterThan32767_shouldThrowIAE)
+{
+    setUp();
 
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
+    EXPECT_THROW(cardTransactionManager->prepareUpdateBinary(1, 32768, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
 
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(HexUtil::toByteArray("1122334455"));
-//   }
+    tearDown();
+}
+
+// C++: data comes as a vector reference, cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest, prepareUpdateBinary_whenDataIsNull_shouldThrowIAE)
+// {
+//     setUp();
+
+//     EXPECT_THROW(cardTransactionManager->prepareUpdateBinary( 1, 1, null),
+//                  IllegalArgumentException);
+
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest, prepareUpdateBinary_whenDataIsEmpty_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareUpdateBinary(1, 1, std::vector<uint8_t>(0)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareUpdateBinary_whenSfiIsNot0AndOffsetIsGreaterThan255_shouldAddFirstAReadBinaryCommand)
+{
+    setUp();
+
+    const auto cardCardRequest = createCardRequest({CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD,
+                                                    CARD_UPDATE_BINARY_SFI0_OFFSET256_1B_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP,
+                                                      SW1SW2_OK_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareUpdateBinary(1, 256, HexUtil::toByteArray("66"));
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
+
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareUpdateBinary_whenDataLengthIsLessThanPayLoad_shouldPrepareOneCommand)
+// {
+//     setUp();
+
+//     const auto cardCardRequest = createCardRequest({CARD_UPDATE_BINARY_SFI1_OFFSET4_1B_CMD});
+//     const auto cardCardResponse = createCardResponse({SW1SW2_OK_RSP});
+
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillRepeatedly(Return(2));
+
+//     cardTransactionManager->prepareUpdateBinary(1, 4, HexUtil::toByteArray("55"));
+//     cardTransactionManager->processCommands();
+
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(),
+//               HexUtil::toByteArray("0000000055"));
+
+//     tearDown();
+// }
+
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareUpdateBinary_whenDataLengthIsGreaterThanPayLoad_shouldPrepareMultipleCommands)
+// {
+//     setUp();
+
+//     const auto cardCardRequest = createCardRequest({CARD_UPDATE_BINARY_SFI1_OFFSET0_2B_CMD,
+//                                                     CARD_UPDATE_BINARY_SFI1_OFFSET2_2B_CMD,
+//                                                     CARD_UPDATE_BINARY_SFI1_OFFSET4_1B_CMD});
+//     const auto cardCardResponse = createCardResponse({SW1SW2_OK_RSP, SW1SW2_OK_RSP, SW1SW2_OK_RSP});
+
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillRepeatedly(Return(2));
+
+//     cardTransactionManager->prepareUpdateBinary(1, 0, HexUtil::toByteArray("1122334455"));
+//     cardTransactionManager->processCommands();
+
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(),
+//               HexUtil::toByteArray("1122334455"));
+
+//     tearDown();
+// }
 
 TEST(CardTransactionManagerAdapterTest,
      prepareWriteBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE)
@@ -2240,380 +2365,499 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareWriteBinary_whenSfiIsNegative_shouldThrowIAE() {
-//     cardTransactionManager.prepareWriteBinary( -1, 1, new byte[1]);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareWriteBinary_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareWriteBinary( 31, 1, new byte[1]);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareWriteBinary_whenOffsetIsNegative_shouldThrowIAE() {
-//     cardTransactionManager.prepareWriteBinary( 1, -1, new byte[1]);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareWriteBinary_whenOffsetIsGreaterThan32767_shouldThrowIAE() {
-//     cardTransactionManager.prepareWriteBinary( 1, 32768, new byte[1]);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareWriteBinary_whenDataIsNull_shouldThrowIAE() {
-//     cardTransactionManager.prepareWriteBinary( 1, 1, null);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareWriteBinary_whenDataIsEmpty_shouldThrowIAE() {
-//     cardTransactionManager.prepareWriteBinary( 1, 1, new byte[0]);
-//   }
-
-//   @Test
-//   public void
-//       prepareWriteBinary_whenSfiIsNot0AndOffsetIsGreaterThan255_shouldAddFirstAReadBinaryCommand()
-//           throws Exception {
-
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD, CARD_WRITE_BINARY_SFI0_OFFSET256_1B_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP, SW1SW2_OK_RSP);
-
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-
-//     cardTransactionManager.prepareWriteBinary( 1, 256, HexUtil::toByteArray("66"));
-//     cardTransactionManager.processCommands();
-
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-//   }
-
-//   @Test
-//   public void prepareWriteBinary_whenDataLengthIsLessThanPayLoad_shouldPrepareOneCommand()
-//       throws Exception {
-
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_WRITE_BINARY_SFI1_OFFSET4_1B_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(SW1SW2_OK_RSP);
-
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
-
-//     cardTransactionManager.prepareWriteBinary( 1, 4, HexUtil::toByteArray("55"));
-//     cardTransactionManager.processCommands();
-
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(HexUtil::toByteArray("0000000055"));
-//   }
-
-//   @Test
-//   public void prepareWriteBinary_whenDataLengthIsGreaterThanPayLoad_shouldPrepareMultipleCommands()
-//       throws Exception {
-
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_WRITE_BINARY_SFI1_OFFSET0_2B_CMD,
-//             CARD_WRITE_BINARY_SFI1_OFFSET2_2B_CMD,
-//             CARD_WRITE_BINARY_SFI1_OFFSET4_1B_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(SW1SW2_OK_RSP, SW1SW2_OK_RSP, SW1SW2_OK_RSP);
-
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
-
-//     cardTransactionManager.prepareWriteBinary( 1, 0, HexUtil::toByteArray("1122334455"));
-//     cardTransactionManager.processCommands();
-
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContent())
-//         .isEqualTo(HexUtil::toByteArray("1122334455"));
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareIncreaseCounter_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareIncreaseCounter( 31, 1, 1);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareIncreaseCounter_whenValueIsLessThan0_shouldThrowIAE() {
-//     cardTransactionManager.prepareIncreaseCounter(FILE7, 1, -1);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareIncreaseCounter_whenValueIsGreaterThan16777215_shouldThrowIAE() {
-//     cardTransactionManager.prepareIncreaseCounter(FILE7, 1, 16777216);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareIncreaseCounter_whenCounterNumberIsGreaterThan83_shouldThrowIAE() {
-//     cardTransactionManager.prepareIncreaseCounter(FILE7, 84, 1);
-//   }
-
-//   @Test
-//   public void prepareIncreaseCounter_whenParametersAreCorrect_shouldAddDecreaseCommand()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_INCREASE_SFI11_CNT1_100U_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_INCREASE_SFI11_CNT1_8821U_RSP);
-
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
-
-//     cardTransactionManager.prepareIncreaseCounter( 1, 1, 100);
-//     cardTransactionManager.processCommands();
-
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(1))
-//         .isEqualTo(8821);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareDecreaseCounter_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     cardTransactionManager.prepareDecreaseCounter( 31, 1, 1);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareDecreaseCounter_whenValueIsLessThan0_shouldThrowIAE() {
-//     cardTransactionManager.prepareDecreaseCounter(FILE7, 1, -1);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareDecreaseCounter_whenValueIsGreaterThan16777215_shouldThrowIAE() {
-//     cardTransactionManager.prepareDecreaseCounter(FILE7, 1, 16777216);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareDecreaseCounter_whenCounterNumberIsGreaterThan83_shouldThrowIAE() {
-//     cardTransactionManager.prepareDecreaseCounter(FILE7, 84, 1);
-//   }
-
-//   @Test
-//   public void prepareDecreaseCounter_whenParametersAreCorrect_shouldAddDecreaseMultipleCommand()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest = createCardRequest(CARD_DECREASE_SFI10_CNT1_100U_CMD);
-//     CardResponseApi cardCardResponse = createCardResponse(CARD_DECREASE_SFI10_CNT1_4286U_RSP);
-
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(2);
-
-//     cardTransactionManager.prepareDecreaseCounter( 1, 1, 100);
-//     cardTransactionManager.processCommands();
-
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(1))
-//         .isEqualTo(4286);
-//   }
-
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareIncreaseCounters_whenCardIsLowerThanPrime3_shouldThrowUOE() {
-//     when(calypsoCard.getProductType()).thenReturn(CalypsoCard.ProductType.BASIC);
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(1, 1);
-//     cardTransactionManager.prepareIncreaseCounters(FILE7, counterNumberToIncValueMap);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareIncreaseCounters_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(1, 1);
-//     cardTransactionManager.prepareIncreaseCounters( 31, counterNumberToIncValueMap);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareIncreaseCounters_whenValueIsLessThan0_shouldThrowIAE() {
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(1, -1);
-//     cardTransactionManager.prepareIncreaseCounters(FILE7, counterNumberToIncValueMap);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareIncreaseCounters_whenValueIsGreaterThan16777215_shouldThrowIAE() {
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(84, 1);
-//     cardTransactionManager.prepareIncreaseCounters(FILE7, counterNumberToIncValueMap);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareIncreaseCounters_whenCounterNumberIsGreaterThan83_shouldThrowIAE() {
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(1, 16777216);
-//     cardTransactionManager.prepareIncreaseCounters(FILE7, counterNumberToIncValueMap);
-//   }
-
-//   @Test
-//   public void prepareIncreaseCounters_whenParametersAreCorrect_shouldAddIncreaseMultipleCommand()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_INCREASE_MULTIPLE_SFI1_C1_1_C2_2_C3_3_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_INCREASE_MULTIPLE_SFI1_C1_11_C2_22_C3_33_RSP);
-
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(3);
-//     counterNumberToIncValueMap.put(3, 3);
-//     counterNumberToIncValueMap.put(1, 1);
-//     counterNumberToIncValueMap.put(2, 2);
-//     cardTransactionManager.prepareIncreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCommands();
-
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(1))
-//         .isEqualTo(0x11);
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(2))
-//         .isEqualTo(0x22);
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(3))
-//         .isEqualTo(0x33);
-//   }
-
-//   @Test
-//   public void
-//       prepareIncreaseCounters_whenDataLengthIsGreaterThanPayLoad_shouldPrepareMultipleCommands()
-//           throws Exception {
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(
-//             CARD_INCREASE_MULTIPLE_SFI1_C1_1_C2_2_CMD, CARD_INCREASE_MULTIPLE_SFI1_C3_3_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(
-//             CARD_INCREASE_MULTIPLE_SFI1_C1_11_C2_22_RSP, CARD_INCREASE_MULTIPLE_SFI1_C3_33_RSP);
-
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-//     when(calypsoCard.getPayloadCapacity()).thenReturn(9);
-
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(3);
-//     counterNumberToIncValueMap.put(1, 1);
-//     counterNumberToIncValueMap.put(2, 2);
-//     counterNumberToIncValueMap.put(3, 3);
-//     cardTransactionManager.prepareIncreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCommands();
-
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(1))
-//         .isEqualTo(0x11);
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(2))
-//         .isEqualTo(0x22);
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(3))
-//         .isEqualTo(0x33);
-//   }
-
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareDecreaseCounters_whenCardIsLowerThanPrime3_shouldThrowUOE() {
-//     when(calypsoCard.getProductType()).thenReturn(CalypsoCard.ProductType.BASIC);
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(1, 1);
-//     cardTransactionManager.prepareDecreaseCounters(FILE7, counterNumberToIncValueMap);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareDecreaseCounters_whenSfiIsGreaterThan30_shouldThrowIAE() {
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(1, 1);
-//     cardTransactionManager.prepareDecreaseCounters( 31, counterNumberToIncValueMap);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareDecreaseCounters_whenValueIsLessThan0_shouldThrowIAE() {
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(1, -1);
-//     cardTransactionManager.prepareDecreaseCounters(FILE7, counterNumberToIncValueMap);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareDecreaseCounters_whenValueIsGreaterThan16777215_shouldThrowIAE() {
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(84, 1);
-//     cardTransactionManager.prepareDecreaseCounters(FILE7, counterNumberToIncValueMap);
-//   }
-
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareDecreaseCounters_whenCounterNumberIsGreaterThan83_shouldThrowIAE() {
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(1);
-//     counterNumberToIncValueMap.put(1, 16777216);
-//     cardTransactionManager.prepareDecreaseCounters(FILE7, counterNumberToIncValueMap);
-//   }
-
-//   @Test
-//   public void prepareDecreaseCounters_whenParametersAreCorrect_shouldAddDecreaseMultipleCommand()
-//       throws Exception {
-//     CardRequestSpi cardCardRequest =
-//         createCardRequest(CARD_DECREASE_MULTIPLE_SFI1_C1_11_C2_22_C8_88_CMD);
-//     CardResponseApi cardCardResponse =
-//         createCardResponse(CARD_DECREASE_MULTIPLE_SFI1_C1_111_C2_222_C8_888_RSP);
-
-//     when(cardReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(cardCardResponse);
-
-//     Map<Integer, Integer> counterNumberToIncValueMap = new HashMap<Integer, Integer>(3);
-//     counterNumberToIncValueMap.put(2, 0x22);
-//     counterNumberToIncValueMap.put(8, 0x88);
-//     counterNumberToIncValueMap.put(1, 0x11);
-//     cardTransactionManager.prepareDecreaseCounters( 1, counterNumberToIncValueMap);
-//     cardTransactionManager.processCommands();
-
-//     verify(cardReader)
-//         .transmitCardRequest(
-//             argThat(new CardRequestMatcher(cardCardRequest)), any(ChannelControl.class));
-//     verifyNoMoreInteractions(samReader, cardReader);
-
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(1))
-//         .isEqualTo(0x111);
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(2))
-//         .isEqualTo(0x222);
-//     assertThat(calypsoCard.getFileBySfi( 1).getData().getContentAsCounterValue(8))
-//         .isEqualTo(0x888);
-//   }
-
-//   @Test(expected = IllegalStateException.class)
-//   public void prepareSetCounter_whenCounterNotPreviouslyRead_shouldThrowISE() {
-//     cardTransactionManager.prepareSetCounter(FILE7, 1, 1);
-//   }
-
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareCheckPinStatus_whenPinFeatureIsNotAvailable_shouldThrowISE() {
-//     cardTransactionManager.prepareCheckPinStatus();
-//   }
+// C++: sfi is unsigned, cannot be negative, test does not apply
+// TEST(CardTransactionManagerAdapterTest, prepareWriteBinary_whenSfiIsNegative_shouldThrowIAE)
+// {
+//     setUp();
+
+//     EXPECT_THROW(cardTransactionManager->prepareWriteBinary(-1, 1, std::vector<uint8_t>(1)),
+//                  IllegalArgumentException);
+
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest, prepareWriteBinary_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareWriteBinary(31, 1, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareWriteBinary_whenOffsetIsNegative_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareWriteBinary(1, -1, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareWriteBinary_whenOffsetIsGreaterThan32767_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareWriteBinary(1, 32768, std::vector<uint8_t>(1)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+// C++: data comes as a vector reference, cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest, prepareWriteBinary_whenDataIsNull_shouldThrowIAE)
+// {
+//     setUp();
+
+//     EXPECT_THROW(cardTransactionManager->prepareWriteBinary(1, 1, nullptr),
+//                  IllegalArgumentException);
+
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest, prepareWriteBinary_whenDataIsEmpty_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareWriteBinary(1, 1, std::vector<uint8_t>(0)),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareWriteBinary_whenSfiIsNot0AndOffsetIsGreaterThan255_shouldAddFirstAReadBinaryCommand)
+{
+    setUp();
+
+    const auto cardCardRequest = createCardRequest({CARD_READ_BINARY_SFI1_OFFSET0_1B_CMD,
+                                                    CARD_WRITE_BINARY_SFI0_OFFSET256_1B_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_READ_BINARY_SFI1_OFFSET0_1B_RSP,
+                                                      SW1SW2_OK_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    cardTransactionManager->prepareWriteBinary(1, 256, HexUtil::toByteArray("66"));
+    cardTransactionManager->processCommands();
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareWriteBinary_whenDataLengthIsLessThanPayLoad_shouldPrepareOneCommand)
+{
+    setUp();
+
+    const auto cardCardRequest = createCardRequest({CARD_WRITE_BINARY_SFI1_OFFSET4_1B_CMD});
+    const auto cardCardResponse = createCardResponse({SW1SW2_OK_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+    //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillRepeatedly(Return(2));
+
+    cardTransactionManager->prepareWriteBinary(1, 4, HexUtil::toByteArray("55"));
+    cardTransactionManager->processCommands();
+
+    ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(),
+              HexUtil::toByteArray("0000000055"));
+
+    tearDown();
+}
+
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest
+//      prepareWriteBinary_whenDataLengthIsGreaterThanPayLoad_shouldPrepareMultipleCommands)
+// {
+//     setUp();
+
+//     const auto cardCardRequest = createCardRequest({CARD_WRITE_BINARY_SFI1_OFFSET0_2B_CMD,
+//                                                     CARD_WRITE_BINARY_SFI1_OFFSET2_2B_CMD,
+//                                                     CARD_WRITE_BINARY_SFI1_OFFSET4_1B_CMD});
+//     const auto cardCardResponse = createCardResponse({SW1SW2_OK_RSP, SW1SW2_OK_RSP, SW1SW2_OK_RSP});
+
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillRepeatedly(Return(2));
+
+//     cardTransactionManager->prepareWriteBinary(1, 0, HexUtil::toByteArray("1122334455"));
+//     cardTransactionManager->processCommands();
+
+//     ASSERT_EQ(calypsoCard->getFileBySfi(1)->getData()->getContent(),
+//               HexUtil::toByteArray("1122334455"));
+
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareIncreaseCounter_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareIncreaseCounter(31, 1, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareIncreaseCounter_whenValueIsLessThan0_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareIncreaseCounter(FILE7, 1, -1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareIncreaseCounter_whenValueIsGreaterThan16777215_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareIncreaseCounter(FILE7, 1, 16777216),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareIncreaseCounter_whenCounterNumberIsGreaterThan83_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareIncreaseCounter(FILE7, 84, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareIncreaseCounter_whenParametersAreCorrect_shouldAddDecreaseCommand)
+{
+    setUp();
+
+    const auto cardCardRequest = createCardRequest({CARD_INCREASE_SFI11_CNT1_100U_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_INCREASE_SFI11_CNT1_8821U_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+    //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillRepeatedly(Return(2));
+
+    cardTransactionManager->prepareIncreaseCounter(1, 1, 100);
+    cardTransactionManager->processCommands();
+
+    ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(1)), 8821);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareDecreaseCounter_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareDecreaseCounter(31, 1, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareDecreaseCounter_whenValueIsLessThan0_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareDecreaseCounter(FILE7, 1, -1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareDecreaseCounter_whenValueIsGreaterThan16777215_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareDecreaseCounter(FILE7, 1, 16777216),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareDecreaseCounter_whenCounterNumberIsGreaterThan83_shouldThrowIAE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareDecreaseCounter(FILE7, 84, 1),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareDecreaseCounter_whenParametersAreCorrect_shouldAddDecreaseMultipleCommand)
+{
+    setUp();
+
+    const auto cardCardRequest = createCardRequest({CARD_DECREASE_SFI10_CNT1_100U_CMD});
+    const auto cardCardResponse = createCardResponse({CARD_DECREASE_SFI10_CNT1_4286U_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+    //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillRepeatedly(Return(2));
+
+    cardTransactionManager->prepareDecreaseCounter(1, 1, 100);
+    cardTransactionManager->processCommands();
+
+    ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(1)), 4286);
+
+    tearDown();
+}
+
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareIncreaseCounters_whenCardIsLowerThanPrime3_shouldThrowUOE)
+// {
+//     setUp();
+
+//     //EXPECT_CALL(*calypsoCard, getProductType()).WillOnce(Return(CalypsoCard::ProductType::BASIC));
+//     std::map<const int, const int> counterNumberToIncValueMap;
+//     counterNumberToIncValueMap.insert({1, 1});
+
+//     EXPECT_THROW(cardTransactionManager->prepareIncreaseCounters(FILE7, counterNumberToIncValueMap),
+//                  UnsupportedOperationException);
+
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareIncreaseCounters_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({1, 1});
+
+    EXPECT_THROW(cardTransactionManager->prepareIncreaseCounters(31, counterNumberToIncValueMap),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareIncreaseCounters_whenValueIsLessThan0_shouldThrowIAE)
+{
+    setUp();
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({1, -1});
+
+    EXPECT_THROW(cardTransactionManager->prepareIncreaseCounters(FILE7, counterNumberToIncValueMap),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareIncreaseCounters_whenValueIsGreaterThan16777215_shouldThrowIAE)
+{
+    setUp();
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({84, 1});
+
+    EXPECT_THROW(cardTransactionManager->prepareIncreaseCounters(FILE7, counterNumberToIncValueMap),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareIncreaseCounters_whenCounterNumberIsGreaterThan83_shouldThrowIAE)
+{
+    setUp();
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({1, 16777216});
+
+    EXPECT_THROW(cardTransactionManager->prepareIncreaseCounters(FILE7, counterNumberToIncValueMap),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareIncreaseCounters_whenParametersAreCorrect_shouldAddIncreaseMultipleCommand)
+{
+    setUp();
+
+    const auto cardCardRequest =
+        createCardRequest({CARD_INCREASE_MULTIPLE_SFI1_C1_1_C2_2_C3_3_CMD});
+    const auto cardCardResponse =
+        createCardResponse({CARD_INCREASE_MULTIPLE_SFI1_C1_11_C2_22_C3_33_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({3, 3});
+    counterNumberToIncValueMap.insert({1, 1});
+    counterNumberToIncValueMap.insert({2, 2});
+
+    cardTransactionManager->prepareIncreaseCounters(1, counterNumberToIncValueMap);
+    cardTransactionManager->processCommands();
+
+    ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(1)), 0x11);
+    ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(2)), 0x22);
+    ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(3)), 0x33);
+
+    tearDown();
+}
+
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareIncreaseCounters_whenDataLengthIsGreaterThanPayLoad_shouldPrepareMultipleCommands)
+// {
+//     setUp();
+
+//     const auto cardCardRequest = createCardRequest({CARD_INCREASE_MULTIPLE_SFI1_C1_1_C2_2_CMD,
+//                                                     CARD_INCREASE_MULTIPLE_SFI1_C3_3_CMD});
+//     const auto cardCardResponse = createCardResponse({CARD_INCREASE_MULTIPLE_SFI1_C1_11_C2_22_RSP,
+//                                                       CARD_INCREASE_MULTIPLE_SFI1_C3_33_RSP});
+
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard->getPayloadCapacity()).WillRepeatedly(Return(9));
+
+//     std::map<const int, const int> counterNumberToIncValueMap;
+//     counterNumberToIncValueMap.insert({1, 1});
+//     counterNumberToIncValueMap.insert({2, 2});
+//     counterNumberToIncValueMap.insert({3, 3});
+
+//     cardTransactionManager->prepareIncreaseCounters(1, counterNumberToIncValueMap);
+//     cardTransactionManager->processCommands();
+
+//     ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(1)), 0x11);
+//     ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(2)), 0x22);
+//     ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(3)), 0x33);
+
+//     tearDown();
+// }
+
+// C++: that test requires mocking a final class, doesn't work
+// TEST(CardTransactionManagerAdapterTest,
+//      prepareDecreaseCounters_whenCardIsLowerThanPrime3_shouldThrowUOE)
+// {
+//     setUp();
+
+//     //EXPECT_CALL(*calypsoCard, getProductType()).WillRepeatedly(Return(CalypsoCard::ProductType::BASIC));
+
+//     std::map<const int, const int> counterNumberToIncValueMap;
+//     counterNumberToIncValueMap.insert({1, 1});
+
+//     EXPECT_THROW(cardTransactionManager->prepareDecreaseCounters(FILE7, counterNumberToIncValueMap),
+//                  UnsupportedOperationException);
+
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareDecreaseCounters_whenSfiIsGreaterThan30_shouldThrowIAE)
+{
+    setUp();
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({1, 1});
+
+    EXPECT_THROW(cardTransactionManager->prepareDecreaseCounters(31, counterNumberToIncValueMap),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareDecreaseCounters_whenValueIsLessThan0_shouldThrowIAE)
+{
+    setUp();
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({1, -1});
+
+    EXPECT_THROW(cardTransactionManager->prepareDecreaseCounters(FILE7, counterNumberToIncValueMap),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareDecreaseCounters_whenValueIsGreaterThan16777215_shouldThrowIAE)
+{
+    setUp();
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({84, 1});
+
+    EXPECT_THROW(cardTransactionManager->prepareDecreaseCounters(FILE7, counterNumberToIncValueMap),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareDecreaseCounters_whenCounterNumberIsGreaterThan83_shouldThrowIAE)
+{
+    setUp();
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({1, 16777216});
+
+    EXPECT_THROW(cardTransactionManager->prepareDecreaseCounters(FILE7, counterNumberToIncValueMap),
+                 IllegalArgumentException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareDecreaseCounters_whenParametersAreCorrect_shouldAddDecreaseMultipleCommand)
+{
+    setUp();
+
+    const auto ocardCardRequest =
+        createCardRequest({CARD_DECREASE_MULTIPLE_SFI1_C1_11_C2_22_C8_88_CMD});
+    const auto cardCardResponse =
+        createCardResponse({CARD_DECREASE_MULTIPLE_SFI1_C1_111_C2_222_C8_888_RSP});
+
+    EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+
+    std::map<const int, const int> counterNumberToIncValueMap;
+    counterNumberToIncValueMap.insert({2, 0x22});
+    counterNumberToIncValueMap.insert({8, 0x88});
+    counterNumberToIncValueMap.insert({1, 0x11});
+
+    cardTransactionManager->prepareDecreaseCounters( 1, counterNumberToIncValueMap);
+    cardTransactionManager->processCommands();
+
+    ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(1)), 0x111);
+    ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(2)), 0x222);
+    ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(8)), 0x888);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSetCounter_whenCounterNotPreviouslyRead_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareSetCounter(FILE7, 1, 1), IllegalStateException);
+
+    tearDown();
+  }
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareCheckPinStatus_whenPinFeatureIsNotAvailable_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareCheckPinStatus(), UnsupportedOperationException);
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest,
      prepareCheckPinStatus_whenPinFeatureIsAvailable_shouldPrepareCheckPinStatusApdu)
@@ -2633,20 +2877,37 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSvGet_whenSvOperationNull_shouldThrowIAE() {
-//     cardTransactionManager.prepareSvGet(null, SvAction.DO);
-//   }
+// C++: SvOperation tag cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest, prepareSvGet_whenSvOperationNull_shouldThrowIAE)
+// {
+//     setUp();
 
-//   @Test(expected = IllegalArgumentException.class)
-//   public void prepareSvGet_whenSvActionNull_shouldThrowIAE() {
-//     cardTransactionManager.prepareSvGet(SvOperation.DEBIT, null);
-//   }
+//     EXPECT_THROW(cardTransactionManager->prepareSvGet(nullptr, SvAction::DO),
+//                  IllegalArgumentException);
 
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareSvGet_whenSvOperationNotAvailable_shouldThrowUOE() {
-//     cardTransactionManager.prepareSvGet(SvOperation.DEBIT, SvAction.DO);
-//   }
+//     tearDown();
+// }
+
+// C++: SvAction tag cannot be null, test does not apply
+// TEST(CardTransactionManagerAdapterTest, prepareSvGet_whenSvActionNull_shouldThrowIAE)
+// {
+//     setUp();
+
+//     EXPECT_THROW(cardTransactionManager->prepareSvGet(SvOperation::DEBIT, nullptr),
+//                  IllegalArgumentException);
+
+//     tearDown();
+// }
+
+TEST(CardTransactionManagerAdapterTest, prepareSvGet_whenSvOperationNotAvailable_shouldThrowUOE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareSvGet(SvOperation::DEBIT, SvAction::DO),
+                 UnsupportedOperationException);
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest,
      prepareSvGet_whenSvOperationDebit_shouldPrepareSvGetDebitApdu)
@@ -2701,30 +2962,44 @@ TEST(CardTransactionManagerAdapterTest,
     tearDown();
 }
 
-//   @Test(expected = IllegalStateException.class)
-//   public void prepareSvReload_whenNoSvGetPreviouslyExecuted_shouldThrowISE() throws Exception {
-//     CardRequestSpi samCardRequest = createCardRequest(SAM_SV_CHECK_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     cardTransactionManager.prepareSvReload(1);
-//   }
+TEST(CardTransactionManagerAdapterTest,
+     prepareSvReload_whenNoSvGetPreviouslyExecuted_shouldThrowISE)
+{
+    setUp();
 
-//   @Test(expected = IllegalStateException.class)
-//   public void prepareSvDebit_whenNoSvGetPreviouslyExecuted_shouldThrowISE() throws Exception {
-//     CardRequestSpi samCardRequest = createCardRequest(SAM_SV_CHECK_CMD);
-//     CardResponseApi samCardResponse = createCardResponse(SW1SW2_OK);
-//     when(samReader.transmitCardRequest(
-//             argThat(new CardRequestMatcher(samCardRequest)), any(ChannelControl.class)))
-//         .thenReturn(samCardResponse);
-//     cardTransactionManager.prepareSvDebit(1);
-//   }
+    const auto samCardRequest = createCardRequest({SAM_SV_CHECK_CMD});
+    const auto samCardResponse = createCardResponse({SW1SW2_OK});
 
-//   @Test(expected = UnsupportedOperationException.class)
-//   public void prepareSvReadAllLogs_whenPinFeatureIsNotAvailable_shouldThrowISE() {
-//     cardTransactionManager.prepareSvReadAllLogs();
-//   }
+    ON_CALL(*samReader, transmitCardRequest(_, _)).WillByDefault(Return(samCardResponse));
+
+    EXPECT_THROW(cardTransactionManager->prepareSvReload(1), IllegalStateException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest, prepareSvDebit_whenNoSvGetPreviouslyExecuted_shouldThrowISE)
+{
+    setUp();
+
+    const auto samCardRequest = createCardRequest({SAM_SV_CHECK_CMD});
+    const auto samCardResponse = createCardResponse({SW1SW2_OK});
+
+    ON_CALL(*samReader, transmitCardRequest(_, _)).WillByDefault(Return(samCardResponse));
+
+    EXPECT_THROW(cardTransactionManager->prepareSvDebit(1), IllegalStateException);
+
+    tearDown();
+}
+
+TEST(CardTransactionManagerAdapterTest,
+     prepareSvReadAllLogs_whenPinFeatureIsNotAvailable_shouldThrowISE)
+{
+    setUp();
+
+    EXPECT_THROW(cardTransactionManager->prepareSvReadAllLogs(), UnsupportedOperationException);
+
+    tearDown();
+}
 
 TEST(CardTransactionManagerAdapterTest, prepareSvReadAllLogs_whenNotAnSVApplication_shouldThrowISE)
 {

@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -152,23 +152,31 @@ void FileDataAdapter::setCounter(const uint8_t numCounter, const std::vector<uin
 
 void FileDataAdapter::setContent(const uint8_t numRecord,
                                  const std::vector<uint8_t> content,
-                                 const uint8_t offset)
+                                 const int offset)
 {
     std::vector<uint8_t> newContent;
     const int newLength = static_cast<int>(offset + content.size());
 
     const auto it = mRecords.find(numRecord);
     if (it == mRecords.end()) {
+
         newContent = std::vector<uint8_t>(newLength);
+
     } else {
+
         const std::vector<uint8_t> oldContent = it->second;
         if (static_cast<int>(oldContent.size()) <= offset) {
+
             newContent = std::vector<uint8_t>(newLength);
             System::arraycopy(oldContent, 0, newContent, 0, oldContent.size());
+
         } else if (static_cast<int>(oldContent.size()) < newLength) {
+
             newContent = std::vector<uint8_t>(newLength);
             System::arraycopy(oldContent, 0, newContent, 0, offset);
+
         } else {
+
             newContent = oldContent;
         }
     }
@@ -180,7 +188,7 @@ void FileDataAdapter::setContent(const uint8_t numRecord,
 
 void FileDataAdapter::fillContent(const uint8_t numRecord,
                                   const std::vector<uint8_t> content,
-                                  const uint8_t offset)
+                                  const int offset)
 {
     std::vector<uint8_t> contentLeftPadded = content;
 

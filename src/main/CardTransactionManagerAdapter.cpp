@@ -978,8 +978,9 @@ CardTransactionManager& CardTransactionManagerAdapter::processOpening(
         return *this;
 
     } catch (const RuntimeException& e) {
+
         abortSecureSessionSilently();
-        throw e;
+        throw;
     }
 }
 
@@ -1178,8 +1179,9 @@ CardTransactionManager& CardTransactionManagerAdapter::processClosing()
         return *this;
 
     } catch (const RuntimeException& e) {
+
         abortSecureSessionSilently();
-        throw e;
+        throw ;
     }
 }
 
@@ -1879,7 +1881,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordsPartial
 }
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
-    const uint8_t sfi, const uint8_t offset, const uint8_t nbBytesToRead)
+    const uint8_t sfi, const int offset, const int nbBytesToRead)
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
 
@@ -1897,8 +1899,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
                                     OFFSET)
                          .greaterOrEqual(nbBytesToRead, 1, "nbBytesToRead");
 
-    /* C++: no need to check offset > 255, forced by value type */
-    if (sfi > 0) {
+    if (sfi > 0 && offset > 255) {
 
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0). */
         mCardCommands.push_back(
@@ -1908,17 +1909,20 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
                                                 static_cast<uint8_t>(1)));
     }
 
-    const uint8_t payloadCapacity = mCard->getPayloadCapacity();
+    const int payloadCapacity = mCard->getPayloadCapacity();
 
-    uint8_t currentLength;
-    uint8_t currentOffset = offset;
-    uint8_t nbBytesRemainingToRead = nbBytesToRead;
+    int currentLength;
+    int currentOffset = offset;
+    int nbBytesRemainingToRead = nbBytesToRead;
 
     do {
 
         currentLength = std::min(nbBytesRemainingToRead, payloadCapacity);
         mCardCommands.push_back(
-            std::make_shared<CmdCardReadBinary>(mCard, sfi, currentOffset, currentLength));
+            std::make_shared<CmdCardReadBinary>(mCard,
+                                                sfi,
+                                                currentOffset,
+                                                static_cast<uint8_t>(currentLength)));
 
         currentOffset += currentLength;
         nbBytesRemainingToRead -= currentLength;
@@ -2037,7 +2041,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareWriteRecord(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateBinary(
     const uint8_t sfi,
-    const uint8_t offset,
+    const int offset,
     const std::vector<uint8_t>& data)
 {
     return prepareUpdateOrWriteBinary(true, sfi, offset, data);
@@ -2045,7 +2049,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateBinary(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareWriteBinary(
     const uint8_t sfi,
-    const uint8_t offset,
+    const int offset,
     const std::vector<uint8_t>& data)
 {
     return prepareUpdateOrWriteBinary(false, sfi, offset, data);
@@ -2054,7 +2058,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareWriteBinary(
 CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinary(
     const bool isUpdateCommand,
     const uint8_t sfi,
-    const uint8_t offset,
+    const int offset,
     const std::vector<uint8_t>& data)
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
@@ -2073,8 +2077,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
                                     OFFSET)
                          .notEmpty(data, "data");
 
-    /* C++: no need to check offset > 255, forced by value type */
-    if (sfi > 0) {
+    if (sfi > 0 && offset > 255) {
 
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0) */
         mCardCommands.push_back(
@@ -2087,9 +2090,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
     const uint8_t dataLength = static_cast<uint8_t>(data.size());
     const uint8_t payloadCapacity = mCard->getPayloadCapacity();
 
-    uint8_t currentLength;
-    uint8_t currentOffset = offset;
-    uint8_t currentIndex = 0;
+    int currentLength;
+    int currentOffset = offset;
+    int currentIndex = 0;
 
     do {
 

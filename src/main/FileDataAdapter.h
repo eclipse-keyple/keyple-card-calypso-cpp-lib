@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -133,9 +133,9 @@ public:
      * @param offset the offset (should be {@code >=} 0).
      * @since 2.0.0
      */
-    void setContent(const uint8_t numRecord, 
+    void setContent(const uint8_t numRecord,
                     const std::vector<uint8_t> content,
-                    const uint8_t offset);
+                    const int offset);
 
     /**
      * (package-private)<br>
@@ -149,9 +149,9 @@ public:
      * @param offset the offset (should be {@code >=} 0).
      * @since 2.0.0
      */
-    void fillContent(const uint8_t numRecord, 
-                     const std::vector<uint8_t> content, 
-                     const uint8_t offset);
+    void fillContent(const uint8_t numRecord,
+                     const std::vector<uint8_t> content,
+                     const int offset);
 
     /**
      * (package-private)<br>

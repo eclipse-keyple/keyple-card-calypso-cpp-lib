@@ -64,7 +64,7 @@ bool CmdCardGetDataTraceabilityInformation::isSessionBufferUsed() const
 void CmdCardGetDataTraceabilityInformation::parseApduResponse(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
-    CmdCardGetDataTraceabilityInformation::parseApduResponse(apduResponse);
+    AbstractCardCommand::parseApduResponse(apduResponse);
 
     getCalypsoCard()->setTraceabilityInformation(apduResponse->getDataOut());
 }
