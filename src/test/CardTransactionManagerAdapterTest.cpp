@@ -107,6 +107,8 @@ static const std::string SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2_WITH_STORE
     "6F238409315449432E49434131A516BF0C13C708000000001122334453070A3C12051410019000";
 static const std::string SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_INVALIDATED =
     "6F238409315449432E49434131A516BF0C13C708000000001122334453070A3C20051410016283";
+static const std::string SELECT_APPLICATION_RESPONSE_LIGHT =
+    "6F238409315449432E49434134A516BF0C13C70800000000112233445307064390312B01009000";
 static const std::string SAM_C1_POWER_ON_DATA = "3B3F9600805A4880C120501711223344829000";
 static const std::string HSM_C1_POWER_ON_DATA = "3B3F9600805A4880C108501711223344829000";
 static const std::string FCI_REV10 =
@@ -2102,11 +2104,11 @@ TEST(CardTransactionManagerAdapterTest,
 // }
 
 TEST(CardTransactionManagerAdapterTest,
-     prepareUpdateBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE)
+     prepareUpdateBinary_whenProductTypeIsNotPrimeRev2OrRev3_shouldThrowUOE)
 {
     setUp();
 
-    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2);
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_LIGHT);
 
     EXPECT_THROW(cardTransactionManager->prepareUpdateBinary(1, 1, std::vector<uint8_t>(1)),
                  UnsupportedOperationException);
@@ -2353,11 +2355,11 @@ TEST(CardTransactionManagerAdapterTest,
 // }
 
 TEST(CardTransactionManagerAdapterTest,
-     prepareWriteBinary_whenProductTypeIsNotPrimeRev3_shouldThrowUOE)
+     prepareWriteBinary_whenProductTypeIsNotPrimeRev2OrRev3_shouldThrowUOE)
 {
     setUp();
 
-    initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_2);
+    initCalypsoCard(SELECT_APPLICATION_RESPONSE_LIGHT);
 
     EXPECT_THROW(cardTransactionManager->prepareWriteBinary(1, 1, std::vector<uint8_t>(1)),
                  UnsupportedOperationException);

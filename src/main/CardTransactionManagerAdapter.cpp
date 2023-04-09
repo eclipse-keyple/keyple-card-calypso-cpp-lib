@@ -1898,8 +1898,15 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
 
-        throw UnsupportedOperationException("The 'Read Binary' command is not available for this " \
-                                            "card.");
+        if (mCard->getProductType() == CalypsoCard::ProductType::PRIME_REVISION_2) {
+
+            mLogger->warn("The 'Read Binary' command may not be supported by this " \
+                          "PRIME_REVISION_2 card\n");
+        } else {
+
+            throw UnsupportedOperationException("The 'Read Binary' command is not available for " \
+                                                "this card.");
+        }
     }
 
     Assert::getInstance().isInRange(sfi,
@@ -2076,8 +2083,15 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
 {
     if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3) {
 
-        throw UnsupportedOperationException("The 'Update/Write Binary' command is not available " \
-                                            "for this card.");
+        if (mCard->getProductType() == CalypsoCard::ProductType::PRIME_REVISION_2) {
+
+            mLogger->warn("The 'Update/Write Binary' command may not be supported by this " \
+                          "PRIME_REVISION_2 card\n");
+        } else {
+
+            throw UnsupportedOperationException("The 'Update/Write Binary' command is not " \
+                                                "available for this card.");
+        }
     }
 
     Assert::getInstance().isInRange(sfi,
