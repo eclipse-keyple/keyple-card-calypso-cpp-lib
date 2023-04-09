@@ -2615,16 +2615,25 @@ TEST(CardTransactionManagerAdapterTest,
 
 // C++: that test requires mocking a final class, doesn't work
 // TEST(CardTransactionManagerAdapterTest,
-//      prepareIncreaseCounters_whenCardIsLowerThanPrime3_shouldThrowUOE)
+//      prepareIncreaseCounters_whenCardIsLowerThanPrime3__shouldAddMultipleIncreaseCommands)
 // {
 //     setUp();
 
 //     //EXPECT_CALL(*calypsoCard, getProductType()).WillOnce(Return(CalypsoCard::ProductType::BASIC));
-//     std::map<const int, const int> counterNumberToIncValueMap;
-//     counterNumberToIncValueMap.insert({1, 1});
 
-//     EXPECT_THROW(cardTransactionManager->prepareIncreaseCounters(FILE7, counterNumberToIncValueMap),
-//                  UnsupportedOperationException);
+//     const auto cardCardRequest = createCardRequest({CARD_INCREASE_SFI11_CNT1_100U_CMD});
+//     const auto cardCardResponse = createCardResponse({CARD_INCREASE_SFI11_CNT1_8821U_RSP});
+
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillRepeatedly(Return(2));
+
+//     std::map<const int, const int> counterNumberToIncValueMap;
+//     counterNumberToIncValueMap.insert({1, 100});
+
+//     cardTransactionManager->prepareIncreaseCounters(1, counterNumberToIncValueMap);
+//     cardTransactionManager->processCommands();
+
+//     ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(1)), 8821);
 
 //     tearDown();
 // }
@@ -2748,11 +2757,19 @@ TEST(CardTransactionManagerAdapterTest,
 
 //     //EXPECT_CALL(*calypsoCard, getProductType()).WillRepeatedly(Return(CalypsoCard::ProductType::BASIC));
 
-//     std::map<const int, const int> counterNumberToIncValueMap;
-//     counterNumberToIncValueMap.insert({1, 1});
+//     const auto cardCardRequest = createCardRequest({CARD_DECREASE_SFI10_CNT1_100U_CMD});
+//     const auto cardCardResponse = createCardResponse({CARD_DECREASE_SFI10_CNT1_4286U_RSP});
 
-//     EXPECT_THROW(cardTransactionManager->prepareDecreaseCounters(FILE7, counterNumberToIncValueMap),
-//                  UnsupportedOperationException);
+//     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
+//     //EXPECT_CALL(*calypsoCard->getPayloadCapacity()).WillRepeatedly(Return(9));
+
+//     std::map<const int, const int> counterNumberToDecValueMap;
+//     counterNumberToDecValueMap.insert({1, 100});
+
+//     cardTransactionManager->prepareDecreaseCounters(1, counterNumberToDecValueMap);
+//     cardTransactionManager->processCommands();
+
+//     ASSERT_EQ(*(calypsoCard->getFileBySfi(1)->getData()->getContentAsCounterValue(1)), 4286);
 
 //     tearDown();
 // }

@@ -385,14 +385,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
     const uint8_t sfi,
     const std::map<const int, const int>& counterNumberToIncDecValueMap)
 {
-    if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3 &&
-        mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_2) {
-
-        throw UnsupportedOperationException("The 'Increase/Decrease Multiple' commands are not " \
-                                            "available for this card.");
-    }
-
-    Assert::getInstance().isInRange((int) sfi,
+     Assert::getInstance().isInRange((int) sfi,
                                     CalypsoCardConstant::SFI_MIN,
                                     CalypsoCardConstant::SFI_MAX,
                                     "sfi")
@@ -413,34 +406,65 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
                                         "counterNumberToIncDecValueMapValue");
     }
 
-    const int nbCountersPerApdu = mCard->getPayloadCapacity() / 4;
-
-    if (static_cast<int>(counterNumberToIncDecValueMap.size()) <= nbCountersPerApdu) {
-
-        /* Create the command and add it to the list of commands */
-        const std::map<const int, const int> dummy;
-        mCardCommands.push_back(
-            std::make_shared<CmdCardIncreaseOrDecreaseMultiple>(
-                isDecreaseCommand,
-                mCard,
-                sfi,
-                dummy));
-
-    } else {
-
-        /*
-         * The number of counters exceeds the payload capacity, let's split into several apdu c
-         * ommands
-         */
-        int i = 0;
-        std::map<const int, const int> map;
+    if (mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_3 &&
+        mCard->getProductType() != CalypsoCard::ProductType::PRIME_REVISION_2) {
 
         for (const auto& entry : counterNumberToIncDecValueMap) {
 
-            i++;
-            map.insert({entry.first, entry.second});
+            if (isDecreaseCommand) {
 
-            if (i == nbCountersPerApdu) {
+                prepareDecreaseCounter(sfi, entry.first, entry.second);
+
+            } else {
+
+                prepareIncreaseCounter(sfi, entry.first, entry.second);
+            }
+        }
+
+    } else {
+
+        const int nbCountersPerApdu = mCard->getPayloadCapacity() / 4;
+
+        if (static_cast<int>(counterNumberToIncDecValueMap.size()) <= nbCountersPerApdu) {
+
+            /* Create the command and add it to the list of commands */
+            mCardCommands.push_back(
+                std::make_shared<CmdCardIncreaseOrDecreaseMultiple>(
+                    isDecreaseCommand,
+                    mCard,
+                    sfi,
+                    counterNumberToIncDecValueMap));
+
+        } else {
+
+            /*
+            * The number of counters exceeds the payload capacity, let's split into several apdu
+            * commands
+            */
+            int i = 0;
+            std::map<const int, const int> map;
+
+            for (const auto& entry : counterNumberToIncDecValueMap) {
+
+                i++;
+
+                map.insert({entry.first, entry.second});
+
+                if (i == nbCountersPerApdu) {
+
+                    mCardCommands.push_back(
+                        std::make_shared<CmdCardIncreaseOrDecreaseMultiple>(
+                            isDecreaseCommand,
+                            mCard,
+                            sfi,
+                            map));
+
+                    i = 0;
+                    map.clear();
+                }
+            }
+
+            if (!map.empty()) {
 
                 mCardCommands.push_back(
                     std::make_shared<CmdCardIncreaseOrDecreaseMultiple>(
@@ -448,18 +472,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareIncreaseOrDecrease
                         mCard,
                         sfi,
                         map));
-                i = 0;
-                map.clear();
             }
-        }
-
-        if (!map.empty()) {
-
-            mCardCommands.push_back(
-                std::make_shared<CmdCardIncreaseOrDecreaseMultiple>(isDecreaseCommand,
-                                                                    mCard,
-                                                                    sfi,
-                                                                    map));
         }
     }
 
