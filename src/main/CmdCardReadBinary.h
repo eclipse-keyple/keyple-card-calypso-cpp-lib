@@ -63,7 +63,7 @@ public:
     CmdCardReadBinary(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                       const uint8_t sfi,
                       const int offset,
-                      const uint8_t length);
+                      const int length);
 
     /**
      * {@inheritDoc}

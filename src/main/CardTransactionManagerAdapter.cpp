@@ -1922,11 +1922,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
     if (sfi > 0 && offset > 255) {
 
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0). */
-        mCardCommands.push_back(
-            std::make_shared<CmdCardReadBinary>(mCard,
-                                                sfi,
-                                                static_cast<uint8_t>(0),
-                                                static_cast<uint8_t>(1)));
+        mCardCommands.push_back(std::make_shared<CmdCardReadBinary>(mCard, sfi, 0, 1));
     }
 
     const int payloadCapacity = mCard->getPayloadCapacity();
@@ -1939,10 +1935,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadBinary(
 
         currentLength = std::min(nbBytesRemainingToRead, payloadCapacity);
         mCardCommands.push_back(
-            std::make_shared<CmdCardReadBinary>(mCard,
-                                                sfi,
-                                                currentOffset,
-                                                static_cast<uint8_t>(currentLength)));
+            std::make_shared<CmdCardReadBinary>(mCard, sfi, currentOffset, currentLength));
 
         currentOffset += currentLength;
         nbBytesRemainingToRead -= currentLength;
@@ -2107,11 +2100,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareUpdateOrWriteBinar
     if (sfi > 0 && offset > 255) {
 
         /* Tips to select the file: add a "Read Binary" command (read one byte at offset 0) */
-        mCardCommands.push_back(
-            std::make_shared<CmdCardReadBinary>(mCard,
-                                                sfi,
-                                                static_cast<uint8_t>(0),
-                                                static_cast<uint8_t>(1)));
+        mCardCommands.push_back(std::make_shared<CmdCardReadBinary>(mCard, sfi, 0, 1));
     }
 
     const uint8_t dataLength = static_cast<uint8_t>(data.size());
