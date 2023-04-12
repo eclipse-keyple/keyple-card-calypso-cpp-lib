@@ -99,13 +99,12 @@ public:
 
     /**
      * (package-private)<br>
-     * Gets the secure session postponed data (e.g. Sv Signature).
+     * Returns the secure session postponed data (e.g. Sv Signature).
      *
-     * @return A 0, 3 or 6-byte array of bytes according to presence of postponed data and the
-     *         extended mode usage.
+     * @return An empty list if there is no postponed data.
      * @since 2.0.1
      */
-    const std::vector<uint8_t>& getPostponedData() const;
+    const std::vector<std::vector<uint8_t>>& getPostponedData() const;
 
     /**
      * {@inheritDoc}
@@ -134,7 +133,7 @@ private:
     /**
      * The postponed data
      */
-    std::vector<uint8_t> mPostponedData;
+    std::vector<std::vector<uint8_t>> mPostponedData;
 
     /**
      *

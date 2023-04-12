@@ -158,7 +158,7 @@ private:
     /**
      *
      */
-    static const int SV_POSTPONED_DATA_IN_SESSION;
+    static const int SW_POSTPONED_DATA;
 
     /**
      *

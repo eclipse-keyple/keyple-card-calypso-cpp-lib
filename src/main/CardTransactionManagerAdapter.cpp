@@ -185,6 +185,7 @@ void CardTransactionManagerAdapter::processAtomicOpening(
     }
 
     mCard->backupFiles();
+    mNbPostponedData = 0;
 
     /*
      * Let's check if we have a read record command at the top of the command list.
@@ -803,7 +804,7 @@ void CardTransactionManagerAdapter::processAtomicClosing(
      * CL-SV-POSTPON.1
      */
     if (isSvOperationCompleteOneTime()) {
-        processSamSvCheck(cmdCardCloseSession->getPostponedData());
+        processSamSvCheck(cmdCardCloseSession->getPostponedData()[mSvPostponedDataIndex]);
     }
 }
 
@@ -843,18 +844,33 @@ const std::map<const int, const int> CardTransactionManagerAdapter::getCounterVa
     throw IllegalStateException(ss.str());
 }
 
-const std::shared_ptr<ApduResponseApi>
-    CardTransactionManagerAdapter::buildAnticipatedIncreaseDecreaseResponse(
-        const bool isDecreaseCommand, const int currentCounterValue, const int incDecValue)
+const std::vector<uint8_t>
+    CardTransactionManagerAdapter::buildAnticipatedIncreaseDecreaseResponseData(
+        const bool isDecreaseCommand,
+        const int currentCounterValue,
+        const int incDecValue)
 {
     const int newValue = isDecreaseCommand ? currentCounterValue - incDecValue :
                                              currentCounterValue + incDecValue;
 
     /* Response = NNNNNN9000 */
+    std::vector<uint8_t> data(3);
+    data[0] = static_cast<uint8_t>((newValue & 0x00FF0000) >> 16);
+    data[1] = static_cast<uint8_t>((newValue & 0x0000FF00) >> 8);
+    data[2] = static_cast<uint8_t>(newValue & 0x000000FF);
+
+    return data;
+}
+
+const std::shared_ptr<ApduResponseApi>
+    CardTransactionManagerAdapter::buildAnticipatedIncreaseDecreaseResponse(
+        const std::vector<uint8_t>& data)
+{
+    /* Response = NNNNNN9000 */
     std::vector<uint8_t> response(5);
-    response[0] = static_cast<uint8_t>((newValue & 0x00FF0000) >> 16);
-    response[1] = static_cast<uint8_t>((newValue & 0x0000FF00) >> 8);
-    response[2] = static_cast<uint8_t>(newValue & 0x000000FF);
+    response[0] = data[0];
+    response[1] = data[1];
+    response[2] = data[2];
     response[3] = 0x90;
     response[4] = 0x00;
 
@@ -901,6 +917,7 @@ const std::vector<std::shared_ptr<ApduResponseApi>>
     std::vector<std::shared_ptr<ApduResponseApi>> apduResponses;
 
     if (!cardCommands.empty()) {
+
         for (const auto& command : cardCommands) {
 
             auto& commandRef = dynamic_cast<const CalypsoCardCommand&>(command->getCommandRef());
@@ -908,11 +925,24 @@ const std::vector<std::shared_ptr<ApduResponseApi>>
                 commandRef == CalypsoCardCommand::DECREASE) {
 
                 auto cmdA = std::dynamic_pointer_cast<CmdCardIncreaseOrDecrease>(command);
-                apduResponses.push_back(
-                    buildAnticipatedIncreaseDecreaseResponse(
+
+                const std::vector<uint8_t> anticipatedValue =
+                    buildAnticipatedIncreaseDecreaseResponseData(
                         cmdA->getCommandRef() == CalypsoCardCommand::DECREASE,
                         getCounterValue(cmdA->getSfi(), cmdA->getCounterNumber()),
-                        cmdA->getIncDecValue()));
+                        cmdA->getIncDecValue());
+
+                if (mCard->isCounterValuePostponed()) {
+
+                    cmdA->setComputedData(anticipatedValue);
+                    apduResponses.push_back(RESPONSE_OK_POSTPONED);
+                    mNbPostponedData++;
+
+                } else {
+
+                    apduResponses.push_back(
+                        buildAnticipatedIncreaseDecreaseResponse(anticipatedValue));
+                }
 
             } else if (commandRef == CalypsoCardCommand::INCREASE_MULTIPLE ||
                        commandRef == CalypsoCardCommand::DECREASE_MULTIPLE) {
@@ -930,9 +960,13 @@ const std::vector<std::shared_ptr<ApduResponseApi>>
             } else if (commandRef == CalypsoCardCommand::SV_RELOAD ||
                        commandRef == CalypsoCardCommand::SV_DEBIT ||
                        commandRef == CalypsoCardCommand::SV_UNDEBIT) {
+
                 apduResponses.push_back(RESPONSE_OK_POSTPONED);
+                mSvPostponedDataIndex = mNbPostponedData;
+                mNbPostponedData++;
 
             } else {
+
                 /* Append/Update/Write Record: response = 9000 */
                 apduResponses.push_back(RESPONSE_OK);
             }

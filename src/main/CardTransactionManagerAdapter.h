@@ -644,6 +644,8 @@ private:
     std::shared_ptr<AbstractCardCommand> mSvLastModifyingCommand;
     bool mIsSvOperationInsideSession = false;
     bool mIsSvOperationComplete = false;
+    int mSvPostponedDataIndex = 0;
+    int mNbPostponedData = 0;
 
     /**
      * (private)<br>
@@ -770,16 +772,28 @@ private:
                                                           const std::vector<int>& counters);
 
     /**
-     * Builds an anticipated response to an Increase/Decrease command
+     * (private)<br>
+     * Builds the anticipated data of an Increase/Decrease command.
      *
-     * @param isDecreaseCommand True if it is a "Decrease" command, false if it is an * "Increase"
-     *        command.
+     * @param isDecreaseCommand True if it is a "Decrease" command, false if it is an "Increase"
      * @param currentCounterValue The current counter value.
      * @param incDecValue The increment/decrement value.
-     * @return An ApduResponseApi containing the expected bytes
+     * @return A 3-byte array containing the expected bytes
+     */
+    const std::vector<uint8_t> buildAnticipatedIncreaseDecreaseResponseData(
+        const bool isDecreaseCommand,
+        const int currentCounterValue,
+        const int incDecValue);
+
+    /**
+     * (private)<br>
+     * Builds an anticipated response to an Increase/Decrease command.
+     *
+     * @param data The expected new counter value.
+     * @return An {@link ApduResponseApi} containing the expected bytes.
      */
     const std::shared_ptr<ApduResponseApi> buildAnticipatedIncreaseDecreaseResponse(
-        const bool isDecreaseCommand, const int currentCounterValue, const int incDecValue);
+        const std::vector<uint8_t>& data);
 
     /**
      * Builds an anticipated response to an Increase/Decrease Multiple command

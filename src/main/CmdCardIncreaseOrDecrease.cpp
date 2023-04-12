@@ -25,6 +25,7 @@
 #include "CardIllegalParameterException.h"
 #include "CardSecurityContextException.h"
 #include "CardSessionBufferOverflowException.h"
+#include "CardUnknownStatusException.h"
 
 namespace keyple {
 namespace card {
@@ -32,6 +33,8 @@ namespace calypso {
 
 using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
+
+const int CmdCardIncreaseOrDecrease::SW_POSTPONED_DATA = 0x6200;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardIncreaseOrDecrease::STATUS_TABLE = initStatusTable();
@@ -64,14 +67,20 @@ CmdCardIncreaseOrDecrease::CmdCardIncreaseOrDecrease(
     const uint8_t p2 = sfi * 8;
 
     /* This is a case4 command, we set Le = 0 */
-    setApduRequest(
-        std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cla,
-                            getCommandRef().getInstructionByte(),
-                            mCounterNumber,
-                            p2,
-                            valueBuffer,
-                            0x00)));
+    auto apduRequest = std::make_shared<ApduRequestAdapter>(
+                           ApduUtil::build(cla,
+                                           getCommandRef().getInstructionByte(),
+                                           mCounterNumber,
+                                           p2,
+                                           valueBuffer,
+                                           0x00));
+
+    if (calypsoCard->isCounterValuePostponed()) {
+
+        apduRequest->addSuccessfulStatusWord(SW_POSTPONED_DATA);
+    }
+
+    setApduRequest(apduRequest);
 
     std::stringstream extraInfo;
     extraInfo << "SFI:" << sfi << "h, "
@@ -91,7 +100,28 @@ void CmdCardIncreaseOrDecrease::parseApduResponse(
 {
     AbstractCardCommand::parseApduResponse(apduResponse);
 
-    getCalypsoCard()->setCounter(mSfi, mCounterNumber, apduResponse->getDataOut());
+    if (apduResponse->getStatusWord() == SW_POSTPONED_DATA) {
+
+        if (!getCalypsoCard()->isCounterValuePostponed()) {
+
+            throw CardUnknownStatusException("Unexpected status word: 6200h",
+                                             getCommandRef(),
+                                             std::make_shared<int>(SW_POSTPONED_DATA));
+        }
+
+        /* Set computed value */
+        getCalypsoCard()->setCounter(mSfi, mCounterNumber, mComputedData);
+
+    } else {
+
+        /* Set returned value */
+        getCalypsoCard()->setCounter(mSfi, mCounterNumber, apduResponse->getDataOut());
+    }
+}
+
+void CmdCardIncreaseOrDecrease::setComputedData(const std::vector<uint8_t>& data)
+{
+    mComputedData = data;
 }
 
 bool CmdCardIncreaseOrDecrease::isSessionBufferUsed() const
@@ -153,6 +183,10 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     m.insert({0x6103,
               std::make_shared<StatusProperties>("Successful execution (possible only in ISO7816 " \
                                                  "T=0).",
+                                                 typeid(nullptr))});
+    m.insert({SW_POSTPONED_DATA,
+              std::make_shared<StatusProperties>("Successful execution, response data postponed " \
+                                                 "until session closing.",
                                                  typeid(nullptr))});
 
     return m;

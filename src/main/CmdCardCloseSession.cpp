@@ -91,56 +91,25 @@ void CmdCardCloseSession::parseApduResponse(const std::shared_ptr<ApduResponseAp
 
     const std::vector<uint8_t> responseData = getApduResponse()->getDataOut();
 
-    if (getCalypsoCard()->isExtendedModeSupported()) {
-        /* 8-byte signature */
-        if (responseData.size() == 8) {
-            /* Signature only */
-            mSignatureLo = Arrays::copyOfRange(responseData, 0, 8);
-            mPostponedData = std::vector<uint8_t>(0);
-        } else if (responseData.size() == 12) {
-            /* Signature + 3 postponed bytes (+1) */
-            mSignatureLo = Arrays::copyOfRange(responseData, 4, 12);
-            mPostponedData = Arrays::copyOfRange(responseData, 1, 4);
-        } else if (responseData.size() == 15) {
-            /* Signature + 6 postponed bytes (+1) */
-            mSignatureLo = Arrays::copyOfRange(responseData, 7, 15);
-            mPostponedData = Arrays::copyOfRange(responseData, 1, 7);
-        } else {
-            if (responseData.size() != 0) {
-            throw IllegalArgumentException("Unexpected length in response to CloseSecureSession " \
-                                           "command: " +
-                                           std::to_string(responseData.size()));
-            }
+    if (responseData.size() > 0) {
 
-            /* Session abort case */
-            mSignatureLo = std::vector<uint8_t>(0);
-            mPostponedData = std::vector<uint8_t>(0);
+        int signatureLength = getCalypsoCard()->isExtendedModeSupported() ? 8 : 4;
+        int i = 0;
+
+        while (i < static_cast<int>(responseData.size() - signatureLength)) {
+
+            const std::vector<uint8_t> data =
+                Arrays::copyOfRange(responseData, i + 1, i + responseData[i]);
+            mPostponedData.push_back(data);
+            i += responseData[i];
         }
+
+        mSignatureLo = Arrays::copyOfRange(responseData, i, signatureLength);
+
     } else {
-        /* 4-byte signature */
-        if (responseData.size() == 4) {
-            /* Signature only */
-            mSignatureLo = Arrays::copyOfRange(responseData, 0, 4);
-            mPostponedData = std::vector<uint8_t>(0);
-        } else if (responseData.size() == 8) {
-            /* Signature + 3 postponed bytes (+1) */
-            mSignatureLo = Arrays::copyOfRange(responseData, 4, 8);
-            mPostponedData = Arrays::copyOfRange(responseData, 1, 4);
-        } else if (responseData.size() == 11) {
-            /* Signature + 6 postponed bytes (+1) */
-            mSignatureLo = Arrays::copyOfRange(responseData, 7, 11);
-            mPostponedData = Arrays::copyOfRange(responseData, 1, 7);
-        } else {
-            if (responseData.size() != 0) {
-            throw IllegalArgumentException("Unexpected length in response to CloseSecureSession " \
-                                           "command: " +
-                                           std::to_string(responseData.size()));
-            }
 
-            /* Session abort case */
-            mSignatureLo = std::vector<uint8_t>(0);
-            mPostponedData = std::vector<uint8_t>(0);
-        }
+        /* Session abort case */
+        mSignatureLo = std::vector<uint8_t>(0);
     }
 }
 
@@ -149,7 +118,7 @@ const std::vector<uint8_t>& CmdCardCloseSession::getSignatureLo() const
     return mSignatureLo;
 }
 
-const std::vector<uint8_t>& CmdCardCloseSession::getPostponedData() const
+const std::vector<std::vector<uint8_t>>& CmdCardCloseSession::getPostponedData() const
 {
     return mPostponedData;
 }

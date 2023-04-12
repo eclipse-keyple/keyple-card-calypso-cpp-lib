@@ -678,7 +678,7 @@ TEST(CardTransactionManagerAdapterTest,
     /* Force the checking of the session key to fail */
     cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
     cardSecuritySetting->setControlSamResource(samReader, calypsoSam)
-                        .addAuthorizedSessionKey( 0x00,  0x00);
+                        .addAuthorizedSessionKey(0x00, 0x00);
 
     cardTransactionManager =
         CalypsoExtensionService::getInstance()

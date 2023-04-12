@@ -638,6 +638,16 @@ public:
     const std::vector<uint8_t>& getSvOperationSignature() const;
 
     /**
+     * (package-private)<br>
+     * Indicates if the response of the Increase/Decrease counter command is postponed to the close
+     * secure session (old revision 2 cards).
+     *
+     * @return true if the response of the Increase/Decrease counter command is postponed.
+     * @since 2.2.4
+     */
+    bool isCounterValuePostponed() const;
+
+    /**
      *
      */
     friend KEYPLECARDCALYPSO_API std::ostream& operator<<(std::ostream& os,
@@ -650,6 +660,126 @@ public:
         std::ostream& os, const std::shared_ptr<CalypsoCardAdapter> cca);
 
 private:
+    /**
+     * (private)<br>
+     * POJO containing card specificities to be applied according to startup info.
+     */
+    class Patch {
+    public:
+        /**
+         *
+         */
+        friend class CalypsoCardAdapter;
+
+        /**
+         *
+         */
+        virtual void apply(CalypsoCardAdapter* calypsoCard) = 0;
+
+    private:
+        /**
+         *
+         */
+        const uint64_t mStartupInfo;
+
+        /**
+         *
+         */
+        const uint64_t mMask = ~0;
+
+        /**
+         *
+         */
+        Patch(const std::string& startupInfo);
+
+        /**
+         *
+         */
+        Patch(const std::string& startupInfo, const std::string& mask);
+
+        /**
+         *
+         */
+        bool isApplicableTo(const uint64_t startupInfo) const;
+    };
+
+    /**
+     * (private)<br>
+     * POJO containing card rev 3 specificities to be applied according to startup info.
+     */
+    class PatchRev3 : public Patch {
+    public:
+        /**
+         *
+         */
+        friend class CalypsoCardAdapter;
+
+        /**
+         *
+         */
+        void apply(CalypsoCardAdapter* calypsoCard) override;
+
+    private:
+        /**
+         *
+         */
+        std::shared_ptr<int> mPayloadCapacity;
+
+        /**
+         *
+         */
+        PatchRev3(const std::string& startupInfo);
+
+        /**
+         *
+         */
+        PatchRev3(const std::string& startupInfo, const std::string& mask);
+
+
+        /**
+         *
+         */
+        PatchRev3& setPayloadCapacity(const int payloadCapacity);
+    };
+
+    /**
+     * (private)<br>
+     * POJO containing card rev 1 & 2 specificities to be applied according to startup info.
+     */
+    class PatchRev12 : public Patch {
+    public:
+        /**
+         *
+         */
+        friend class CalypsoCardAdapter;
+
+        /**
+         *
+         */
+        void apply(CalypsoCardAdapter* calypsoCard) override;
+
+    private:
+        /**
+         *
+         */
+        std::shared_ptr<bool> mIsCounterValuePostponed;
+
+        /**
+         *
+         */
+        PatchRev12(const std::string& startupInfo);
+
+        /**
+         *
+         */
+        PatchRev12(const std::string& startupInfo, const std::string& mask);
+
+        /**
+         *
+         */
+        PatchRev12& setCounterValuePostponed();
+    };
+
     /**
      *
      */
@@ -674,7 +804,7 @@ private:
     static const int SI_SOFTWARE_ISSUER;
     static const int SI_SOFTWARE_VERSION;
     static const int SI_SOFTWARE_REVISION;
-    static const uint8_t PAY_LOAD_CAPACITY;
+    static const int DEFAULT_PAYLOAD_CAPACITY;
 
     /**
      * Application type bitmasks features
@@ -871,6 +1001,26 @@ private:
     uint8_t mSessionModification = 0;
 
     /**
+     *
+     */
+    int mPayloadCapacity = DEFAULT_PAYLOAD_CAPACITY;
+
+    /**
+     *
+     */
+    bool mIsCounterValuePostponed = false;
+
+    /**
+     *
+     */
+    static const std::vector<std::shared_ptr<PatchRev3>> mPatchesRev3;
+
+    /**
+     *
+     */
+    static const std::vector<std::shared_ptr<PatchRev12>> mPatchesRev12;
+
+    /**
      * Resolve the card product type from the application type byte
      *
      * @param applicationType The application type (field of startup info).
@@ -923,6 +1073,34 @@ private:
      * @since 2.0.0
      */
     void initializeWithFci(const std::shared_ptr<ApduResponseApi> selectApplicationResponse);
+
+    /**
+     *
+     */
+    static const std::vector<std::shared_ptr<PatchRev12>> initPatchRev12();
+
+    /**
+     *
+     */
+    static const std::vector<std::shared_ptr<PatchRev3>> initPatchRev3();
+
+    /**
+     *
+     */
+    uint64_t convertStartupInfoToLong() const;
+
+    /**
+     * (private)<br>
+     * Some cards have specific features that need to be taken into account. This method identifies
+     * them and applies the necessary modifications.
+     */
+    void applyPatchIfNeeded();
+
+    /**
+     *
+     */
+    void applyPatchIfNeededForRevision(const std::vector<std::shared_ptr<Patch>>& patches,
+                                       const uint64_t startupInfoLong);
 };
 
 }

@@ -101,6 +101,15 @@ public:
     int getIncDecValue() const;
 
     /**
+     * (package-private)<br>
+     * Sets the computed data.
+     *
+     * @param data A 3-byte array containing the computed data.
+     * @since 2.2.4
+     */
+    void setComputedData(const std::vector<uint8_t>& data);
+
+    /**
      * {@inheritDoc}
      *
      * @since 2.1.0
@@ -110,6 +119,11 @@ public:
 
 
 private:
+    /**
+     *
+     */
+    static const int SW_POSTPONED_DATA;
+
     /**
      *
      */
@@ -135,6 +149,11 @@ private:
      *
      */
     const int mIncDecValue;
+
+    /**
+     *
+     */
+    std::vector<uint8_t> mComputedData;
 
     /**
      *

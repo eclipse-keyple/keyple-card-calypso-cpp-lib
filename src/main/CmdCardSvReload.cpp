@@ -36,7 +36,7 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
-const int CmdCardSvReload::SV_POSTPONED_DATA_IN_SESSION = 0x6200;
+const int CmdCardSvReload::SW_POSTPONED_DATA = 0x6200;
 const CalypsoCardCommand CmdCardSvReload::mCommand = CalypsoCardCommand::SV_RELOAD;
 
 const std::map<const int, const std::shared_ptr<StatusProperties>>
@@ -113,7 +113,7 @@ void CmdCardSvReload::finalizeCommand(const std::vector<uint8_t>& reloadCompleme
                                            p1,
                                            p2,
                                            mDataIn));
-    apduRequest->addSuccessfulStatusWord(SV_POSTPONED_DATA_IN_SESSION);
+    apduRequest->addSuccessfulStatusWord(SW_POSTPONED_DATA);
     setApduRequest(apduRequest);
 }
 
@@ -165,7 +165,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     std::map<const int, const std::shared_ptr<StatusProperties>> m =
         AbstractApduCommand::STATUS_TABLE;
 
-    m.insert({SV_POSTPONED_DATA_IN_SESSION,
+    m.insert({SW_POSTPONED_DATA,
               std::make_shared<StatusProperties>("Successful execution, response data postponed " \
                                                  "until session closing.",
                                                  typeid(nullptr))});

@@ -37,6 +37,8 @@ using namespace keyple::core::util;
 using namespace keyple::core::util::cpp;
 using namespace keyple::core::util::cpp::exception;
 
+/* CALYPSO CARD ADAPTER ------------------------------------------------------------------------- */
+
 const std::string CalypsoCardAdapter::PATTERN_1_BYTE_HEX = "%02Xh";
 const std::string CalypsoCardAdapter::PATTERN_2_BYTES_HEX = "%04Xh";
 
@@ -50,7 +52,7 @@ const int CalypsoCardAdapter::SI_APPLICATION_SUBTYPE = 3;
 const int CalypsoCardAdapter::SI_SOFTWARE_ISSUER = 4;
 const int CalypsoCardAdapter::SI_SOFTWARE_VERSION = 5;
 const int CalypsoCardAdapter::SI_SOFTWARE_REVISION = 6;
-const uint8_t CalypsoCardAdapter::PAY_LOAD_CAPACITY = 250;
+const int CalypsoCardAdapter::DEFAULT_PAYLOAD_CAPACITY = 250;
 
 const uint8_t CalypsoCardAdapter::APP_TYPE_WITH_CALYPSO_PIN = 0x01;
 const uint8_t CalypsoCardAdapter::APP_TYPE_WITH_CALYPSO_SV = 0x02;
@@ -64,6 +66,11 @@ const std::vector<int> CalypsoCardAdapter::BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE 
     27554, 32768, 38967, 46340, 55108, 65536, 77935, 92681, 110217, 131072, 155871, 185363,
     220435, 262144, 311743, 370727, 440871, 524288, 623487, 741455, 881743, 1048576
 };
+
+const std::vector<std::shared_ptr<CalypsoCardAdapter::PatchRev3>>
+    CalypsoCardAdapter::mPatchesRev3 = initPatchRev3();
+const std::vector<std::shared_ptr<CalypsoCardAdapter::PatchRev12>>
+    CalypsoCardAdapter::mPatchesRev12 = initPatchRev12();
 
 CalypsoCardAdapter::CalypsoCardAdapter() {}
 
@@ -81,6 +88,53 @@ void CalypsoCardAdapter::initialize(
             initializeWithPowerOnData(cardSelectionResponse->getPowerOnData());
         }
     }
+}
+
+const std::vector<std::shared_ptr<CalypsoCardAdapter::PatchRev12>>
+    CalypsoCardAdapter::initPatchRev12()
+{
+    std::shared_ptr<PatchRev12> p = nullptr;
+    std::vector<std::shared_ptr<PatchRev12>> v;
+
+    /* Patches for revision 1 & 2 */
+
+    /* 06 XX 01 03 XX XX XX */
+    p = std::shared_ptr<PatchRev12>(new PatchRev12("06000103000000", "FF00FFFF000000"));
+    p->setCounterValuePostponed();
+    v.push_back(p);
+
+    /* 06 0A 01 02 XX XX XX */
+    p = std::shared_ptr<PatchRev12>(new PatchRev12("060A0102000000", "FFFFFFFF000000"));
+    p->setCounterValuePostponed();
+    v.push_back(p);
+
+    /* XX XX 0X XX 15 XX XX */
+    p = std::shared_ptr<PatchRev12>(new PatchRev12("00000000150000", "0000F000FF0000"));
+    p->setCounterValuePostponed();
+    v.push_back(p);
+
+    /* XX XX 1X XX 15 XX XX */
+    p = std::shared_ptr<PatchRev12>(new PatchRev12("00001000150000", "0000F000FF0000"));
+    p->setCounterValuePostponed();
+    v.push_back(p);
+
+    return v;
+}
+
+const std::vector<std::shared_ptr<CalypsoCardAdapter::PatchRev3>>
+    CalypsoCardAdapter::initPatchRev3()
+{
+    std::shared_ptr<PatchRev3> p = nullptr;
+    std::vector<std::shared_ptr<PatchRev3>> v;
+
+    /* Patches for revision 3 */
+
+    /* XX 3C XX XX XX 10 XX */
+    p = std::shared_ptr<PatchRev3>(new PatchRev3("003C0000001000", "00FF000000FF00"));
+    p->setPayloadCapacity(235);
+    v.push_back(p);
+
+    return v;
 }
 
 void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnData)
@@ -228,6 +282,8 @@ void CalypsoCardAdapter::initializeWithFci(
     }
 
     mIsHce = (mCalypsoSerialNumber[3] & 0x80) == 0x80;
+
+    applyPatchIfNeeded();
 }
 
 CalypsoCard::ProductType CalypsoCardAdapter::computeProductType(const int applicationType) const
@@ -283,8 +339,7 @@ const std::vector<uint8_t>& CalypsoCardAdapter::getStartupInfoRawData() const
 
 uint8_t CalypsoCardAdapter::getPayloadCapacity() const
 {
-    // TODO make this value dependent on the type of card identified
-    return PAY_LOAD_CAPACITY;
+    return mPayloadCapacity;
 }
 
 bool CalypsoCardAdapter::isModificationsCounterInBytes() const
@@ -733,6 +788,7 @@ uint8_t CalypsoCardAdapter::getSvKvc() const
 const std::vector<uint8_t>& CalypsoCardAdapter::getSvGetHeader() const
 {
     if (mSvGetHeader.empty()) {
+
         throw IllegalStateException("SV Get Header not available.");
     }
 
@@ -742,6 +798,7 @@ const std::vector<uint8_t>& CalypsoCardAdapter::getSvGetHeader() const
 const std::vector<uint8_t>& CalypsoCardAdapter::getSvGetData() const
 {
     if (mSvGetData.empty()) {
+
         throw new IllegalStateException("SV Get Data not available.");
     }
 
@@ -752,6 +809,131 @@ const std::vector<uint8_t>& CalypsoCardAdapter::getSvOperationSignature() const
 {
     return mSvOperationSignature;
 }
+
+uint64_t CalypsoCardAdapter::convertStartupInfoToLong() const
+{
+    uint64_t startupInfoLong = 0L;
+    size_t nbBytes = mStartupInfo.size();
+    int offset = 0;
+
+    while (nbBytes > 0) {
+
+        startupInfoLong |= ((uint64_t) (mStartupInfo[offset++] & 0xFF) << (8 * (--nbBytes)));
+    }
+
+    return startupInfoLong;
+}
+
+void CalypsoCardAdapter::applyPatchIfNeeded()
+{
+    uint64_t startupInfoLong = convertStartupInfoToLong();
+
+    if (mProductType == ProductType::PRIME_REVISION_3) {
+
+        std::vector<std::shared_ptr<CalypsoCardAdapter::Patch>> v;
+        for (const auto& p : mPatchesRev3) {
+
+            v.push_back(std::dynamic_pointer_cast<CalypsoCardAdapter::Patch>(p));
+        }
+
+        applyPatchIfNeededForRevision(v, startupInfoLong);
+
+    } else if (mProductType == ProductType::PRIME_REVISION_2 ||
+               mProductType == ProductType::PRIME_REVISION_1) {
+
+        mPayloadCapacity = 128;
+
+        std::vector<std::shared_ptr<CalypsoCardAdapter::Patch>> v;
+        for (const auto& p : mPatchesRev12) {
+
+            v.push_back(std::dynamic_pointer_cast<CalypsoCardAdapter::Patch>(p));
+        }
+
+        applyPatchIfNeededForRevision(v, startupInfoLong);
+    }
+}
+
+void CalypsoCardAdapter::applyPatchIfNeededForRevision(
+    const std::vector<std::shared_ptr<CalypsoCardAdapter::Patch>>& patches,
+    const uint64_t startupInfoLong)
+{
+    for (const auto& patch : patches) {
+
+        if (patch->isApplicableTo(startupInfoLong)) {
+
+            patch->apply(this);
+            return;
+        }
+    }
+}
+
+bool CalypsoCardAdapter::isCounterValuePostponed() const
+{
+    return mIsCounterValuePostponed;
+}
+
+/* PATCH ---------------------------------------------------------------------------------------- */
+
+CalypsoCardAdapter::Patch::Patch(const std::string& startupInfo)
+: mStartupInfo(HexUtil::toLong(startupInfo)) {}
+
+CalypsoCardAdapter::Patch::Patch(const std::string& startupInfo, const std::string& mask)
+: mStartupInfo(HexUtil::toLong(startupInfo)),
+  mMask(HexUtil::toLong(mask)) {}
+
+bool CalypsoCardAdapter::Patch::isApplicableTo(const uint64_t startupInfo) const
+{
+    return mStartupInfo == (startupInfo & mMask);
+}
+
+/* PATCH REV 3 ---------------------------------------------------------------------------------- */
+
+CalypsoCardAdapter::PatchRev3::PatchRev3(const std::string& startupInfo)
+: CalypsoCardAdapter::Patch(startupInfo) {}
+
+CalypsoCardAdapter::PatchRev3::PatchRev3(const std::string& startupInfo, const std::string& mask)
+: CalypsoCardAdapter::Patch(startupInfo, mask) {}
+
+CalypsoCardAdapter::PatchRev3& CalypsoCardAdapter::PatchRev3::setPayloadCapacity(
+    const int payloadCapacity)
+{
+    mPayloadCapacity = std::make_shared<int>(payloadCapacity);
+
+    return *this;
+}
+
+void CalypsoCardAdapter::PatchRev3::apply(CalypsoCardAdapter* calypsoCard)
+{
+    if (mPayloadCapacity != nullptr) {
+
+        calypsoCard->mPayloadCapacity = *mPayloadCapacity;
+    }
+}
+
+/* PATCH REV 12 --------------------------------------------------------------------------------- */
+
+CalypsoCardAdapter::PatchRev12::PatchRev12(const std::string& startupInfo)
+: CalypsoCardAdapter::Patch(startupInfo) {}
+
+CalypsoCardAdapter::PatchRev12::PatchRev12(const std::string& startupInfo, const std::string& mask)
+: CalypsoCardAdapter::Patch(startupInfo, mask) {}
+
+CalypsoCardAdapter::PatchRev12& CalypsoCardAdapter::PatchRev12::setCounterValuePostponed()
+{
+    mIsCounterValuePostponed = std::make_shared<bool>(true);
+
+    return *this;
+}
+
+void CalypsoCardAdapter::PatchRev12::apply(CalypsoCardAdapter* calypsoCard)
+{
+    if (mIsCounterValuePostponed != nullptr) {
+
+        calypsoCard->mIsCounterValuePostponed = *mIsCounterValuePostponed;
+    }
+}
+
+/* ---------------------------------------------------------------------------------------------- */
 
 std::ostream& operator<<(std::ostream& os, const CalypsoCardAdapter& cca)
 {
@@ -798,8 +980,11 @@ std::ostream& operator<<(std::ostream& os, const CalypsoCardAdapter& cca)
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<CalypsoCardAdapter> cca)
 {
     if (cca == nullptr) {
+
         os << "CALYPSO_CARD_ADAPTER: null";
+
     } else {
+
         os << *cca.get();
     }
 
