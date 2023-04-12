@@ -104,7 +104,7 @@ void CmdCardCloseSession::parseApduResponse(const std::shared_ptr<ApduResponseAp
             i += responseData[i];
         }
 
-        mSignatureLo = Arrays::copyOfRange(responseData, i, signatureLength);
+        mSignatureLo = Arrays::copyOfRange(responseData, i, responseData.size());
 
     } else {
 
