@@ -1,6 +1,5 @@
 # *************************************************************************************************
-# Copyright (c) 2021 Calypso Networks Association                                                 *
-# https://www.calypsonet-asso.org/                                                                *
+# Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                         *                                                            *
 #                                                                                                 *
 # See the NOTICE file(s) distributed with this work for additional information regarding          *
 # copyright ownership.                                                                            *
@@ -29,7 +28,6 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../main
     ${CMAKE_CURRENT_SOURCE_DIR}/../test/mock
-    ${CMAKE_CURRENT_SOURCE_DIR}/../test/utils
 
     ${CALYPSONET_CALYPSO_DIR}/src/main
     ${CALYPSONET_CALYPSO_DIR}/src/main/card

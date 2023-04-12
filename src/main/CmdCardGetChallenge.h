@@ -61,7 +61,7 @@ public:
      * @return false
      * @since 2.2.3
      */
-    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse);
+    void parseApduResponse(const std::shared_ptr<ApduResponseApi> apduResponse) override;
 
     /**
      * {@inheritDoc}

@@ -170,23 +170,27 @@ void AbstractApduCommand::checkStatus()
             try {
 
                 /* Try with Card Command first */
-                dynamic_cast<const CalypsoCardCommand&>(getCommandRef());
-                throw dynamic_cast<const CardUnexpectedResponseLengthException&>(
+                (void)dynamic_cast<const CalypsoCardCommand&>(getCommandRef());
+                CalypsoApduCommandException ex =
                     buildUnexpectedResponseLengthException(
                         StringUtils::format("Incorrect APDU response length (expected: %d, " \
                                             "actual: %d)",
                                             mLe,
-                                            mApduResponse->getDataOut().size())));
+                                            mApduResponse->getDataOut().size()));
+
+                throw dynamic_cast<const CardUnexpectedResponseLengthException&>(ex);
 
             } catch (const std::bad_cast& e) {
 
                 /* Assume it's Sam Command then */
-                throw dynamic_cast<const CalypsoSamUnexpectedResponseLengthException&>(
+                CalypsoApduCommandException ex =
                     buildUnexpectedResponseLengthException(
                         StringUtils::format("Incorrect APDU response length (expected: %d, " \
                                             "actual: %d)",
                                             mLe,
-                                            mApduResponse->getDataOut().size())));
+                                            mApduResponse->getDataOut().size()));
+
+                throw dynamic_cast<const CalypsoSamUnexpectedResponseLengthException&>(ex);
             }
         }
 

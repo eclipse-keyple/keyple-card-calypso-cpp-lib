@@ -27,6 +27,9 @@
 #include "StringUtils.h"
 #include "System.h"
 
+/* Mock */
+#include "CardSelectionResponseAdapterMock.h"
+
 using namespace testing;
 
 using namespace keyple::card::calypso;
@@ -80,7 +83,7 @@ static void tearDown()
 static std::shared_ptr<CalypsoCardAdapter> buildCalypsoCard(const std::string& powerOnData)
 {
     auto adapter = std::make_shared<CalypsoCardAdapter>();
-    adapter->initialize(std::make_shared<CardSelectionResponseAdapter>(powerOnData));
+    adapter->initialize(std::make_shared<CardSelectionResponseAdapterMock>(powerOnData));
 
     return adapter;
 }
@@ -89,7 +92,7 @@ static std::shared_ptr<CalypsoCardAdapter> buildCalypsoCard(
     const std::shared_ptr<ApduResponseApi> apduResponse)
 {
     auto adapter = std::make_shared<CalypsoCardAdapter>();
-    adapter->initialize(std::make_shared<CardSelectionResponseAdapter>(apduResponse));
+    adapter->initialize(std::make_shared<CardSelectionResponseAdapterMock>(apduResponse));
 
     return adapter;
 }

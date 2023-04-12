@@ -717,6 +717,11 @@ private:
         /**
          *
          */
+        virtual ~PatchRev3() = default;
+
+        /**
+         *
+         */
         void apply(CalypsoCardAdapter* calypsoCard) override;
 
     private:
@@ -752,6 +757,11 @@ private:
          *
          */
         friend class CalypsoCardAdapter;
+
+        /**
+         *
+         */
+        virtual ~PatchRev12() = default;
 
         /**
          *

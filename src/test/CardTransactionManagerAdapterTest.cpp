@@ -38,6 +38,7 @@
 /* Mock */
 #include "ApduResponseAdapterMock.h"
 #include "CardResponseAdapterMock.h"
+#include "CardSelectionResponseAdapterMock.h"
 #include "CardSelectionResponseApiMock.h"
 #include "ReaderMock.h"
 #include "SearchCommandDataMock.h"
@@ -134,9 +135,9 @@ static const uint8_t PIN_CIPHERING_KEY_KVC = 0x22;
 
 static const uint8_t FILE7 = 0x07;
 static const uint8_t FILE8 = 0x08;
-static const uint8_t FILE9 = 0x09;
+//static const uint8_t FILE9 = 0x09;
 static const uint8_t FILE10 = 0x10;
-static const uint8_t FILE11 = 0x11;
+//static const uint8_t FILE11 = 0x11;
 
 static const std::string SW1SW2_OK = "9000";
 static const std::string SW1SW2_KO = "6700";
@@ -477,7 +478,7 @@ static void initCalypsoCard(const std::string& selectApplicationResponse)
 {
     calypsoCard = std::make_shared<CalypsoCardAdapter>();
     calypsoCard->initialize(
-        std::make_shared<CardSelectionResponseAdapter>(
+        std::make_shared<CardSelectionResponseAdapterMock>(
                 std::make_shared<ApduResponseAdapter>(
                     HexUtil::toByteArray(selectApplicationResponse))));
 

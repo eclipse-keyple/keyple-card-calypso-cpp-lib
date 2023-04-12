@@ -343,7 +343,7 @@ ElementaryFile::Type CmdCardSelectFile::getEfTypeFromCardValue(const uint8_t efT
 
     } else {
 
-        throw IllegalStateException("Unknown EF Type: " + efType);
+        throw IllegalStateException("Unknown EF Type: " + std::to_string(efType));
     }
 }
 

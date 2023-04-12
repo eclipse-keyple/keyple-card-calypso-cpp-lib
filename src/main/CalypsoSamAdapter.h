@@ -101,7 +101,7 @@ public:
      *
      * @since 2.0.0
      */
-    CalypsoSam::ProductType getProductType() const;
+    CalypsoSam::ProductType getProductType() const override;
 
     /**
      * Gets textual information about the SAM.
@@ -115,49 +115,49 @@ public:
      *
      * @since 2.0.0
      */
-    const std::vector<uint8_t>& getSerialNumber() const;
+    const std::vector<uint8_t>& getSerialNumber() const override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getPlatform() const;
+    uint8_t getPlatform() const override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getApplicationType() const;
+    uint8_t getApplicationType() const override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getApplicationSubType() const;
+    uint8_t getApplicationSubType() const override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getSoftwareIssuer() const;
+    uint8_t getSoftwareIssuer() const override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getSoftwareVersion() const;
+    uint8_t getSoftwareVersion() const override;
 
     /**
      * {@inheritDoc}
      *
      * @since 2.0.0
      */
-    uint8_t getSoftwareRevision() const;
+    uint8_t getSoftwareRevision() const override;
 
     /**
      * (package-private)<br>

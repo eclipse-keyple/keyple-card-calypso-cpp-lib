@@ -37,6 +37,7 @@
 
 /* Mock */
 #include "CalypsoSamMock.h"
+#include "CardSelectionResponseAdapterMock.h"
 #include "CardSelectionResponseApiMock.h"
 #include "ReaderMock.h"
 
@@ -349,7 +350,7 @@ TEST(CalypsoExtensionServiceTest,
     setUp();
 
     calypsoCard = std::make_shared<CalypsoCardAdapter>();
-    calypsoCard->initialize(std::make_shared<CardSelectionResponseAdapter>(POWER_ON_DATA));
+    calypsoCard->initialize(std::make_shared<CardSelectionResponseAdapterMock>(POWER_ON_DATA));
 
     auto adapter = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
     adapter->setSamResource(reader, calypsoSam);

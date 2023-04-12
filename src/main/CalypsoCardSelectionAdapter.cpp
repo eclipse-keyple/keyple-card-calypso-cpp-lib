@@ -344,7 +344,7 @@ void CalypsoCardSelectionAdapter::parseApduResponses(
 
             try {
 
-                dynamic_cast<const CardDataAccessException&>(e);
+                (void)dynamic_cast<const CardDataAccessException&>(e);
 
                 if (commandRef == CalypsoCardCommand::READ_RECORDS) {
 

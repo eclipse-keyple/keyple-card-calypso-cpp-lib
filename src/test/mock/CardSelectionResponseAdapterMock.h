@@ -21,11 +21,13 @@
 using namespace calypsonet::terminal::card;
 using namespace keyple::core::util::cpp::exception;
 
-class CardSelectionResponseAdapter : public CardSelectionResponseApi {
+class CardSelectionResponseAdapterMock final : public CardSelectionResponseApi {
 public:
-    CardSelectionResponseAdapter(const std::string& powerOnData) : mPowerOnData(powerOnData) {}
+    CardSelectionResponseAdapterMock(const std::string& powerOnData)
+    : mPowerOnData(powerOnData) {}
 
-    CardSelectionResponseAdapter(const std::shared_ptr<ApduResponseApi> selectApplicationResponse)
+    CardSelectionResponseAdapterMock(
+        const std::shared_ptr<ApduResponseApi> selectApplicationResponse)
     : mSelectApplicationResponse(selectApplicationResponse) {}
 
     const std::string& getPowerOnData() const override
