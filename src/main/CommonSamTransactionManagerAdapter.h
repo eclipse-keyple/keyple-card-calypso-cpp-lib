@@ -406,11 +406,6 @@ public:
             const std::vector<std::shared_ptr<ApduResponseApi>>& apduResponses =
                 cardResponse->getApduResponses();
 
-
-            std::cout << "apduResponses size: " << apduResponses.size() << ", "
-                      << "apduRequests size: " << apduRequests.size()
-                      << std::endl;
-
             /*
             * If there are more responses than requests, then we are unable to fill the card image.
             * In this case we stop processing immediately because it may be a case of fraud, and we
