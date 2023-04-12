@@ -18,6 +18,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "Arrays.h"
+#include "ByteArrayUtil.h"
 
 /* Keyple Card Calypso */
 #include "CardAccessForbiddenException.h"
@@ -57,9 +58,7 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
 
         dataIn[index] = static_cast<uint8_t>(entry.first);
         const int incDecValue = entry.second;
-        dataIn[index + 1] = ((incDecValue >> 16) & 0xFF);
-        dataIn[index + 2] = ((incDecValue >> 8) & 0xFF);
-        dataIn[index + 3] = (incDecValue & 0xFF);
+        ByteArrayUtil::copyBytes(incDecValue, dataIn, index + 1, 3);
         index += 4;
     }
 

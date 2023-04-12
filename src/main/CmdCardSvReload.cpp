@@ -24,6 +24,7 @@
 
 /* Keyple Core Util */
 #include "ApduUtil.h"
+#include "ByteArrayUtil.h"
 #include "IllegalArgumentException.h"
 #include "IllegalStateException.h"
 #include "System.h"
@@ -80,9 +81,7 @@ CmdCardSvReload::CmdCardSvReload(const std::shared_ptr<CalypsoCardAdapter> calyp
     mDataIn[3] = free[0];
     mDataIn[4] = calypsoCard->getSvKvc();
     mDataIn[5] = free[1];
-    mDataIn[6] = ((amount >> 16) & 0xFF);
-    mDataIn[7] = ((amount >> 8) & 0xFF);
-    mDataIn[8] = (amount & 0xFF);
+    ByteArrayUtil::copyBytes(amount, mDataIn, 6, 3);
     mDataIn[9] = time[0];
     mDataIn[10] = time[1];
     /* mDataIn[11]..mDataIn[11+7+sigLen] will be filled in at the finalization phase */

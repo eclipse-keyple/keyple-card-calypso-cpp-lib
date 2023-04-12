@@ -1085,11 +1085,6 @@ private:
     static const std::vector<std::shared_ptr<PatchRev3>> initPatchRev3();
 
     /**
-     *
-     */
-    uint64_t convertStartupInfoToLong() const;
-
-    /**
      * (private)<br>
      * Some cards have specific features that need to be taken into account. This method identifies
      * them and applies the necessary modifications.

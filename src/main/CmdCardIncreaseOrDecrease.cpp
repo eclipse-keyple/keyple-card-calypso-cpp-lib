@@ -17,6 +17,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "Arrays.h"
+#include "ByteArrayUtil.h"
 
 /* Keyple Card Calypso */
 #include "CardAccessForbiddenException.h"
@@ -59,10 +60,7 @@ CmdCardIncreaseOrDecrease::CmdCardIncreaseOrDecrease(
      * Convert the integer value into a 3-byte buffer
      * CL-COUN-DATAIN.1
      */
-    std::vector<uint8_t> valueBuffer(3);
-    valueBuffer[0] = ((incDecValue >> 16) & 0xFF);
-    valueBuffer[1] = ((incDecValue >> 8) & 0xFF);
-    valueBuffer[2] = (incDecValue & 0xFF);
+    std::vector<uint8_t> valueBuffer = ByteArrayUtil::extractBytes(incDecValue, 3);
 
     const uint8_t p2 = sfi * 8;
 

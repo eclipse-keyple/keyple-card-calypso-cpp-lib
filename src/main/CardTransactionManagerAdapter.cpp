@@ -853,13 +853,7 @@ const std::vector<uint8_t>
     const int newValue = isDecreaseCommand ? currentCounterValue - incDecValue :
                                              currentCounterValue + incDecValue;
 
-    /* Response = NNNNNN9000 */
-    std::vector<uint8_t> data(3);
-    data[0] = static_cast<uint8_t>((newValue & 0x00FF0000) >> 16);
-    data[1] = static_cast<uint8_t>((newValue & 0x0000FF00) >> 8);
-    data[2] = static_cast<uint8_t>(newValue & 0x000000FF);
-
-    return data;
+    return ByteArrayUtil::extractBytes(newValue, 3);
 }
 
 const std::shared_ptr<ApduResponseApi>
@@ -898,9 +892,8 @@ const std::shared_ptr<ApduResponseApi>
             newCounterValue = it->second + entry.second;
         }
 
-        response[index + 1] = static_cast<uint8_t>((newCounterValue & 0x00FF0000) >> 16);
-        response[index + 2] = static_cast<uint8_t>((newCounterValue & 0x0000FF00) >> 8);
-        response[index + 3] = static_cast<uint8_t>(newCounterValue & 0x000000FF);
+        ByteArrayUtil::copyBytes(newCounterValue, response, index + 1, 3);
+
         index += 4;
     }
 
@@ -2466,7 +2459,7 @@ bool CardTransactionManagerAdapter::isSvOperationCompleteOneTime()
 CardTransactionManagerAdapter::ApduResponseAdapter::ApduResponseAdapter(
   const std::vector<uint8_t>& apdu)
 : mApdu(apdu),
-  mStatusWord(((apdu[apdu.size() - 2] & 0x000000FF) << 8) + (apdu[apdu.size() - 1] & 0x000000FF)) {}
+  mStatusWord(ByteArrayUtil::extractInt(apdu, apdu.size() - 2, 2, false)) {}
 
 const std::vector<uint8_t>& CardTransactionManagerAdapter::ApduResponseAdapter::getApdu() const
 {

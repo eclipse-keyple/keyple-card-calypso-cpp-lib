@@ -23,6 +23,7 @@
 #include "ApduUtil.h"
 #include "Arrays.h"
 #include "BerTlvUtil.h"
+#include "ByteArrayUtil.h"
 #include "HexUtil.h"
 #include "IllegalStateException.h"
 #include "KeypleAssert.h"
@@ -135,8 +136,7 @@ void CmdCardSelectFile::buildCommand(const CalypsoCardClass calypsoCardClass,
         p1 = 0x09;
     }
 
-    const std::vector<uint8_t> dataIn = {static_cast<uint8_t>((lid >> 8) & 0xFF),
-                                            static_cast<uint8_t>(lid & 0xFF)};
+    const std::vector<uint8_t> dataIn = ByteArrayUtil::extractBytes(lid, 2);
 
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
@@ -235,8 +235,7 @@ const std::shared_ptr<DirectoryHeader> CmdCardSelectFile::createDirectoryHeader(
         calypsoCard->getProductType() == CalypsoCard::ProductType::PRIME_REVISION_2 ?
             CalypsoCardConstant::SEL_LID_OFFSET_REV2 : CalypsoCardConstant::SEL_LID_OFFSET;
 
-    const uint8_t lid = ((proprietaryInformation[lidOffset] << 8) & 0xff00) |
-                        ((proprietaryInformation[lidOffset + 1] & 0x00ff));
+    const uint8_t lid = ByteArrayUtil::extractShort(proprietaryInformation, lidOffset);
 
     return DirectoryHeaderAdapter::builder()
                ->lid(lid)
@@ -270,9 +269,10 @@ const std::shared_ptr<FileHeaderAdapter> CmdCardSelectFile::createFileHeader(
 
     if (fileType == ElementaryFile::Type::BINARY) {
 
-        recordSize =
-            ((proprietaryInformation[CalypsoCardConstant::SEL_REC_SIZE_OFFSET] << 8) & 0x0000ff00) |
-            (proprietaryInformation[CalypsoCardConstant::SEL_NUM_REC_OFFSET] & 0x000000ff);
+        recordSize = ByteArrayUtil::extractInt(proprietaryInformation,
+                                               CalypsoCardConstant::SEL_REC_SIZE_OFFSET,
+                                               2,
+                                               false);
         recordsNumber = 1;
 
     } else {
@@ -298,15 +298,14 @@ const std::shared_ptr<FileHeaderAdapter> CmdCardSelectFile::createFileHeader(
     const uint8_t dfStatus = proprietaryInformation[CalypsoCardConstant::SEL_DF_STATUS_OFFSET];
 
     const uint16_t sharedReference =
-        ((proprietaryInformation[CalypsoCardConstant::SEL_DATA_REF_OFFSET] << 8) & 0xff00) |
-        (proprietaryInformation[CalypsoCardConstant::SEL_DATA_REF_OFFSET + 1] & 0x00ff);
+        ByteArrayUtil::extractShort(proprietaryInformation,
+                                    CalypsoCardConstant::SEL_DATA_REF_OFFSET);
 
     const int lidOffset =
         calypsoCard->getProductType() == CalypsoCard::ProductType::PRIME_REVISION_2 ?
             CalypsoCardConstant::SEL_LID_OFFSET_REV2 : CalypsoCardConstant::SEL_LID_OFFSET;
 
-    const uint16_t lid = ((proprietaryInformation[lidOffset] << 8) & 0xff00) |
-                         (proprietaryInformation[lidOffset + 1] & 0x00ff);
+    const uint16_t lid = ByteArrayUtil::extractShort(proprietaryInformation, lidOffset);
 
     return FileHeaderAdapter::builder()
                ->lid(lid)

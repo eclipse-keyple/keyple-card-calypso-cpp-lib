@@ -24,6 +24,7 @@
 
 /* Keyple Core Util */
 #include "ApduUtil.h"
+#include "ByteArrayUtil.h"
 #include "IllegalArgumentException.h"
 #include "IllegalStateException.h"
 #include "System.h"
@@ -83,8 +84,7 @@ CmdCardSvDebitOrUndebit::CmdCardSvDebitOrUndebit(
     /* mDataIn[0] will be filled in at the finalization phase */
     const short amountShort = isDebitCommand ?
                               static_cast<short>(-amount) : static_cast<short>(amount);
-    mDataIn[1] = ((amountShort >> 8) & 0xFF);
-    mDataIn[2] = (amountShort & 0xFF);
+    ByteArrayUtil::copyBytes(amountShort, mDataIn, 1, 2);
     mDataIn[3] = date[0];
     mDataIn[4] = date[1];
     mDataIn[5] = time[0];

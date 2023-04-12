@@ -15,6 +15,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "Arrays.h"
+#include "ByteArrayUtil.h"
 #include "System.h"
 
 /* Keyple Card Calypso */
@@ -60,7 +61,7 @@ CmdSamPsoComputeSignature::CmdSamPsoComputeSignature(
     dataIn[2] = data->getKvc();
 
     /**
-     *  OpMode: Operating mode, equal to XYh, with:
+     * OpMode: Operating mode, equal to XYh, with:
      * X: Mode
      */
     uint8_t opMode = 0; /* %0000 Normal mode */
@@ -82,8 +83,8 @@ CmdSamPsoComputeSignature::CmdSamPsoComputeSignature(
 
     /* TraceOffset (optional): Bit offset in MessageIn of the SAM traceability data */
     if (data->isSamTraceabilityMode()) {
-        dataIn[4] = static_cast<uint8_t>(data->getTraceabilityOffset() >> 8);
-        dataIn[5] = static_cast<uint8_t>(data->getTraceabilityOffset());
+
+        ByteArrayUtil::copyBytes(data->getTraceabilityOffset(), dataIn, 4, 2);
     }
 
     /* MessageIn: Message to sign */

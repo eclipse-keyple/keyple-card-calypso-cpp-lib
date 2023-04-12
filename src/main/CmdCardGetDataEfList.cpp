@@ -21,6 +21,7 @@
 /* Keyple Core Util */
 #include "ApduUtil.h"
 #include "Arrays.h"
+#include "ByteArrayUtil.h"
 #include "IllegalStateException.h"
 
 namespace keyple {
@@ -136,21 +137,32 @@ const std::shared_ptr<FileHeaderAdapter> CmdCardGetDataEfList::createFileHeader(
     ElementaryFile::Type efType;
 
     if (efDescriptorByteArray[3] == CalypsoCardConstant::EF_TYPE_LINEAR) {
+
         efType = ElementaryFile::Type::LINEAR;
+
     } else if (efDescriptorByteArray[3] == CalypsoCardConstant::EF_TYPE_CYCLIC) {
+
         efType = ElementaryFile::Type::CYCLIC;
+
     } else if (efDescriptorByteArray[3] == CalypsoCardConstant::EF_TYPE_COUNTERS) {
+
         efType = ElementaryFile::Type::COUNTERS;
+
     } else if (efDescriptorByteArray[3] == CalypsoCardConstant::EF_TYPE_BINARY) {
+
         efType = ElementaryFile::Type::BINARY;
+
     } else if (efDescriptorByteArray[3] == CalypsoCardConstant::EF_TYPE_SIMULATED_COUNTERS) {
+
         efType = ElementaryFile::Type::SIMULATED_COUNTERS;
+
     } else {
+
         throw IllegalStateException("Unexpected EF type");
     }
 
     return FileHeaderAdapter::builder()
-               ->lid(efDescriptorByteArray[0] << 8 | (efDescriptorByteArray[1] & 0xFF))
+               ->lid(ByteArrayUtil::extractShort(efDescriptorByteArray, 0))
                 .type(efType)
                 .recordSize(efDescriptorByteArray[4])
                 .recordsNumber(efDescriptorByteArray[5])

@@ -16,6 +16,7 @@
 #include "FileHeader.h"
 
 /* Keyple Core Util */
+#include "ByteArrayUtil.h"
 #include "HexUtil.h"
 #include "IllegalArgumentException.h"
 #include "IllegalStateException.h"
@@ -810,23 +811,10 @@ const std::vector<uint8_t>& CalypsoCardAdapter::getSvOperationSignature() const
     return mSvOperationSignature;
 }
 
-uint64_t CalypsoCardAdapter::convertStartupInfoToLong() const
-{
-    uint64_t startupInfoLong = 0L;
-    size_t nbBytes = mStartupInfo.size();
-    int offset = 0;
-
-    while (nbBytes > 0) {
-
-        startupInfoLong |= ((uint64_t) (mStartupInfo[offset++] & 0xFF) << (8 * (--nbBytes)));
-    }
-
-    return startupInfoLong;
-}
-
 void CalypsoCardAdapter::applyPatchIfNeeded()
 {
-    uint64_t startupInfoLong = convertStartupInfoToLong();
+    uint64_t startupInfoLong =
+        ByteArrayUtil::extractLong(mStartupInfo, 0, mStartupInfo.size(), false);
 
     if (mProductType == ProductType::PRIME_REVISION_3) {
 

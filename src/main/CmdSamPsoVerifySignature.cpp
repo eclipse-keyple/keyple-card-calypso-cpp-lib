@@ -14,6 +14,7 @@
 
 /* Keyple Core Util */
 #include "ApduUtil.h"
+#include "ByteArrayUtil.h"
 #include "System.h"
 
 /* Keyple Card Calypso */
@@ -92,8 +93,7 @@ CmdSamPsoVerifySignature::CmdSamPsoVerifySignature(
     /* TraceOffset (optional): Bit offset in MessageIn of the SAM traceability data */
     if (data->isSamTraceabilityMode()) {
 
-        dataIn[4] = static_cast<uint8_t>(data->getTraceabilityOffset() >> 8);
-        dataIn[5] = static_cast<uint8_t>(data->getTraceabilityOffset());
+        ByteArrayUtil::copyBytes(data->getTraceabilityOffset(), dataIn, 4, 2);
     }
 
     /* MessageIn: Message to sign */
