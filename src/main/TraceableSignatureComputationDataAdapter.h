@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -17,6 +17,7 @@
 
 /* Keyple Card Calypso */
 #include "CommonSignatureComputationDataAdapter.h"
+#include "KeypleCardCalypsoExport.h"
 
 namespace keyple {
 namespace card {
@@ -30,7 +31,7 @@ using namespace calypsonet::terminal::calypso::transaction;
  *
  * @since 2.2.0
  */
-class TraceableSignatureComputationDataAdapter final
+class KEYPLECARDCALYPSO_API TraceableSignatureComputationDataAdapter final
 : public CommonSignatureComputationDataAdapter<TraceableSignatureComputationData>,
   public TraceableSignatureComputationData {
 public:

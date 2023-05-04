@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -66,7 +66,7 @@ static void setUp()
                                                                      SV_TNUM_STR);
 
     svDebitLogRecordAdapter = std::make_shared<SvDebitLogRecordAdapter>(svGetDebitData,
-                                                                        HEADER.size() / 2);
+                                                                        static_cast<int>(HEADER.size() / 2));
 }
 
 static void tearDown()

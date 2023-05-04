@@ -1,5 +1,5 @@
 /**************************************************************************************************
- * Copyright (c) 2022 Calypso Networks Association https://calypsonet.org/                        *
+ * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
  *                                                                                                *
  * See the NOTICE file(s) distributed with this work for additional information regarding         *
  * copyright ownership.                                                                           *
@@ -20,6 +20,9 @@
 /* Calypsonet Terminal Calypso */
 #include "SvDebitLogRecord.h"
 
+/* Keyple Card Calypso */
+#include "KeypleCardCalypsoExport.h"
+
 namespace keyple {
 namespace card {
 namespace calypso {
@@ -32,7 +35,7 @@ using namespace calypsonet::terminal::calypso::card;
  *
  * @since 2.0.0
  */
-class SvDebitLogRecordAdapter final : public SvDebitLogRecord {
+class KEYPLECARDCALYPSO_API SvDebitLogRecordAdapter final : public SvDebitLogRecord {
 public:
     /**
      * Constructor
@@ -108,12 +111,13 @@ public:
     /**
      *
      */
-    friend std::ostream& operator<<(std::ostream& os, const SvDebitLogRecordAdapter& ra);
+    friend KEYPLECARDCALYPSO_API std::ostream& operator<<(std::ostream& os, 
+                                                          const SvDebitLogRecordAdapter& ra);
 
     /**
      *
      */
-    friend std::ostream& operator<<(std::ostream& os,
+    friend KEYPLECARDCALYPSO_API std::ostream& operator<<(std::ostream& os,
                                     const std::shared_ptr<SvDebitLogRecordAdapter> ra);
 
     /**

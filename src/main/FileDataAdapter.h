@@ -18,10 +18,13 @@
 #include <ostream>
 #include <vector>
 
+/* Keyple Card Calypso */
+#include "KeypleCardCalypsoExport.h"
+
 /* Keyple Core Util */
 #include "LoggerFactory.h"
 
-/* Calypsonet Terminal alypso */
+/* Calypsonet Terminal Calypso */
 #include "FileData.h"
 
 namespace keyple {
@@ -37,7 +40,7 @@ using namespace keyple::core::util::cpp;
  *
  * @since 2.0.0
  */
-class FileDataAdapter final : public FileData {
+class KEYPLECARDCALYPSO_API FileDataAdapter final : public FileData {
 public:
     /**
      * (package-private)<br>
