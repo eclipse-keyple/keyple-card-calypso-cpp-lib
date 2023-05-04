@@ -117,8 +117,9 @@ public:
     /**
      *
      */
-    friend KEYPLECARDCALYPSO_API std::ostream& operator<<(std::ostream& os,
-                                    const std::shared_ptr<SvDebitLogRecordAdapter> ra);
+    friend KEYPLECARDCALYPSO_API std::ostream& operator<<(
+        std::ostream& os,
+        const std::shared_ptr<SvDebitLogRecordAdapter> ra);
 
     /**
      * Gets the object content as a Json string.

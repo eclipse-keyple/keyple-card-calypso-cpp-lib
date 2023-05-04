@@ -95,7 +95,8 @@ SamTransactionManager& CardControlSamTransactionManagerAdapter::processCommands(
         mDigestManager != nullptr &&
         !mDigestManager->mIsDigestInitDone) {
 
-        std::vector<std::shared_ptr<AbstractApduCommand>>& samCommands = getSamCommands();
+        /* Create a copy - not a reference */
+        std::vector<std::shared_ptr<AbstractApduCommand>> samCommands = getSamCommands();
         getSamCommands().clear();
         mDigestManager->prepareDigestInit();
         Arrays::addAll(getSamCommands(), samCommands);

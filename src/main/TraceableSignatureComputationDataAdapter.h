@@ -19,6 +19,7 @@
 #include "CommonSignatureComputationDataAdapter.h"
 #include "KeypleCardCalypsoExport.h"
 
+
 namespace keyple {
 namespace card {
 namespace calypso {
