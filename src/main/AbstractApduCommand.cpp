@@ -178,7 +178,7 @@ void AbstractApduCommand::checkStatus()
                                             mLe,
                                             mApduResponse->getDataOut().size()));
 
-                throw dynamic_cast<const CardUnexpectedResponseLengthException&>(ex);
+                throw static_cast<const CardUnexpectedResponseLengthException&>(ex);
 
             } catch (const std::bad_cast& e) {
 
@@ -190,7 +190,7 @@ void AbstractApduCommand::checkStatus()
                                             mLe,
                                             mApduResponse->getDataOut().size()));
 
-                throw dynamic_cast<const CalypsoSamUnexpectedResponseLengthException&>(ex);
+                throw static_cast<const CalypsoSamUnexpectedResponseLengthException&>(ex);
             }
         }
 
