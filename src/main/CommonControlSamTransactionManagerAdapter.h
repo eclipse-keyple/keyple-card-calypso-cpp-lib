@@ -61,7 +61,7 @@ public:
      *
      * @since 2.2.0
      */
-    const std::shared_ptr<SamSecuritySetting> getSecuritySetting() const override
+    const std::shared_ptr<CommonSecuritySetting> getSecuritySetting() const override
     {
         /* No security settings for a control SAM. */
         return nullptr;

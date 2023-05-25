@@ -75,8 +75,8 @@ using namespace keyple::core::util::cpp::exception;
 template <typename T>
 class CommonSamTransactionManagerAdapter
 : public CommonTransactionManagerAdapter<SamTransactionManager,
-                                         SamSecuritySetting,
-                                         SamSecuritySettingAdapter>,
+                                         CommonSecuritySetting,
+                                         CommonSecuritySetting>,
   public SamTransactionManager {
 public:
     /**
@@ -95,14 +95,11 @@ public:
         const std::shared_ptr<SamSecuritySettingAdapter> securitySetting)
     : CommonTransactionManagerAdapter(
       sam,
-      std::reinterpret_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
-          securitySetting),
+      securitySetting,
       std::vector<std::vector<uint8_t>>()),
       mSamReader(samReader),
       mSam(sam),
-      mSecuritySetting(
-          std::reinterpret_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
-              securitySetting)),
+      mSecuritySetting(securitySetting),
       mDefaultKeyDiversifier(sam->getSerialNumber()) {}
 
     /**
@@ -124,8 +121,7 @@ public:
         const std::vector<std::vector<uint8_t>>& transactionAuditData)
     : CommonTransactionManagerAdapter(
       targetSmartCard,
-      std::reinterpret_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
-          securitySetting),
+      securitySetting,
       transactionAuditData),
       mSamReader(securitySetting->getControlSamReader()),
       mSam(securitySetting->getControlSam()),
@@ -659,7 +655,7 @@ private:
     /* Final fields */
     const std::shared_ptr<ProxyReaderApi> mSamReader;
     const std::shared_ptr<CalypsoSamAdapter> mSam;
-    const std::shared_ptr<CommonSecuritySettingAdapter<T>> mSecuritySetting;
+    const std::shared_ptr<CommonSecuritySettingAdapter<CommonSecuritySetting>> mSecuritySetting;
 
     /*
      * C++: use AbstractApduCommand instead of AbstractSamCommand for vector vs. polymorphism

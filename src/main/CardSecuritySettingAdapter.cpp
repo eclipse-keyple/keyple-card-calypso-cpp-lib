@@ -31,7 +31,7 @@ CardSecuritySetting& CardSecuritySettingAdapter::setSamResource(
     const std::shared_ptr<CardReader> samReader, const std::shared_ptr<CalypsoSam> calypsoSam)
 {
 
-    return setControlSamResource(samReader, calypsoSam);
+    return dynamic_cast<CardSecuritySetting&>(setControlSamResource(samReader, calypsoSam));
 }
 
 CardSecuritySettingAdapter& CardSecuritySettingAdapter::enableMultipleSession()

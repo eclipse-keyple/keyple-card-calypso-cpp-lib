@@ -44,8 +44,7 @@ CardControlSamTransactionManagerAdapter::CardControlSamTransactionManagerAdapter
 /* CL-SAM-CSN.1 */
 : CommonControlSamTransactionManagerAdapter(
       targetCard,
-      std::reinterpret_pointer_cast<CommonSecuritySettingAdapter<CardSecuritySettingAdapter>>(
-          securitySetting),
+      securitySetting,
       targetCard->getCalypsoSerialNumberFull(),
       transactionAuditData),
   mControlSam(securitySetting ? securitySetting->getControlSam() : nullptr),

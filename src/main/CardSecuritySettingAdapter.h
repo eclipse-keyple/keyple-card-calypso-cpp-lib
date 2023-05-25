@@ -44,7 +44,7 @@ using namespace calypsonet::terminal::reader;
  * @since 2.0.0
  */
 class KEYPLECARDCALYPSO_API CardSecuritySettingAdapter final
-: public CommonSecuritySettingAdapter<CardSecuritySetting>,
+: public CommonSecuritySettingAdapter<CommonSecuritySetting>,
   public CardSecuritySetting {
 public:
     /**

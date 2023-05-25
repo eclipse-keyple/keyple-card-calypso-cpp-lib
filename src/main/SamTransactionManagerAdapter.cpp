@@ -40,7 +40,7 @@ SamTransactionManagerAdapter::SamTransactionManagerAdapter(
                                     securitySetting,
                                     getTransactionAuditData()) : nullptr) {}
 
-const std::shared_ptr<SamSecuritySetting> SamTransactionManagerAdapter::getSecuritySetting() const
+const std::shared_ptr<CommonSecuritySetting> SamTransactionManagerAdapter::getSecuritySetting() const
 {
     return mSecuritySetting;
 }

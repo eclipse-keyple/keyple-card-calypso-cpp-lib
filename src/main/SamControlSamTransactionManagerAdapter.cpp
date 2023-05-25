@@ -22,8 +22,7 @@ SamControlSamTransactionManagerAdapter::SamControlSamTransactionManagerAdapter(
   const std::vector<std::vector<uint8_t>>& transactionAuditData)
 : CommonControlSamTransactionManagerAdapter(
       targetSam,
-      std::reinterpret_pointer_cast<CommonSecuritySettingAdapter<SamSecuritySettingAdapter>>(
-          securitySetting),
+      securitySetting,
       targetSam ? targetSam->getSerialNumber() : std::vector<uint8_t>(),
       transactionAuditData),
   mControlSam(securitySetting ? securitySetting->getControlSam() : nullptr),

@@ -42,7 +42,7 @@ using namespace keyple::core::util::cpp::exception;
  * @since 2.2.0
  */
 template <typename S>
-class CommonSecuritySettingAdapter : virtual public CommonSecuritySetting<S> {
+class CommonSecuritySettingAdapter : virtual public CommonSecuritySetting {
 public:
     /**
      * {@inheritDoc}
@@ -50,7 +50,7 @@ public:
      * @since 2.2.0
      */
     S& setControlSamResource(const std::shared_ptr<CardReader> samReader,
-                             const std::shared_ptr<CalypsoSam> calypsoSam) final
+                             const std::shared_ptr<CalypsoSam> calypsoSam)
     {
         Assert::getInstance().notNull(samReader, "samReader")
                             .notNull(calypsoSam, "calypsoSam");
@@ -80,7 +80,7 @@ public:
      *
      * @since 2.2.0
      */
-    S& setSamRevocationService(const std::shared_ptr<SamRevocationServiceSpi> service) final
+    S& setSamRevocationService(const std::shared_ptr<SamRevocationServiceSpi> service)
     {
         Assert::getInstance().notNull(service, "service");
 

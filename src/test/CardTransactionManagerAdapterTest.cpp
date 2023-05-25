@@ -678,8 +678,8 @@ TEST(CardTransactionManagerAdapterTest,
 
     /* Force the checking of the session key to fail */
     cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
-    cardSecuritySetting->setControlSamResource(samReader, calypsoSam)
-                        .addAuthorizedSessionKey(0x00, 0x00);
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam);
+    cardSecuritySetting->addAuthorizedSessionKey(0x00, 0x00);
 
     cardTransactionManager =
         CalypsoExtensionService::getInstance()
@@ -1049,7 +1049,8 @@ TEST(CardTransactionManagerAdapterTest,
     setUp();
 
     cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
-    cardSecuritySetting->setControlSamResource(samReader, calypsoSam).enablePinPlainTransmission();
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam);
+    cardSecuritySetting->enablePinPlainTransmission();
 
     initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN);
 
@@ -1127,7 +1128,8 @@ TEST(CardTransactionManagerAdapterTest, processChangeKey_shouldSendApdusToTheCar
     setUp();
 
     cardSecuritySetting = CalypsoExtensionService::getInstance()->createCardSecuritySetting();
-    cardSecuritySetting->setControlSamResource(samReader, calypsoSam).enablePinPlainTransmission();
+    cardSecuritySetting->setControlSamResource(samReader, calypsoSam);
+    cardSecuritySetting->enablePinPlainTransmission();
 
     initCalypsoCard(SELECT_APPLICATION_RESPONSE_PRIME_REVISION_3_WITH_PIN);
 

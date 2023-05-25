@@ -31,7 +31,7 @@ using namespace calypsonet::terminal::calypso::transaction;
  * @since 2.2.0
  */
 class SamSecuritySettingAdapter final
-: public CommonSecuritySettingAdapter<SamSecuritySetting>,
+: public CommonSecuritySettingAdapter<CommonSecuritySetting>,
   public SamSecuritySetting {};
 
 }

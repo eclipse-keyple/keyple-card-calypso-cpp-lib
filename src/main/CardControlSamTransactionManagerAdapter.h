@@ -42,7 +42,7 @@ using namespace keyple::core::util::cpp;
  * @since 2.2.0
  */
 class CardControlSamTransactionManagerAdapter final
-: public CommonControlSamTransactionManagerAdapter<CardSecuritySettingAdapter> {
+: public CommonControlSamTransactionManagerAdapter<CommonSecuritySetting> {
 public:
     /**
      * (package-private)<br>
