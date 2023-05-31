@@ -1099,6 +1099,8 @@ void CardTransactionManagerAdapter::processCommandsInsideSession()
             } else {
                 isAtLeastOneReadCommand = true;
             }
+
+            cardAtomicCommands.push_back(command);
         }
 
         processAtomicCardCommands(cardAtomicCommands, ChannelControl::KEEP_OPEN);
