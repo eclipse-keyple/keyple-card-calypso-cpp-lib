@@ -34,7 +34,7 @@ using namespace keyple::core::util::cpp;
  * @since 2.2.0
  */
 class SamControlSamTransactionManagerAdapter final :
-public CommonControlSamTransactionManagerAdapter<SamSecuritySettingAdapter> {
+public CommonControlSamTransactionManagerAdapter<CommonSecuritySetting> {
 public:
     /**
      * (package-private)<br>

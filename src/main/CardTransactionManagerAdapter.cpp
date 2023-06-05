@@ -160,7 +160,7 @@ const std::shared_ptr<CalypsoCard> CardTransactionManagerAdapter::getCalypsoCard
 const std::shared_ptr<CardSecuritySetting> CardTransactionManagerAdapter::getCardSecuritySetting()
     const
 {
-    return getSecuritySetting();
+    return std::dynamic_pointer_cast<CardSecuritySetting>(getSecuritySetting());
 }
 
 void CardTransactionManagerAdapter::checkControlSam() const
@@ -1099,6 +1099,8 @@ void CardTransactionManagerAdapter::processCommandsInsideSession()
             } else {
                 isAtLeastOneReadCommand = true;
             }
+
+            cardAtomicCommands.push_back(command);
         }
 
         processAtomicCardCommands(cardAtomicCommands, ChannelControl::KEEP_OPEN);
@@ -1114,7 +1116,7 @@ void CardTransactionManagerAdapter::processCommandsInsideSession()
     }
 }
 
-const std::shared_ptr<CardSecuritySetting> CardTransactionManagerAdapter::getSecuritySetting() const
+const std::shared_ptr<CommonSecuritySetting> CardTransactionManagerAdapter::getSecuritySetting() const
 {
     return mSecuritySetting;
 }

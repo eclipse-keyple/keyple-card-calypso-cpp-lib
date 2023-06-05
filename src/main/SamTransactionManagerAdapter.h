@@ -31,7 +31,7 @@ using namespace keyple::core::util::cpp;
  * @since 2.2.0
  */
 class SamTransactionManagerAdapter final
-: public CommonSamTransactionManagerAdapter<SamSecuritySettingAdapter> {
+: public CommonSamTransactionManagerAdapter<SamSecuritySetting> {
 public:
     /**
      * (package-private)<br>
@@ -51,7 +51,7 @@ public:
      *
      * @since 2.2.0
      */
-    const std::shared_ptr<SamSecuritySetting> getSecuritySetting() const override;
+    const std::shared_ptr<CommonSecuritySetting> getSecuritySetting() const override;
 
 private:
 

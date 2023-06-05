@@ -150,7 +150,7 @@ public:
      *
      * @since 2.2.0
      */
-    const std::shared_ptr<CardSecuritySetting> getSecuritySetting() const override;
+    const std::shared_ptr<CommonSecuritySetting> getSecuritySetting() const override;
 
     /**
      * {@inheritDoc}
