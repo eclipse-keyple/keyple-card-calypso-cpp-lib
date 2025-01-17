@@ -28,9 +28,14 @@ jobs:
       - name: Prepare Doxygen doc page locally
         working-directory: .
         run: ./.github/scripts/prepare_doxygen.sh ${{ env.PROJECT_VERSION }}
-      - name: Deploy Doxygen documentation to gh-pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./${{ github.event.repository.name }}
-          enable_jekyll: true
+      - name: Deploy to doc branch
+        run: |
+          git config --global user.name "Eclipse Keypop Bot"
+          git config --global user.email "${{ github.repository }}-bot@eclipse.org"
+          cd ${{ github.event.repository.name }}
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git add .
+          git commit -m "docs: update ${{ github.event.inputs.version || github.ref_name }} documentation"
+          git push origin doc --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

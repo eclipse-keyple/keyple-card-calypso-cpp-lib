@@ -7,7 +7,7 @@ project_name="$(head -n 1 README.md | sed 's/#//')"
 repository_name=$(git rev-parse --show-toplevel | xargs basename)
 
 echo "Clone $repository_name..."
-git clone --branch gh-pages https://github.com/eclipse/"$repository_name".git
+git clone --branch doc https://github.com/eclipse/"$repository_name".git
 
 cd "$repository_name" || exit
 
