@@ -38,7 +38,7 @@ jobs:
           cd ${{ github.event.repository.name }}
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git add .
-          git commit -m "docs: update snapshot documentation"
+          git diff --quiet && git diff --staged --quiet || git commit -m "docs: update snapshot documentation"
           git push origin doc --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
