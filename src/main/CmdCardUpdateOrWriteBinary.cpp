@@ -60,6 +60,7 @@ CmdCardUpdateOrWriteBinary::CmdCardUpdateOrWriteBinary(
      */
     const uint8_t p1 = msb > 0 ? msb : 0x80 + sfi;
 
+    // APDU Case 3
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(calypsoCard->getCardClass().getValue(),

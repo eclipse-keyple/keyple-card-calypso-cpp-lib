@@ -48,7 +48,7 @@ CmdSamSvPrepareDebitOrUndebit::CmdSamSvPrepareDebitOrUndebit(
   const std::vector<uint8_t>& svDebitOrUndebitCmdBuildData)
 : AbstractSamCommand(isDebitCommand ? CalypsoSamCommand::SV_PREPARE_DEBIT :
                                       CalypsoSamCommand::SV_PREPARE_UNDEBIT,
-                     0,
+                     -1,
                      calypsoSam)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());

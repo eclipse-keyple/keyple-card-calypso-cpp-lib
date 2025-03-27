@@ -39,7 +39,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdSamDigestUpdateMultiple::CmdSamDigestUpdateMultiple(
   const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const std::vector<uint8_t>& digestData)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
     const uint8_t p1 = 0x80;

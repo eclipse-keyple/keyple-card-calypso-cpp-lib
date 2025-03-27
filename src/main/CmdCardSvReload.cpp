@@ -48,9 +48,11 @@ CmdCardSvReload::CmdCardSvReload(const std::shared_ptr<CalypsoCardAdapter> calyp
                                  const std::vector<uint8_t>& date,
                                  const std::vector<uint8_t>& time,
                                  const std::vector<uint8_t>& free,
+                                 const bool isSessionOpen,
                                  const bool isExtendedModeAllowed)
-: AbstractCardCommand(mCommand, 0, calypsoCard),
+: AbstractCardCommand(mCommand, -1, calypsoCard),
   /* Keeps a copy of these fields until the builder is finalized */
+  mIsSessionOpen(isSessionOpen),
   mIsExtendedModeAllowed(isExtendedModeAllowed)
 {
     if (amount < -8388608 || amount > 8388607) {
@@ -94,6 +96,20 @@ void CmdCardSvReload::finalizeCommand(const std::vector<uint8_t>& reloadCompleme
         throw IllegalArgumentException("Bad SV prepare load data length.");
     }
 
+    uint8_t le;
+
+    if (mIsSessionOpen) {
+      le = 0;
+    } else {
+      if(mIsExtendedModeAllowed) {
+        le = 6;
+      } else {
+        le = 3;
+      }
+    }
+
+    setExpectedResponseLength(le);
+
     const uint8_t p1 = reloadComplementaryData[4];
     const uint8_t p2 = reloadComplementaryData[5];
 
@@ -106,12 +122,25 @@ void CmdCardSvReload::finalizeCommand(const std::vector<uint8_t>& reloadCompleme
                               CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :
                               CalypsoCardClass::ISO.getValue();
 
-    auto apduRequest = std::make_shared<ApduRequestAdapter>(
-                           ApduUtil::build(cardClass,
-                                           mCommand.getInstructionByte(),
-                                           p1,
-                                           p2,
-                                           mDataIn));
+    std::shared_ptr<ApduRequestAdapter>  apduRequest;
+    if (le == 0) {
+       // APDU Case 3
+       apduRequest = std::make_shared<ApduRequestAdapter>(
+                             ApduUtil::build(cardClass,
+                                             mCommand.getInstructionByte(),
+                                             p1,
+                                             p2,
+                                             mDataIn));
+    } else {
+       // APDU Case 4
+       apduRequest = std::make_shared<ApduRequestAdapter>(
+                             ApduUtil::build(cardClass,
+                                             mCommand.getInstructionByte(),
+                                             p1,
+                                             p2,
+                                             mDataIn,
+                                             le));
+    }
     apduRequest->addSuccessfulStatusWord(SW_POSTPONED_DATA);
     setApduRequest(apduRequest);
 }

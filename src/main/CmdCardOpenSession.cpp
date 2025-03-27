@@ -108,8 +108,10 @@ CmdCardOpenSession::CmdCardOpenSession(const std::shared_ptr<CalypsoCardAdapter>
                                        const std::vector<uint8_t>& samChallenge,
                                        const uint8_t sfi,
                                        const uint8_t recordNumber,
+                                       const uint8_t recordSize,
                                        const bool isExtendedModeAllowed)
-: AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION, 0, calypsoCard),
+: AbstractCardCommand(CalypsoCardCommand::OPEN_SESSION, -1, calypsoCard),
+  mRecordSize(recordSize),
   mIsExtendedModeAllowed(isExtendedModeAllowed)
 {
     switch (getCalypsoCard()->getProductType()) {
@@ -311,6 +313,11 @@ void CmdCardOpenSession::parseRev3(const std::vector<uint8_t>& apduResponseData)
     const auto kif = std::make_shared<uint8_t>(apduResponseData[5 + offset]);
     const auto kvc = std::make_shared<uint8_t>(apduResponseData[6 + offset]);
     const int dataLength = apduResponseData[7 + offset];
+
+    if (dataLength != mRecordSize) {
+      throw IllegalStateException("Inconsistent response length for Open Secure Session.");
+    }
+
     const std::vector<uint8_t> data =
         Arrays::copyOfRange(apduResponseData, 8 + offset, 8 + offset + dataLength);
 
@@ -337,6 +344,9 @@ void CmdCardOpenSession::parseRev24(const std::vector<uint8_t>& apduResponseData
         data = std::vector<uint8_t>(0);
         break;
     case 34:
+        if (mRecordSize != 29) {
+          throw IllegalStateException("Inconsistent response length for Open Secure Session.");
+        }
         previousSessionRatified = true;
         data = Arrays::copyOfRange(apduResponseData, 5, 34);
         break;
@@ -345,6 +355,9 @@ void CmdCardOpenSession::parseRev24(const std::vector<uint8_t>& apduResponseData
         data = std::vector<uint8_t>(0);
         break;
     case 36:
+        if (mRecordSize != 29) {
+          throw IllegalStateException("Inconsistent response length for Open Secure Session.");
+        }
         previousSessionRatified = false;
         data = Arrays::copyOfRange(apduResponseData, 7, 36);
         break;
@@ -378,6 +391,9 @@ void CmdCardOpenSession::parseRev10(const std::vector<uint8_t>& apduResponseData
         data = std::vector<uint8_t>(0);
         break;
     case 33:
+        if (mRecordSize != 29) {
+          throw IllegalStateException("Inconsistent response length for Open Secure Session.");
+        }
         previousSessionRatified = true;
         data = Arrays::copyOfRange(apduResponseData, 4, 33);
         break;
@@ -386,6 +402,9 @@ void CmdCardOpenSession::parseRev10(const std::vector<uint8_t>& apduResponseData
         data = std::vector<uint8_t>(0);
         break;
     case 35:
+        if (mRecordSize != 29) {
+          throw IllegalStateException("Inconsistent response length for Open Secure Session.");
+        }
         previousSessionRatified = false;
         data = Arrays::copyOfRange(apduResponseData, 6, 35);
         break;

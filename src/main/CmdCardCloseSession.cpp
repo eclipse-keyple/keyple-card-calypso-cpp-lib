@@ -40,7 +40,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                          const bool ratificationAsked,
                                          const std::vector<uint8_t> terminalSessionSignature)
-: AbstractCardCommand(mCommand, 0, calypsoCard)
+: AbstractCardCommand(mCommand, -1, calypsoCard)
 {
     /* The optional parameter terminalSessionSignature could contain 4 or 8 bytes */
     if (!terminalSessionSignature.empty() &&
@@ -71,6 +71,7 @@ CmdCardCloseSession::CmdCardCloseSession(const std::shared_ptr<CalypsoCardAdapte
 : AbstractCardCommand(mCommand, 0, calypsoCard)
 {
     /* CL-CSS-ABORTCMD.1 */
+    // APDU Case 1
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(calypsoCard->getCardClass().getValue(),

@@ -36,7 +36,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdSamSelectDiversifier::CmdSamSelectDiversifier(
   const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   std::vector<uint8_t>& diversifier)
-: AbstractSamCommand(CalypsoSamCommand::SELECT_DIVERSIFIER, 0, calypsoSam)
+: AbstractSamCommand(CalypsoSamCommand::SELECT_DIVERSIFIER, -1, calypsoSam)
 {
     /* Format the diversifier on 4 or 8 bytes if needed */
     if (static_cast<int>(diversifier.size()) != 4 &&

@@ -133,10 +133,10 @@ public:
      * Constructor
      *
      * @param commandRef The command reference.
-     * @param le The value of the LE field.
+     * @param expectedResponseLength The expected response length or -1 if not specified.
      * @since 2.0.1
      */
-    AbstractApduCommand(const CardCommand& commandRef, const int le);
+    AbstractApduCommand(const CardCommand& commandRef, const int expectedResponseLength);
 
     /**
      * (package-private)<br>
@@ -168,6 +168,13 @@ public:
      * @since 2.0.1
      */
     virtual const std::string& getName() const final;
+
+    /**
+     * Sets the expected response length.
+     *
+     * @since 2.2.5.4
+     */
+    virtual void setExpectedResponseLength(const int expectedResponseLength) final;
 
     /**
      * (package-private)<br>
@@ -269,7 +276,7 @@ private:
     /**
      *
      */
-    const int mLe;
+    int mExpectedResponseLength;
 
     /**
      *

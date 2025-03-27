@@ -36,7 +36,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdSamDigestAuthenticate::CmdSamDigestAuthenticate(std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                                                    const std::vector<uint8_t>& signature)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     if (signature.empty()) {
 

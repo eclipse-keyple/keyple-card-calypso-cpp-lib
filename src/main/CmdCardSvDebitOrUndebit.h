@@ -93,6 +93,7 @@ public:
                             const int amount,
                             const std::vector<uint8_t>& date,
                             const std::vector<uint8_t>& time,
+                            const bool isSessionOpen,
                             const bool isExtendedModeAllowed);
 
     /**
@@ -158,6 +159,11 @@ private:
      *
      */
     static const std::map<const int, const std::shared_ptr<StatusProperties>> STATUS_TABLE;
+
+    /**
+     *
+     */
+    bool mIsSessionOpen = false;
 
     /**
      *

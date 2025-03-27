@@ -95,7 +95,7 @@ public:
                        const uint8_t sfi,
                        const uint8_t firstRecordNumber,
                        const ReadMode readMode,
-                       const uint8_t expectedLength);
+                       const int expectedLength);
 
     /**
      * {@inheritDoc}
@@ -139,6 +139,14 @@ public:
     /**
      * (package-private)<br>
      *
+     * @return the size of the record to read
+     * @since 2.2.5.4
+     */
+    int getRecordSize() const;
+
+    /**
+     * (package-private)<br>
+     *
      * @return the readJustOneRecord flag
      * @since 2.0.1
      */
@@ -177,7 +185,13 @@ private:
     /**
      *
      */
+    int mRecordSize = 0;
+
+    /**
+     *
+     */
     int mFirstRecordNumber = 0;
+
 
     /**
      *

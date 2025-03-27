@@ -41,7 +41,7 @@ CmdCardReadRecordMultiple::CmdCardReadRecordMultiple(
   const uint8_t recordNumber,
   const uint8_t offset,
   const uint8_t length)
-: AbstractCardCommand(CalypsoCardCommand::READ_RECORD_MULTIPLE, 0, calypsoCard),
+: AbstractCardCommand(CalypsoCardCommand::READ_RECORD_MULTIPLE, -1, calypsoCard),
   mSfi(sfi),
   mRecordNumber(recordNumber),
   mOffset(offset),
@@ -50,6 +50,7 @@ CmdCardReadRecordMultiple::CmdCardReadRecordMultiple(
     const uint8_t p2 = (sfi * 8 + 5);
     const std::vector<uint8_t> dataIn = {0x54, 0x02, offset, length};
 
+    // APDU Case 4 - always outside secure session
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(calypsoCard->getCardClass().getValue(),

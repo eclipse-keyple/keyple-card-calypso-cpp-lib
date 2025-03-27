@@ -45,21 +45,21 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardSelectFile::CmdCardSelectFile(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                      const SelectFileControl selectFileControl)
-: AbstractCardCommand(mCommand, 0, calypsoCard)
+: AbstractCardCommand(mCommand, 25, calypsoCard)
 {
     buildCommand(calypsoCard->getCardClass(), selectFileControl);
 }
 
 CmdCardSelectFile::CmdCardSelectFile(const CalypsoCardClass calypsoCardClass,
                                      const SelectFileControl selectFileControl)
-: AbstractCardCommand(mCommand, 0, nullptr)
+: AbstractCardCommand(mCommand, 25, nullptr)
 {
     buildCommand(calypsoCardClass, selectFileControl);
 }
 
 CmdCardSelectFile::CmdCardSelectFile(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                                      const uint16_t lid)
-: AbstractCardCommand(mCommand, 0, calypsoCard)
+: AbstractCardCommand(mCommand, 25, calypsoCard)
 {
     buildCommand(calypsoCard->getCardClass(), calypsoCard->getProductType(), lid);
 }
@@ -67,7 +67,7 @@ CmdCardSelectFile::CmdCardSelectFile(const std::shared_ptr<CalypsoCardAdapter> c
 CmdCardSelectFile::CmdCardSelectFile(const CalypsoCardClass calypsoCardClass,
                                      const CalypsoCard::ProductType productType,
                                      const uint16_t lid)
-: AbstractCardCommand(mCommand, 0, nullptr)
+: AbstractCardCommand(mCommand, 25, nullptr)
 {
     buildCommand(calypsoCardClass, productType, lid);
 }
@@ -103,6 +103,7 @@ void CmdCardSelectFile::buildCommand(const CalypsoCardClass calypsoCardClass,
                                         "FIXME: selectFileControl.name()");
     }
 
+    // APDU Case 4
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, selectData, 0x00)));

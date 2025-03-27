@@ -31,14 +31,14 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdCardGetDataTraceabilityInformation::CmdCardGetDataTraceabilityInformation(
     const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
-: AbstractCardCommand(mCommand, 0, calypsoCard)
+: AbstractCardCommand(mCommand, -1, calypsoCard)
 {
     buildCommand(calypsoCard->getCardClass());
 }
 
 CmdCardGetDataTraceabilityInformation::CmdCardGetDataTraceabilityInformation(
     const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0, nullptr)
+: AbstractCardCommand(mCommand, -1, nullptr)
 {
     buildCommand(calypsoCardClass);
 }
@@ -46,6 +46,7 @@ CmdCardGetDataTraceabilityInformation::CmdCardGetDataTraceabilityInformation(
 
 void CmdCardGetDataTraceabilityInformation::buildCommand(const CalypsoCardClass calypsoCardClass)
 {
+    // APDU Case 2 - always outside secure session
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(

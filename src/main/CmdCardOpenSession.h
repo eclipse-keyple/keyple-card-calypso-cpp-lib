@@ -64,6 +64,7 @@ public:
                        const std::vector<uint8_t>& samChallenge,
                        const uint8_t sfi,
                        const uint8_t recordNumber,
+                       const uint8_t recordSize,
                        const bool isExtendedModeAllowed);
 
     /**
@@ -417,17 +418,22 @@ private:
     /**
      *
      */
-    const bool mIsExtendedModeAllowed = false;
-
-    /**
-     *
-     */
     uint8_t mSfi = 0;
 
     /**
      *
      */
     uint8_t mRecordNumber = 0;
+
+    /**
+     *
+     */
+    uint8_t mRecordSize = 0;
+
+    /**
+     *
+     */
+    const bool mIsExtendedModeAllowed = false;
 
     /**
      * The secure session

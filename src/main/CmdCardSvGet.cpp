@@ -45,7 +45,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardSvGet::CmdCardSvGet(const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
                            const SvOperation svOperation,
                            const bool useExtendedMode)
-: AbstractCardCommand(mCommand, 0, calypsoCard)
+: AbstractCardCommand(mCommand, -1, calypsoCard)
 {
     const uint8_t cla = calypsoCard->getCardClass() == CalypsoCardClass::LEGACY ?
                         CalypsoCardClass::LEGACY_STORED_VALUE.getValue() :
@@ -54,9 +54,22 @@ CmdCardSvGet::CmdCardSvGet(const std::shared_ptr<CalypsoCardAdapter> calypsoCard
     const uint8_t p1 = useExtendedMode ? 0x01 : 0x00;
     const uint8_t p2 = svOperation == SvOperation::RELOAD ? 0x07 : 0x09;
 
+    uint8_t le;
+    if (useExtendedMode) {
+      le = 0x3D;
+    } else {
+       if (svOperation == SvOperation::RELOAD) {
+          le = 0x21;
+       } else {
+          le = 0x1E;
+       }
+    }
+    setExpectedResponseLength(le);
+
+    // APDU Case 2
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
-            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, 0x00)));
+            ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, le)));
 
     std::stringstream ss;
     ss << "OPERATION:" << svOperation;
@@ -66,7 +79,7 @@ CmdCardSvGet::CmdCardSvGet(const std::shared_ptr<CalypsoCardAdapter> calypsoCard
     mHeader[0] = mCommand.getInstructionByte();
     mHeader[1] = p1;
     mHeader[2] = p2;
-    mHeader[3] = 0x00;
+    mHeader[3] = le;
 }
 
 bool CmdCardSvGet::isSessionBufferUsed() const

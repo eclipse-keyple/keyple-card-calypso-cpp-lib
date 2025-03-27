@@ -55,13 +55,13 @@ public:
      * Constructor dedicated for the building of referenced Calypso commands
      *
      * @param commandRef A command reference from the Calypso command table.
-     * @param le The value of the LE field.
+     * @param expectedResponseLength The expected response length or -1 if not specified.
      * @param calypsoSam The Calypso SAM (it may be null if the SAM selection has not yet been
      *                   made).
      * @since 2.0.1
      */
     AbstractSamCommand(const CalypsoSamCommand& commandRef,
-                       const int le,
+                       const int expectedResponseLength,
                        const std::shared_ptr<CalypsoSamAdapter> calypsoSam);
 
     /**
