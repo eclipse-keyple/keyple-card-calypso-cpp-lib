@@ -41,7 +41,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 
 CmdSamSvCheck::CmdSamSvCheck(const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
                              const std::vector<uint8_t>& svCardSignature)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     if (!svCardSignature.empty() && svCardSignature.size() != 3 && svCardSignature.size() != 6) {
 

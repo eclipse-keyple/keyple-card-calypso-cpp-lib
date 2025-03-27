@@ -254,16 +254,16 @@ static const std::string CARD_DECREASE_SFI10_CNT1_4286U_RSP = "0010BE9000";
 static const std::string CARD_INCREASE_SFI11_CNT1_100U_CMD = "003201080300006400";
 static const std::string CARD_INCREASE_SFI11_CNT1_8821U_RSP = "0022759000";
 static const std::string CARD_INCREASE_MULTIPLE_SFI1_C1_1_C2_2_C3_3_CMD =
-    "003A00080C01000001020000020300000300";
+    "003A00080C0100000102000002030000030C";
 static const std::string CARD_INCREASE_MULTIPLE_SFI1_C1_11_C2_22_C3_33_RSP =
     "0100001102000022030000339000";
 static const std::string CARD_INCREASE_MULTIPLE_SFI1_C1_1_C2_2_CMD =
-    "003A000808010000010200000200";
+    "003A000808010000010200000208";
 static const std::string CARD_INCREASE_MULTIPLE_SFI1_C1_11_C2_22_RSP = "01000011020000229000";
-static const std::string CARD_INCREASE_MULTIPLE_SFI1_C3_3_CMD = "003A0008040300000300";
+static const std::string CARD_INCREASE_MULTIPLE_SFI1_C3_3_CMD = "003A0008040300000304";
 static const std::string CARD_INCREASE_MULTIPLE_SFI1_C3_33_RSP = "030000339000";
 static const std::string CARD_DECREASE_MULTIPLE_SFI1_C1_11_C2_22_C8_88_CMD =
-    "003800080C01000011020000220800008800";
+    "003800080C0100001102000022080000880C";
 static const std::string CARD_DECREASE_MULTIPLE_SFI1_C1_111_C2_222_C8_888_RSP =
     "0100011102000222080008889000";
 static const std::string
@@ -640,7 +640,7 @@ TEST(CardTransactionManagerAdapterTest,
     EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-    cardTransactionManager->prepareReadRecord(FILE7, 1);
+    cardTransactionManager->prepareReadRecords(FILE7, 1, 1, 29);
     cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
 
     tearDown();
@@ -664,8 +664,8 @@ TEST(CardTransactionManagerAdapterTest,
     EXPECT_CALL(*samReader, transmitCardRequest(_, _)).WillOnce(Return(samCardResponse));
     EXPECT_CALL(*cardReader, transmitCardRequest(_, _)).WillOnce(Return(cardCardResponse));
 
-    cardTransactionManager->prepareReadRecord(FILE7, 1);
-    cardTransactionManager->prepareReadRecord(FILE8, 1);
+    cardTransactionManager->prepareReadRecords(FILE7, 1, 1, 29);
+    cardTransactionManager->prepareReadRecords(FILE8, 1, 1, 29);
     cardTransactionManager->processOpening(WriteAccessLevel::DEBIT);
 
     tearDown();

@@ -43,6 +43,7 @@ CmdCardGetChallenge::CmdCardGetChallenge(const std::shared_ptr<CalypsoCardAdapte
     const uint8_t p2 = 0x00;
     const uint8_t le = 0x08;
 
+    // APDU Case 2
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(calypsoCard->getCardClass().getValue(),

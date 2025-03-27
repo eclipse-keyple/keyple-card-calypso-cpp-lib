@@ -42,6 +42,7 @@ CmdCardChangeKey::CmdCardChangeKey(const std::shared_ptr<CalypsoCardAdapter> cal
     const uint8_t cla = calypsoCard->getCardClass().getValue();
     const uint8_t p1 = 0x00;
 
+    // APDU Case 3
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(cla, mCommand.getInstructionByte(), p1, keyIndex, cryptogram)));

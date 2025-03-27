@@ -46,6 +46,7 @@ CmdCardWriteRecord::CmdCardWriteRecord(const std::shared_ptr<CalypsoCardAdapter>
     const uint8_t cla = calypsoCard->getCardClass().getValue();
     const uint8_t p2 = (sfi == 0) ? 0x04 : sfi * 8 + 4;
 
+    // APDU Case 3
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(cla,

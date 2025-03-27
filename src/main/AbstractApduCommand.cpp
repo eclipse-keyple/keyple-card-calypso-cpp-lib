@@ -84,8 +84,8 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     {0x9000, std::make_shared<StatusProperties>("Success")},
 };
 
-AbstractApduCommand::AbstractApduCommand(const CardCommand& commandRef, const int le)
-: mCommandRef(commandRef), mLe(le), mName(commandRef.getName()) {}
+AbstractApduCommand::AbstractApduCommand(const CardCommand& commandRef, const int expectedResponseLength)
+: mCommandRef(commandRef), mExpectedResponseLength(expectedResponseLength), mName(commandRef.getName()) {}
 
 void AbstractApduCommand::addSubName(const std::string& subName)
 {
@@ -101,6 +101,11 @@ const CardCommand& AbstractApduCommand::getCommandRef() const
 const std::string& AbstractApduCommand::getName() const
 {
     return mName;
+}
+
+void AbstractApduCommand::setExpectedResponseLength(const int expectedResponseLength)
+{
+    mExpectedResponseLength = expectedResponseLength;
 }
 
 void AbstractApduCommand::setApduRequest(const std::shared_ptr<ApduRequestAdapter> apduRequest)
@@ -148,7 +153,7 @@ bool AbstractApduCommand::isSuccessful() const
     return props != nullptr &&
            props->isSuccessful() &&
            /* CL-CSS-RESPLE.1 */
-           (mLe == 0 || static_cast<int>(mApduResponse->getDataOut().size()) == mLe);
+           (mExpectedResponseLength == -1 || static_cast<int>(mApduResponse->getDataOut().size()) == mExpectedResponseLength);
 }
 
 void AbstractApduCommand::checkStatus()
@@ -157,7 +162,7 @@ void AbstractApduCommand::checkStatus()
     if (props != nullptr && props->isSuccessful()) {
 
         /* SW is successful, then check the response length (CL-CSS-RESPLE.1) */
-        if (mLe != 0 && static_cast<int>(mApduResponse->getDataOut().size()) != mLe) {
+        if (mExpectedResponseLength != -1 && static_cast<int>(mApduResponse->getDataOut().size()) != mExpectedResponseLength) {
 
             /*
              * Throw the exception
@@ -175,7 +180,7 @@ void AbstractApduCommand::checkStatus()
                     buildUnexpectedResponseLengthException(
                         StringUtils::format("Incorrect APDU response length (expected: %d, " \
                                             "actual: %d)",
-                                            mLe,
+                                            mExpectedResponseLength,
                                             mApduResponse->getDataOut().size()));
 
                 throw static_cast<const CardUnexpectedResponseLengthException&>(ex);
@@ -187,7 +192,7 @@ void AbstractApduCommand::checkStatus()
                     buildUnexpectedResponseLengthException(
                         StringUtils::format("Incorrect APDU response length (expected: %d, " \
                                             "actual: %d)",
-                                            mLe,
+                                            mExpectedResponseLength,
                                             mApduResponse->getDataOut().size()));
 
                 throw static_cast<const CalypsoSamUnexpectedResponseLengthException&>(ex);

@@ -32,9 +32,9 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     AbstractSamCommand::STATUS_TABLE = initStatusTable();
 
 AbstractSamCommand::AbstractSamCommand(const CalypsoSamCommand& commandRef,
-                                       const int le,
+                                       const int expectedResponseLength,
                                        const std::shared_ptr<CalypsoSamAdapter> calypsoSam)
-: AbstractApduCommand(commandRef, le), mCalypsoSam(calypsoSam) {}
+: AbstractApduCommand(commandRef, expectedResponseLength), mCalypsoSam(calypsoSam) {}
 
 const std::shared_ptr<CalypsoSamAdapter> AbstractSamCommand::getCalypsoSam() const
 {

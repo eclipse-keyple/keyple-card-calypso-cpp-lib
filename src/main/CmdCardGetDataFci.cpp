@@ -36,19 +36,20 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdCardGetDataFci::STATUS_TABLE = initStatusTable();
 
 CmdCardGetDataFci::CmdCardGetDataFci(const std::shared_ptr<CalypsoCardAdapter> calypsoCard)
-: AbstractCardCommand(mCommand, 0, calypsoCard)
+: AbstractCardCommand(mCommand, -1, calypsoCard)
 {
     buildCommand(calypsoCard->getCardClass());
 }
 
 CmdCardGetDataFci::CmdCardGetDataFci(const CalypsoCardClass calypsoCardClass)
-: AbstractCardCommand(mCommand, 0, nullptr)
+: AbstractCardCommand(mCommand, -1, nullptr)
 {
     buildCommand(calypsoCardClass);
 }
 
 void CmdCardGetDataFci::buildCommand(const CalypsoCardClass calypsoCardClass)
 {
+    // APDU Case 2 - always outside secure session
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(calypsoCardClass.getValue(),

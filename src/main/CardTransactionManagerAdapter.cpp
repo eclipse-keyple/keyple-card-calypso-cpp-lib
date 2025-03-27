@@ -197,6 +197,7 @@ void CardTransactionManagerAdapter::processAtomicOpening(
      */
     uint8_t sfi = 0;
     uint8_t recordNumber = 0;
+    uint8_t recordSize = 0;
 
     if (!cardCommands.empty()) {
 
@@ -207,6 +208,8 @@ void CardTransactionManagerAdapter::processAtomicOpening(
             sfi = std::dynamic_pointer_cast<CmdCardReadRecords>(cardCommand)->getSfi();
             recordNumber =
                 std::dynamic_pointer_cast<CmdCardReadRecords>(cardCommand)->getFirstRecordNumber();
+            recordSize =
+                std::dynamic_pointer_cast<CmdCardReadRecords>(cardCommand)->getRecordSize();
             cardCommands.erase(cardCommands.begin());
         }
     }
@@ -222,6 +225,7 @@ void CardTransactionManagerAdapter::processAtomicOpening(
             samChallenge,
             sfi,
             recordNumber,
+            recordSize,
             isExtendedModeAllowed());
 
     /* Add the "Open Secure Session" card command in first position */
@@ -984,6 +988,16 @@ CardTransactionManager& CardTransactionManagerAdapter::processOpening(
         for (const auto& apduCommand : mCardCommands) {
 
             const auto& command = std::dynamic_pointer_cast<AbstractCardCommand>(apduCommand);
+            if (command->getCommandRef() == CalypsoCardCommand::GET_DATA
+             ||command->getCommandRef() == CalypsoCardCommand::READ_RECORD_MULTIPLE
+             ||command->getCommandRef() == CalypsoCardCommand::SEARCH_RECORD_MULTIPLE) {
+              throw IllegalStateException("Command not allowed in secure session.");
+            }
+            if (command->getCommandRef() == CalypsoCardCommand::READ_RECORDS
+             && std::dynamic_pointer_cast<CmdCardReadRecords>(command)->getSfi() != 0
+             && std::dynamic_pointer_cast<CmdCardReadRecords>(command)->getRecordSize() == -1) {
+              throw IllegalStateException("Explicit record size is expected inside a secure session.");
+            }
             /* Check if the command is a modifying command */
             if (command->isSessionBufferUsed()) {
                 mModificationsCounter -= computeCommandSessionBufferSize(command);
@@ -1710,6 +1724,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSelectFile(
 
 CardTransactionManager& CardTransactionManagerAdapter::prepareGetData(const GetDataTag tag)
 {
+    if (mIsSessionOpen) {
+        throw IllegalStateException("Secure session open.");
+    }
     /* Create the command and add it to the list of commands */
     switch (tag) {
 
@@ -1774,11 +1791,8 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecord(
                                     CalypsoCardConstant::NB_REC_MAX,
                                     RECORD_NUMBER);
 
-    if (mIsSessionOpen &&
-       !std::dynamic_pointer_cast<CardReader>(mCardReader)->isContactless()) {
-
-        throw IllegalStateException("Explicit record size is expected inside a secure session in " \
-                                    "contact mode.");
+    if (mIsSessionOpen) {
+        throw IllegalStateException("Explicit record size is expected inside a secure session.");
     }
 
     auto cmdCardReadRecords =
@@ -1786,7 +1800,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecord(
                                              sfi,
                                              recordNumber,
                                              CmdCardReadRecords::ReadMode::ONE_RECORD,
-                                             static_cast<uint8_t>(0));
+                                             -1);
     mCardCommands.push_back(cmdCardReadRecords);
 
     return *this;
@@ -1880,6 +1894,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareReadRecordsPartial
 
         throw UnsupportedOperationException("The 'Read Record Multiple' command is not available "\
                                             "for this card.");
+    }
+    if (mIsSessionOpen) {
+        throw IllegalStateException("Command not allowed inside a secure session.");
     }
 
     Assert::getInstance().isInRange(sfi,
@@ -1987,6 +2004,9 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSearchRecords(
 
         throw UnsupportedOperationException("The 'Search Record Multiple' command is not " \
                                             "available for this card.");
+    }
+    if (mIsSessionOpen) {
+        throw IllegalStateException("Command not allowed inside a secure session.");
     }
 
     auto dataAdapter = std::dynamic_pointer_cast<SearchCommandDataAdapter>(data);
@@ -2279,6 +2299,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvReload(
                                                               date,
                                                               time,
                                                               free,
+                                                              mIsSessionOpen,
                                                               isExtendedModeAllowed());
 
     /* Create and keep the CalypsoCardCommand */
@@ -2336,6 +2357,7 @@ CardTransactionManager& CardTransactionManagerAdapter::prepareSvDebit(
                                                              amount,
                                                              date,
                                                              time,
+                                                             mIsSessionOpen,
                                                              isExtendedModeAllowed());
 
     /* Create and keep the CalypsoCardCommand */

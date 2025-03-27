@@ -48,7 +48,7 @@ CmdCardIncreaseOrDecrease::CmdCardIncreaseOrDecrease(
   const int incDecValue)
 : AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE :
                                           CalypsoCardCommand::INCREASE,
-                      0,
+                      3,
                       calypsoCard),
   mSfi(sfi),
   mCounterNumber(counterNumber),
@@ -64,18 +64,27 @@ CmdCardIncreaseOrDecrease::CmdCardIncreaseOrDecrease(
 
     const uint8_t p2 = sfi * 8;
 
-    /* This is a case4 command, we set Le = 0 */
-    auto apduRequest = std::make_shared<ApduRequestAdapter>(
-                           ApduUtil::build(cla,
-                                           getCommandRef().getInstructionByte(),
-                                           mCounterNumber,
-                                           p2,
-                                           valueBuffer,
-                                           0x00));
+    std::shared_ptr<ApduRequestAdapter>  apduRequest;
 
-    if (calypsoCard->isCounterValuePostponed()) {
-
-        apduRequest->addSuccessfulStatusWord(SW_POSTPONED_DATA);
+    if (!calypsoCard->isCounterValuePostponed()) {
+      /* This is a case4 command, we set Le = 0 */
+      apduRequest = std::make_shared<ApduRequestAdapter>(
+                             ApduUtil::build(cla,
+                                             getCommandRef().getInstructionByte(),
+                                             mCounterNumber,
+                                             p2,
+                                             valueBuffer,
+                                             0x00));
+    } else {
+      /* This command is considered as a case 3, we do not set Le */
+      apduRequest = std::make_shared<ApduRequestAdapter>(
+                             ApduUtil::build(cla,
+                                             getCommandRef().getInstructionByte(),
+                                             mCounterNumber,
+                                             p2,
+                                             valueBuffer));
+      setExpectedResponseLength(0);
+      apduRequest->addSuccessfulStatusWord(SW_POSTPONED_DATA);
     }
 
     setApduRequest(apduRequest);

@@ -54,6 +54,7 @@ CmdCardReadBinary::CmdCardReadBinary(const std::shared_ptr<CalypsoCardAdapter> c
      */
     const uint8_t p1 = msb > 0 ? msb : 0x80 + mSfi;
 
+    // APDU Case 2
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(

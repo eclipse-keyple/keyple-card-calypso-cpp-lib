@@ -36,13 +36,13 @@ public:
      * Constructor dedicated for the building of referenced Calypso commands
      *
      * @param commandRef a command reference from the Calypso command table.
-     * @param le The value of the LE field.
+     * @param expectedResponseLength The expected response length or -1 if not specified.
      * @param calypsoCard The Calypso card (it may be null if the card selection has not yet been
      *        made).
      * @since 2.0.1
      */
     AbstractCardCommand(const CalypsoCardCommand& commandRef,
-                        const int le,
+                        const int expectedResponseLength,
                         const std::shared_ptr<CalypsoCardAdapter> calypsoCard);
 
     /**

@@ -42,7 +42,7 @@ CmdSamCardCipherPin::CmdSamCardCipherPin(const std::shared_ptr<CalypsoSamAdapter
                                          const uint8_t cipheringKvc,
                                          const std::vector<uint8_t>& currentPin,
                                          const std::vector<uint8_t>& newPin)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     if (currentPin.size() != 4) {
 

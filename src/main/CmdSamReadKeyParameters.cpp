@@ -39,7 +39,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
     CmdSamReadKeyParameters::STATUS_TABLE = initStatusTable();
 
 CmdSamReadKeyParameters::CmdSamReadKeyParameters(const std::shared_ptr<CalypsoSamAdapter> calypsoSam)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 
@@ -54,7 +54,7 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(const std::shared_ptr<CalypsoSa
 CmdSamReadKeyParameters::CmdSamReadKeyParameters(
   const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const uint8_t kif)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 
@@ -72,7 +72,7 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(
   const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const uint8_t kif,
   const uint8_t kvc)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 
@@ -91,7 +91,7 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(
   const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const SourceRef sourceKeyRef,
   const int recordNumber)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     if (recordNumber < 1 || recordNumber > MAX_WORK_KEY_REC_NUMB) {
 
@@ -131,7 +131,7 @@ CmdSamReadKeyParameters::CmdSamReadKeyParameters(
   const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const uint8_t kif,
   const NavControl navControl)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 

@@ -74,7 +74,7 @@ CmdSamDataCipher::CmdSamDataCipher(
   const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const std::shared_ptr<BasicSignatureComputationDataAdapter> signatureComputationData,
   const std::shared_ptr<BasicSignatureVerificationDataAdapter> signatureVerificationData)
-: AbstractSamCommand(CalypsoSamCommand::DATA_CIPHER, 0, calypsoSam),
+: AbstractSamCommand(CalypsoSamCommand::DATA_CIPHER, -1, calypsoSam),
   mSignatureComputationData(signatureComputationData),
   mSignatureVerificationData(signatureVerificationData)
 {

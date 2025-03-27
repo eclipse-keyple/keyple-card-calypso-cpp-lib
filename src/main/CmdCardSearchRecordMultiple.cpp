@@ -40,7 +40,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
   const std::shared_ptr<CalypsoCardAdapter> calypsoCard,
   const std::shared_ptr<SearchCommandDataAdapter> data)
-: AbstractCardCommand(CalypsoCardCommand::SEARCH_RECORD_MULTIPLE, 0, calypsoCard),
+: AbstractCardCommand(CalypsoCardCommand::SEARCH_RECORD_MULTIPLE, -1, calypsoCard),
   mData(data)
 {
     const int searchDataLength = static_cast<int>(data->getSearchData().size());
@@ -88,6 +88,7 @@ CmdCardSearchRecordMultiple::CmdCardSearchRecordMultiple(
         }
     }
 
+    // APDU Case 4 - always outside secure session
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(calypsoCard->getCardClass().getValue(),

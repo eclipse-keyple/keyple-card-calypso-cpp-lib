@@ -47,6 +47,7 @@ CmdCardAppendRecord::CmdCardAppendRecord(const std::shared_ptr<CalypsoCardAdapte
     const uint8_t p1 = 0x00;
     const uint8_t p2 = (sfi == 0) ? 0x00 : sfi * 8;
 
+    // APDU Case 3
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(cla, mCommand.getInstructionByte(), p1, p2, newRecordData)));

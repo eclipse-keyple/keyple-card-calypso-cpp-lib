@@ -40,12 +40,14 @@ CmdCardRehabilitate::CmdCardRehabilitate(const std::shared_ptr<CalypsoCardAdapte
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;
 
+    // APDU Case 1
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(calypsoCard->getCardClass().getValue(),
                             mCommand.getInstructionByte(),
                             p1,
-                            p2)));
+                            p2,
+                            0x00)));
 }
 
 bool CmdCardRehabilitate::isSessionBufferUsed() const

@@ -42,7 +42,7 @@ CmdSamWriteKey::CmdSamWriteKey(
   const uint8_t writingMode,
   const uint8_t keyReference,
   const std::vector<uint8_t>& keyData)
-: AbstractSamCommand(mCommand, 0, calypsoSam)
+: AbstractSamCommand(mCommand, -1, calypsoSam)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());
 

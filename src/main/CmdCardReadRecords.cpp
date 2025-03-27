@@ -40,7 +40,8 @@ CmdCardReadRecords::CmdCardReadRecords(const std::shared_ptr<CalypsoCardAdapter>
                                        const int firstRecordNumber,
                                        const ReadMode readMode,
                                        const int expectedLength)
-: AbstractCardCommand(mCommand, expectedLength, calypsoCard)
+: AbstractCardCommand(mCommand, expectedLength, calypsoCard),
+  mRecordSize(expectedLength)
 {
     buildCommand(calypsoCard->getCardClass(), sfi, firstRecordNumber, readMode, expectedLength);
 }
@@ -49,8 +50,9 @@ CmdCardReadRecords::CmdCardReadRecords(const CalypsoCardClass calypsoCardClass,
                                        const uint8_t sfi,
                                        const uint8_t firstRecordNumber,
                                        const ReadMode readMode,
-                                       const uint8_t expectedLength)
-: AbstractCardCommand(mCommand, expectedLength, nullptr)
+                                       const int expectedLength)
+: AbstractCardCommand(mCommand, expectedLength, nullptr),
+  mRecordSize(expectedLength)
 {
     buildCommand(calypsoCardClass, sfi, firstRecordNumber, readMode, expectedLength);
 }
@@ -73,8 +75,9 @@ void CmdCardReadRecords::buildCommand(const CalypsoCardClass calypsoCardClass,
         p2 -= 0x01;
     }
 
-    const uint8_t le = expectedLength;
+    const uint8_t le = expectedLength < 0 ? 0 : expectedLength;
 
+    // APDU Case 2
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(
@@ -172,6 +175,11 @@ uint8_t CmdCardReadRecords::getSfi() const
 uint8_t CmdCardReadRecords::getFirstRecordNumber() const
 {
     return mFirstRecordNumber;
+}
+
+int CmdCardReadRecords::getRecordSize() const
+{
+    return mRecordSize;
 }
 
 CmdCardReadRecords::ReadMode CmdCardReadRecords::getReadMode() const

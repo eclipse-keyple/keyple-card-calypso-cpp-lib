@@ -57,6 +57,7 @@ CmdCardVerifyPin::CmdCardVerifyPin(
     const uint8_t p1 = 0x00;
     const uint8_t p2 = 0x00;
 
+    // APDU Case 3
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(mCla, mCommand.getInstructionByte(), p1, p2, pin)));

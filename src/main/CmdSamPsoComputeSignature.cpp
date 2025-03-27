@@ -39,7 +39,7 @@ const std::map<const int, const std::shared_ptr<StatusProperties>>
 CmdSamPsoComputeSignature::CmdSamPsoComputeSignature(
   const std::shared_ptr<CalypsoSamAdapter> calypsoSam,
   const std::shared_ptr<TraceableSignatureComputationDataAdapter> data)
-: AbstractSamCommand(CalypsoSamCommand::PSO_COMPUTE_SIGNATURE, 0, calypsoSam),
+: AbstractSamCommand(CalypsoSamCommand::PSO_COMPUTE_SIGNATURE, -1, calypsoSam),
   mData(data)
 {
     const uint8_t cla = SamUtilAdapter::getClassByte(calypsoSam->getProductType());

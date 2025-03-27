@@ -44,7 +44,7 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
   const std::map<const int, const int> counterNumberToIncDecValueMap)
 : AbstractCardCommand(isDecreaseCommand ? CalypsoCardCommand::DECREASE_MULTIPLE :
                                           CalypsoCardCommand::INCREASE_MULTIPLE,
-                      0,
+                      counterNumberToIncDecValueMap.size() * 4,
                       calypsoCard),
   mSfi(sfi),
   mCounterNumberToIncDecValueMap(counterNumberToIncDecValueMap)
@@ -62,6 +62,7 @@ CmdCardIncreaseOrDecreaseMultiple::CmdCardIncreaseOrDecreaseMultiple(
         index += 4;
     }
 
+    // APDU Case 4
     setApduRequest(
         std::make_shared<ApduRequestAdapter>(
             ApduUtil::build(calypsoCard->getCardClass().getValue(),
