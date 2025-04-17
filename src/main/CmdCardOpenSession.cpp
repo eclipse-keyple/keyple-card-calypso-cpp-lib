@@ -314,7 +314,7 @@ void CmdCardOpenSession::parseRev3(const std::vector<uint8_t>& apduResponseData)
     const auto kvc = std::make_shared<uint8_t>(apduResponseData[6 + offset]);
     const int dataLength = apduResponseData[7 + offset];
 
-    if (dataLength != mRecordSize) {
+    if (dataLength != apduResponseData.size() - 8 - offset) {
       throw IllegalStateException("Inconsistent response length for Open Secure Session.");
     }
 
