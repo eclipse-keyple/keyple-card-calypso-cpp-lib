@@ -43,7 +43,7 @@ const CalypsoCardCommand CalypsoCardCommand::SV_DEBIT("SV Debit", 0xBA);
 const CalypsoCardCommand CalypsoCardCommand::SV_RELOAD("SV Reload", 0xB8);
 const CalypsoCardCommand CalypsoCardCommand::SV_UNDEBIT("SV Undebit", 0xBC);
 const CalypsoCardCommand CalypsoCardCommand::INVALIDATE("Invalidate", 0x04);
-const CalypsoCardCommand CalypsoCardCommand::REHABILITATE("Invalidate", 0x44);
+const CalypsoCardCommand CalypsoCardCommand::REHABILITATE("Rehabilitate", 0x44);
 
 CalypsoCardCommand::CalypsoCardCommand(const std::string& name, const uint8_t instructionByte)
 : mName(name), mInstructionByte(instructionByte) {}
