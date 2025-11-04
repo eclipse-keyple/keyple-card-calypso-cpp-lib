@@ -11,4 +11,4 @@ jobs:
     uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-publish-doxygen.yml@main # NOSONAR - Same organization, trusted source
     with:
       version: ${{ github.event.inputs.version || github.ref_name }}
-    secrets: inherit
+    secrets: inherit # NOSONAR - Same organization, trusted source

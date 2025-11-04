@@ -11,4 +11,4 @@ permissions:
 jobs:
   publish-doc-snapshot:
     uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-publish-doxygen.yml@main # NOSONAR - Same organization, trusted source
-    secrets: inherit
+    secrets: inherit # NOSONAR - Same organization, trusted source
