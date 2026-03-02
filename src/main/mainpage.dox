@@ -1,0 +1,23 @@
+/**
+ * @mainpage Keyple Card Calypso C++ Library
+ *
+ * @section overview Overview
+ *
+ * The **Keyple Card Calypso C++ Library** is a Keyple add-on that enables
+ * applications to interact with Calypso card products through high level
+ * functional commands, simplifying Calypso card operations.
+ *
+ * @section key_features Key Features
+ *
+ * - High-level Calypso card commands
+ * - Support for Calypso card operations
+ * - Secure session management
+ * - File and record operations
+ * - Transaction handling and cryptographic operations
+ *
+ * @section resources Resources
+ *
+ * - **Documentation**: [keyple.org](https://keyple.org)
+ * - **API Documentation**: [docs.keyple.org/keyple-card-calypso-cpp-lib](https://docs.keyple.org/keyple-card-calypso-cpp-lib)
+ * - **Examples**: [github.com/eclipse/keyple-cpp-example](https://github.com/eclipse/keyple-cpp-example)
+ */
