@@ -1,0 +1,40 @@
+#******************************************************************************
+#* Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+#*                                                                            *
+#* See the NOTICE file(s) distributed with this work for additional           *
+#* information regarding copyright ownership.                                 *
+#*                                                                            *
+#* This program and the accompanying materials are made available under the   *
+#* terms of the Eclipse Public License 2.0 which is available at              *
+#* http://www.eclipse.org/legal/epl-2.0                                       *
+#*                                                                            *
+#* SPDX-License-Identifier: EPL-2.0                                           *
+#******************************************************************************/
+
+INCLUDE(FetchContent)
+
+IF(NOT EXISTS "${CMAKE_BINARY_DIR}/_deps/keypopcalypsocardcppapi-src")
+
+    MESSAGE("-- > Fetching keypop calypso card api from keyple card calypso")
+
+    FetchContent_Declare(
+
+            KeypopCalypsoCardCppApi
+
+            DOWNLOAD_EXTRACT_TIMESTAMP true
+            GIT_REPOSITORY https://github.com/eclipse-keypop/keypop-calypso-card-cpp-api
+            GIT_TAG develop-2.2.0
+    )
+
+ELSE()
+
+    FetchContent_Declare(
+
+        KeypopCalypsoCardCppApi
+
+        SOURCE_DIR ${CMAKE_BINARY_DIR}/_deps/keypopcalypsocardcppapi-src
+    )
+
+ENDIF()
+
+FetchContent_MakeAvailable(KeypopCalypsoCardCppApi)

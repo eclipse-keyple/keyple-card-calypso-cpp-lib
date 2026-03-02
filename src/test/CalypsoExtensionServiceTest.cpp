@@ -1,501 +1,334 @@
-/**************************************************************************************************
- * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
- *                                                                                                *
- * See the NOTICE file(s) distributed with this work for additional information regarding         *
- * copyright ownership.                                                                           *
- *                                                                                                *
- * This program and the accompanying materials are made available under the terms of the Eclipse  *
- * Public License 2.0 which is available at http://www.eclipse.org/legal/epl-2.0                  *
- *                                                                                                *
- * SPDX-License-Identifier: EPL-2.0                                                               *
- **************************************************************************************************/
+/******************************************************************************
+ * Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+ *                                                                            *
+ * This program and the accompanying materials are made available under the   *
+ * terms of the MIT License which is available at                             *
+ * https://opensource.org/licenses/MIT.                                       *
+ *                                                                            *
+ * SPDX-License-Identifier: MIT                                               *
+ ******************************************************************************/
+
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-/* Calypsonet Terminal Card */
-#include "CardApiProperties.h"
-#include "ProxyReaderApi.h"
+#include "keyple/card/calypso/CalypsoCardAdapter.hpp"
+#include "keyple/card/calypso/CalypsoCardSelectionExtensionAdapter.hpp"
+#include "keyple/card/calypso/CalypsoExtensionService.hpp"
+#include "keyple/card/calypso/SymmetricCryptoSecuritySettingAdapter.hpp"
+#include "keyple/card/generic/GenericCardSelectionExtension.hpp"
+#include "keyple/core/common/CommonApiProperties.hpp"
+#include "keyple/core/util/cpp/exception/IllegalArgumentException.hpp"
+#include "keypop/calypso/card/transaction/SymmetricCryptoSecuritySetting.hpp"
+#include "keypop/card/CardApiProperties.hpp"
+#include "keypop/card/spi/CardSelectionExtensionSpi.hpp"
+#include "keypop/reader/ReaderApiProperties.hpp"
 
-/* Calypsonet Terminal Reader */
-#include "ReaderApiProperties.h"
+#include "mock/CardSelectionResponseAdapterMock.hpp"
+#include "mock/ReaderMock.hpp"
+#include "mock/SymmetricCryptoCardTransactionManagerFactoryMock.hpp"
+#include "mock/SymmetricCryptoCardTransactionManagerMock.hpp"
 
-/* Keyple Card Calypso */
-#include "CalypsoCardAdapter.h"
-#include "CalypsoExtensionService.h"
-#include "CalypsoSamSelectionMock.h"
-#include "CardSecuritySettingAdapter.h"
+using keyple::card::calypso::CalypsoCardAdapter;
+using keyple::card::calypso::CalypsoCardSelectionExtensionAdapter;
+using keyple::card::calypso::CalypsoExtensionService;
+using keyple::card::calypso::SymmetricCryptoSecuritySettingAdapter;
+using keyple::card::generic::GenericCardSelectionExtension;
+using keyple::core::common::CommonApiProperties_VERSION;
+using keyple::core::util::cpp::exception::IllegalArgumentException;
+using keypop::calypso::card::transaction::SymmetricCryptoSecuritySetting;
+using keypop::card::CardApiProperties_VERSION;
+using keypop::card::spi::CardSelectionExtensionSpi;
+using keypop::reader::ReaderApiProperties_VERSION;
 
-/* Keyple Core Common */
-#include "CommonApiProperties.h"
+static const std::string POWER_ON_DATA
+    = "3B8F8001805A0A010320031124B77FE7829000F7";
+static const std::string SAM_C1_POWER_ON_DATA
+    = "3B3F9600805A4880C120501711223344829000";
+static const std::string SAM_F1_POWER_ON_DATA
+    = "3B3F9600805A4880F120501711223344829000";
 
-/* Keyple Core Util */
-#include "IllegalArgumentException.h"
-
-/* Keyple Core Service */
-#include "CardSelectionResponseAdapter.h"
-
-/* Mock */
-#include "CalypsoSamMock.h"
-#include "CardSelectionResponseAdapterMock.h"
-#include "CardSelectionResponseApiMock.h"
-#include "ReaderMock.h"
-
-using namespace testing;
-
-using namespace calypsonet::terminal::card;
-using namespace calypsonet::terminal::reader;
-using namespace keyple::card::calypso;
-using namespace keyple::core::common;
-using namespace keyple::core::service;
-using namespace keyple::core::util::cpp::exception;
-
-static const std::string POWER_ON_DATA = "3B8F8001805A0A010320031124B77FE7829000F7";
-static const std::string SAM_C1_POWER_ON_DATA = "3B3F9600805A4880C120501711223344829000";
-static const std::string SAM_F1_POWER_ON_DATA = "3B3F9600805A4880F120501711223344829000";
-static std::shared_ptr<CalypsoExtensionService> service = CalypsoExtensionService::getInstance();
-static std::shared_ptr<CalypsoSamSelection> calypsoSamSelection;
+static std::shared_ptr<CalypsoExtensionService> service
+    = CalypsoExtensionService::getInstance();
 static std::shared_ptr<ReaderMock> reader;
 static std::shared_ptr<CalypsoCardAdapter> calypsoCard;
-static std::shared_ptr<CardSecuritySetting> cardSecuritySetting;
-static std::shared_ptr<CalypsoSamAdapter> calypsoSam;
-static std::shared_ptr<SamSecuritySetting> samSecuritySetting;
+static std::shared_ptr<SymmetricCryptoSecuritySetting> cardSecuritySetting;
+static std::shared_ptr<SymmetricCryptoCardTransactionManagerFactoryMock>
+    symmetricCryptoCardTransactionManagerFactory;
+static std::shared_ptr<SymmetricCryptoCardTransactionManagerMock>
+    symmetricCryptoCardTransactionManager;
 static const std::vector<uint8_t> serial = {1, 2, 3, 4, 5, 6};
 
-static void setUp()
-{
-    reader = std::make_shared<ReaderMock>();
-    calypsoCard = std::make_shared<CalypsoCardAdapter>();
-    cardSecuritySetting = std::make_shared<CardSecuritySettingAdapter>();
-    calypsoSamSelection = std::make_shared<CalypsoSamSelectionMock>();
-    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
-    EXPECT_CALL(*samCardSelectionResponse, getPowerOnData()).WillRepeatedly(ReturnRef(SAM_C1_POWER_ON_DATA));
-    calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
-    samSecuritySetting = std::make_shared<SamSecuritySettingAdapter>();
-}
+class CalypsoExtensionServiceTest : public ::testing::Test {
+protected:
+    void
+    SetUp() override
+    {
+        reader = std::make_shared<ReaderMock>();
+        symmetricCryptoCardTransactionManagerFactory = std::make_shared<
+            SymmetricCryptoCardTransactionManagerFactoryMock>();
+        symmetricCryptoCardTransactionManager
+            = std::make_shared<SymmetricCryptoCardTransactionManagerMock>();
+        calypsoCard = std::make_shared<CalypsoCardAdapter>();
+        cardSecuritySetting
+            = std::make_shared<SymmetricCryptoSecuritySettingAdapter>(nullptr);
+    }
 
-static void tearDown()
-{
-    reader.reset();
-    calypsoCard.reset();
-    calypsoSam.reset();
-    calypsoSamSelection.reset();
-    cardSecuritySetting.reset();
-    samSecuritySetting.reset();
-}
+    void
+    TearDown() override
+    {
+        reader.reset();
+        symmetricCryptoCardTransactionManagerFactory.reset();
+        symmetricCryptoCardTransactionManager.reset();
+        calypsoCard.reset();
+        cardSecuritySetting.reset();
+    }
+};
 
-TEST(CalypsoExtensionServiceTest, getInstance_whenIsInvokedTwice_shouldReturnSameInstance)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    getInstance_whenIsInvokedTwice_shouldReturnSameInstance)
 {
-    setUp();
-
     ASSERT_EQ(CalypsoExtensionService::getInstance(), service);
-
-    tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, getReaderApiVersion_whenInvoked_shouldReturn_ExpectedVersion)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    getReaderApiVersion_whenInvoked_shouldReturn_ExpectedVersion)
 {
-    setUp();
-
     ASSERT_EQ(service->getReaderApiVersion(), ReaderApiProperties_VERSION);
-
-    tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, getCardApiVersion_shouldReturnExpectedVersion)
+TEST_F(
+    CalypsoExtensionServiceTest, getCardApiVersion_shouldReturnExpectedVersion)
 {
-    setUp();
-
     ASSERT_EQ(service->getCardApiVersion(), CardApiProperties_VERSION);
-
-    tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, getCommonApiVersion_shouldReturnExpectedVersion)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    getCommonApiVersion_shouldReturnExpectedVersion)
 {
-    setUp();
-
     ASSERT_EQ(service->getCommonApiVersion(), CommonApiProperties_VERSION);
-
-    tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, createSearchCommandData_shouldReturnNewReference)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSearchCommandData_shouldReturnNewReference)
 {
-    setUp();
+    const auto command(
+        service->getCalypsoCardApiFactory()->createSearchCommandData());
 
-    const auto data = service->createSearchCommandData();
+    ASSERT_NE(command, nullptr);
 
-    ASSERT_NE(data, nullptr);
-    ASSERT_NE(data, service->createSearchCommandData());
+    const auto command2(
+        service->getCalypsoCardApiFactory()->createSearchCommandData());
 
-    tearDown();
+    ASSERT_NE(command, command2);
 }
 
-TEST(CalypsoExtensionServiceTest, createBasicSignatureComputationData_shouldReturnNewReference)
+TEST_F(
+    CalypsoExtensionServiceTest, createCardSelection_shouldReturnNewReference)
 {
-    setUp();
-
-    const auto data = service->createBasicSignatureComputationData();
-
-    ASSERT_NE(data, nullptr);
-    ASSERT_NE(data, service->createBasicSignatureComputationData());
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest, createTraceableSignatureComputationData_shouldReturnNewReference)
-{
-    setUp();
-
-    const auto data = service->createTraceableSignatureComputationData();
-
-    ASSERT_NE(data, nullptr);
-    ASSERT_NE(data, service->createTraceableSignatureComputationData());
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest, createBasicSignatureVerificationData_shouldReturnNewReference)
-{
-    setUp();
-
-    const auto data = service->createBasicSignatureVerificationData();
-
-    ASSERT_NE(data, nullptr);
-    ASSERT_NE(data, service->createBasicSignatureVerificationData());
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest, createTraceableSignatureVerificationData_shouldReturnNewReference)
-{
-    setUp();
-
-    const auto data = service->createTraceableSignatureVerificationData();
-
-    ASSERT_NE(data, nullptr);
-    ASSERT_NE(data, service->createTraceableSignatureVerificationData());
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest, createCardSelection_shouldReturnNewReference)
-{
-    setUp();
-
-    const auto selection = service->createCardSelection();
+    const auto selection(service->getCalypsoCardApiFactory()
+                             ->createCalypsoCardSelectionExtension());
 
     ASSERT_NE(selection, nullptr);
-    ASSERT_NE(selection, service->createCardSelection());
 
-    tearDown();
+    const auto selection2(service->getCalypsoCardApiFactory()
+                              ->createCalypsoCardSelectionExtension());
+
+    ASSERT_NE(selection, selection2);
 }
 
-TEST(CalypsoExtensionServiceTest, createCardSelection_shouldReturnInstanceOfInternalSpi)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createCardSelection_shouldReturnInstanceOfInternalSpi)
 {
-    setUp();
+    const auto selection(service->getCalypsoCardApiFactory()
+                             ->createCalypsoCardSelectionExtension());
 
-    const std::shared_ptr<CalypsoCardSelection> cardSelection = service->createCardSelection();
+    const auto cardExtension(
+        dynamic_cast<CardSelectionExtensionSpi*>(selection.get()));
 
-    ASSERT_NE(std::dynamic_pointer_cast<CardSelectionSpi>(cardSelection), nullptr);
-    ASSERT_NE(std::dynamic_pointer_cast<CalypsoCardSelectionAdapter>(cardSelection), nullptr);
+    ASSERT_NE(cardExtension, nullptr);
 
-    tearDown();
+    const auto calypsoExtension(
+        dynamic_cast<CalypsoCardSelectionExtensionAdapter*>(selection.get()));
+
+    ASSERT_NE(calypsoExtension, nullptr);
 }
 
-TEST(CalypsoExtensionServiceTest, createSamSelection_shouldReturnNewReference)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createCardSecuritySetting_shouldReturnANewReference)
 {
-    setUp();
+    const auto securitySetting(
+        service->getCalypsoCardApiFactory()
+            ->createSymmetricCryptoSecuritySetting(
+                symmetricCryptoCardTransactionManagerFactory));
+    ASSERT_NE(cardSecuritySetting, nullptr);
 
-    const auto selection = service->createSamSelection();
+    const auto securitySetting2(
+        service->getCalypsoCardApiFactory()
+            ->createSymmetricCryptoSecuritySetting(
+                symmetricCryptoCardTransactionManagerFactory));
 
-    ASSERT_NE(selection, nullptr);
-    ASSERT_NE(selection, service->createSamSelection());
-
-    tearDown();
+    ASSERT_NE(securitySetting, securitySetting2);
 }
 
-TEST(CalypsoExtensionServiceTest, createSamSelection_shouldReturnInstanceOfInternalSpi)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createCardSecuritySetting_shouldReturnInstanceOfCardSecuritySettingAdapter)
 {
-    setUp();
+    const auto securitySetting(
+        service->getCalypsoCardApiFactory()
+            ->createSymmetricCryptoSecuritySetting(
+                symmetricCryptoCardTransactionManagerFactory));
 
-    const std::shared_ptr<CalypsoSamSelection> samSelection = service->createSamSelection();
-
-    ASSERT_NE(std::dynamic_pointer_cast<CardSelectionSpi>(samSelection), nullptr);
-    ASSERT_NE(std::dynamic_pointer_cast<CalypsoSamSelectionAdapter>(samSelection), nullptr);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest, createSamResourceProfileExtension_shouldReturnANewReference)
-{
-    setUp();
-
-    const std::shared_ptr<CardResourceProfileExtension> samResourceProfileExtension =
-        service->createSamResourceProfileExtension(calypsoSamSelection);
-
-    ASSERT_NE(samResourceProfileExtension, nullptr);
-    ASSERT_NE(service->createSamResourceProfileExtension(calypsoSamSelection),
-              samResourceProfileExtension);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest, createCardSecuritySetting_shouldReturnANewReference)
-{
-    setUp();
-
-    const std::shared_ptr<CardSecuritySetting> lCardSecuritySetting =
-        service->createCardSecuritySetting();
-
-    ASSERT_NE(lCardSecuritySetting, nullptr);
-    ASSERT_NE(service->createCardSecuritySetting(), lCardSecuritySetting);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createCardSecuritySetting_shouldReturnInstanceOfCardSecuritySettingAdapter)
-{
-    setUp();
-
-    const std::shared_ptr<CardSecuritySetting> lCardSecuritySetting =
-        service->createCardSecuritySetting();
-
-    ASSERT_NE(std::dynamic_pointer_cast<CardSecuritySettingAdapter>(lCardSecuritySetting), nullptr);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest, createCardTransaction_whenInvokedWithNullReader_shouldThrowIAE)
-{
-    setUp();
-
-    EXPECT_THROW(service->createCardTransaction(nullptr, calypsoCard, cardSecuritySetting),
-                 IllegalArgumentException);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createCardTransaction_whenInvokedWithNullCalypsoCard_shouldThrowIAE)
-{
-    setUp();
-
-    EXPECT_THROW(service->createCardTransaction(reader, nullptr, cardSecuritySetting),
-                 IllegalArgumentException);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createCardTransaction_whenInvokedWithNullCardSecuritySetting_shouldThrowIAE)
-{
-    setUp();
-
-    EXPECT_THROW(service->createCardTransaction(reader, calypsoCard, nullptr),
-                 IllegalArgumentException);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createCardTransaction_whenInvokedWithUndefinedCalypsoCardProductType_shouldThrowIAE)
-{
-    setUp();
-
-    EXPECT_THROW(service->createCardTransaction(reader, calypsoCard, cardSecuritySetting),
-                 IllegalArgumentException);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createCardTransactionWithoutSecurity_whenInvokedWithNullReader_shouldThrowIAE)
-{
-    setUp();
-
-    EXPECT_THROW(service->createCardTransactionWithoutSecurity(nullptr, calypsoCard),
-                 IllegalArgumentException);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createCardTransactionWithoutSecurity_whenInvokedWithNullCalypsoCard_shouldThrowIAE)
-{
-    setUp();
-
-    EXPECT_THROW(service->createCardTransactionWithoutSecurity(reader, nullptr),
-                 IllegalArgumentException);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createCardTransactionWithoutSecurity_whenInvokedWithUndefinedCalypsoCardProductType_shouldThrowIAE)
-{
-    setUp();
-
-    EXPECT_THROW(service->createCardTransactionWithoutSecurity(reader, calypsoCard),
-                 IllegalArgumentException);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createCardTransactionWithoutSecurity_whenInvoked_shouldReturnANewReference)
-{
-    setUp();
-
-    calypsoCard = std::make_shared<CalypsoCardAdapter>();
-    calypsoCard->initialize(std::make_shared<CardSelectionResponseAdapterMock>(POWER_ON_DATA));
-
-    auto adapter = std::dynamic_pointer_cast<CardSecuritySettingAdapter>(cardSecuritySetting);
-    adapter->setSamResource(reader, calypsoSam);
-
-    const std::shared_ptr<CardTransactionManager> cardTransaction =
-        service->createCardTransactionWithoutSecurity(reader, calypsoCard);
-
-    ASSERT_NE(service->createCardTransactionWithoutSecurity(reader, calypsoCard), cardTransaction);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest, createSamSecuritySetting_shouldReturnANewReference)
-{
-    setUp();
-
-    const auto samSecuritySetting = service->createSamSecuritySetting();
-
-    ASSERT_NE(samSecuritySetting, nullptr);
-    ASSERT_NE(service->createSamSecuritySetting(), samSecuritySetting);
-
-    tearDown();
-}
-
-TEST(CalypsoExtensionServiceTest,
-     createSamSecuritySetting_shouldReturnInstanceOfSamSecuritySettingAdapter)
-{
-    setUp();
-
-    const auto setting = service->createSamSecuritySetting();
-    const auto adapter = std::dynamic_pointer_cast<SamSecuritySettingAdapter>(setting);
+    const auto adapter(
+        dynamic_cast<SymmetricCryptoSecuritySettingAdapter*>(
+            securitySetting.get()));
 
     ASSERT_NE(adapter, nullptr);
-
-    tearDown();
 }
 
-TEST(CalypsoExtensionServiceTest, createSamTransaction_whenInvokedWithNullReader_shouldThrowIAE)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createFreeTransactionManager_whenInvokedWithNullReader_shouldThrowIAE)
 {
-    setUp();
-
-    EXPECT_THROW(service->createSamTransaction(nullptr, calypsoSam, samSecuritySetting),
-                 IllegalArgumentException);
-
-    tearDown();
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()->createFreeTransactionManager(
+            nullptr, calypsoCard),
+        IllegalArgumentException);
 }
 
-TEST(CalypsoExtensionServiceTest,
-     createSamTransaction_whenInvokedWithNullCalypsoCard_shouldThrowIAE)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createFreeTransactionManager_whenInvokedWithNullCalypsoCard_shouldThrowIAE)
 {
-    setUp();
-
-    EXPECT_THROW(service->createSamTransaction(reader, nullptr, samSecuritySetting),
-                 IllegalArgumentException);
-
-    tearDown();
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()->createFreeTransactionManager(
+            reader, nullptr),
+        IllegalArgumentException);
 }
 
-TEST(CalypsoExtensionServiceTest,
-     createSamTransaction_whenInvokedWithNullSamSecuritySetting_shouldThrowIAE)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createFreeTransactionManager_whenInvokedWithUndefinedCalypsoCardProductType_shouldThrowIAE)  // NOLINT
 {
-    setUp();
-
-    EXPECT_THROW(service->createSamTransaction(reader, calypsoSam, nullptr),
-                 IllegalArgumentException);
-
-    tearDown();
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()->createFreeTransactionManager(
+            reader, calypsoCard),
+        IllegalArgumentException);
 }
 
-TEST(CalypsoExtensionServiceTest,
-     createSamTransaction_whenInvokedWithUndefinedCalypsoSamProductType_shouldThrowIAE)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createFreeTransactionManager_whenInvoked_shouldReturnANewReference)
 {
-    setUp();
+    calypsoCard = std::make_shared<CalypsoCardAdapter>();
+    calypsoCard->initialize(
+        std::make_shared<CardSelectionResponseAdapterMock>(POWER_ON_DATA));
 
-    /*
-     * C++: use specific power on data to make sure product type is unknow (we can't create a mock
-     * on a final function.
-     *
-     * EXPECT_CALL(*calypsoSam, getProductType())
-     *    .WillRepeatedly(Return(CalypsoSam::ProductType::UNKNOWN));
-     */
-    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
-    EXPECT_CALL(*samCardSelectionResponse, getPowerOnData())
-        .WillRepeatedly(ReturnRef(SAM_F1_POWER_ON_DATA));
-    calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
+    auto cardTransaction(
+        service->getCalypsoCardApiFactory()->createFreeTransactionManager(
+            reader, calypsoCard));
 
-    EXPECT_THROW(service->createSamTransaction(reader, calypsoSam, samSecuritySetting),
-                 IllegalArgumentException);
+    auto cardTransaction2(
+        service->getCalypsoCardApiFactory()->createFreeTransactionManager(
+            reader, calypsoCard));
 
-    tearDown();
+    ASSERT_NE(cardTransaction, cardTransaction2);
 }
 
-TEST(CalypsoExtensionServiceTest,
-     createSamTransactionWithoutSecurity_whenInvokedWithNullReader_shouldThrowIAE)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSecureRegularModeTransactionManager_whenInvokedWithNullReader_shouldThrowIAE)  // NOLINT
 {
-    setUp();
-
-    EXPECT_THROW(service->createSamTransactionWithoutSecurity(nullptr, calypsoSam),
-                 IllegalArgumentException);
-
-    tearDown();
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()
+            ->createSecureRegularModeTransactionManager(
+                nullptr, calypsoCard, cardSecuritySetting),
+        IllegalArgumentException);
 }
 
-TEST(CalypsoExtensionServiceTest,
-     createSamTransactionWithoutSecurity_whenInvokedWithNullCalypsoSam_shouldThrowIAE)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSecureRegularModeTransactionManager_whenInvokedWithNullCalypsoCard_shouldThrowIAE)  // NOLINT
 {
-    setUp();
-
-    EXPECT_THROW(service->createSamTransactionWithoutSecurity(reader, nullptr),
-                 IllegalArgumentException);
-
-    tearDown();
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()
+            ->createSecureRegularModeTransactionManager(
+                reader, nullptr, cardSecuritySetting),
+        IllegalArgumentException);
 }
 
-TEST(CalypsoExtensionServiceTest,
-     createSamTransactionWithoutSecurity_whenInvokedWithUndefinedCalypsoSamProductType_shouldThrowIAE)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSecureRegularModeTransactionManager_whenInvokedWithNullCardSecuritySetting_shouldThrowIAE)  // NOLINT
 {
-    setUp();
-
-    /*
-     * C++: use specific power on data to make sure product type is unknow (we can't create a mock
-     * on a final function.
-     *
-     * EXPECT_CALL(*calypsoSam, getProductType())
-     *    .WillRepeatedly(Return(CalypsoSam::ProductType::UNKNOWN));
-     */
-    auto samCardSelectionResponse = std::make_shared<CardSelectionResponseApiMock>();
-    EXPECT_CALL(*samCardSelectionResponse, getPowerOnData())
-        .WillRepeatedly(ReturnRef(SAM_F1_POWER_ON_DATA));
-    calypsoSam = std::make_shared<CalypsoSamAdapter>(samCardSelectionResponse);
-
-    EXPECT_THROW(service->createSamTransactionWithoutSecurity(reader, calypsoSam),
-                 IllegalArgumentException);
-
-    tearDown();
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()
+            ->createSecureRegularModeTransactionManager(
+                reader, calypsoCard, nullptr),
+        IllegalArgumentException);
 }
 
-TEST(CalypsoExtensionServiceTest,
-     createSamTransactionWithoutSecurity_whenInvoked_shouldReturnANewReference)
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSecureRegularModeTransactionManager_whenInvokedWithUndefinedCalypsoCardProductType_shouldThrowIAE)  // NOLINT
 {
-    setUp();
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()
+            ->createSecureRegularModeTransactionManager(
+                reader, calypsoCard, cardSecuritySetting),
+        IllegalArgumentException);
+}
 
-    const auto samTransaction = service->createSamTransactionWithoutSecurity(reader, calypsoSam);
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSecureExtendedModeTransactionManager_whenInvokedWithNullReader_shouldThrowIAE)  // NOLINT
+{
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()
+            ->createSecureExtendedModeTransactionManager(
+                nullptr, calypsoCard, cardSecuritySetting),
+        IllegalArgumentException);
+}
 
-    ASSERT_NE(service->createSamTransactionWithoutSecurity(reader, calypsoSam), samTransaction);
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSecureExtendedModeTransactionManager_whenInvokedWithNullCalypsoCard_shouldThrowIAE)  // NOLINT
+{
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()
+            ->createSecureExtendedModeTransactionManager(
+                reader, nullptr, cardSecuritySetting),
+        IllegalArgumentException);
+}
 
-    tearDown();
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSecureExtendedModeTransactionManager_whenInvokedWithNullCardSecuritySetting_shouldThrowIAE)  // NOLINT
+{
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()
+            ->createSecureExtendedModeTransactionManager(
+                reader, calypsoCard, nullptr),
+        IllegalArgumentException);
+}
+
+TEST_F(
+    CalypsoExtensionServiceTest,
+    createSecureExtendedModeTransactionManager_whenInvokedWithUndefinedCalypsoCardProductType_shouldThrowIAE)  // NOLINT
+{
+    EXPECT_THROW(
+        service->getCalypsoCardApiFactory()
+            ->createSecureExtendedModeTransactionManager(
+                reader, calypsoCard, cardSecuritySetting),
+        IllegalArgumentException);
 }

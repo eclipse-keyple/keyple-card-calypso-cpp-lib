@@ -1,117 +1,132 @@
-/**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
- *                                                                                                *
- * See the NOTICE file(s) distributed with this work for additional information regarding         *
- * copyright ownership.                                                                           *
- *                                                                                                *
- * This program and the accompanying materials are made available under the terms of the Eclipse  *
- * Public License 2.0 which is available at http://www.eclipse.org/legal/epl-2.0                  *
- *                                                                                                *
- * SPDX-License-Identifier: EPL-2.0                                                               *
- **************************************************************************************************/
+/******************************************************************************
+ * Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+ *                                                                            *
+ * See the NOTICE file(s) distributed with this work for additional           *
+ * information regarding copyright ownership.                                 *
+ *                                                                            *
+ * This program and the accompanying materials are made available under the   *
+ * terms of the Eclipse Public License 2.0 which is available at              *
+ * http://www.eclipse.org/legal/epl-2.0                                       *
+ *                                                                            *
+ * SPDX-License-Identifier: EPL-2.0                                           *
+ ******************************************************************************/
 
-#include "DirectoryHeaderAdapter.h"
+#include "keyple/card/calypso/DirectoryHeaderAdapter.hpp"
 
-/* Keyple Core Util */
-#include "IllegalStateException.h"
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "keyple/core/util/cpp/exception/IllegalStateException.hpp"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
-using namespace keyple::core::util::cpp::exception;
-
-using DirectoryHeaderBuilder = DirectoryHeaderAdapter::DirectoryHeaderBuilder;
+using keyple::core::util::cpp::exception::IllegalStateException;
 
 const std::string DirectoryHeaderAdapter::LEVEL_STR = "level";
 
-/* DIRECTORY HEADER BUILDER --------------------------------------------------------------------- */
+DirectoryHeaderAdapter::DirectoryHeaderBuilder::DirectoryHeaderBuilder()
+{
+}
 
-DirectoryHeaderBuilder::DirectoryHeaderBuilder() {}
-
-DirectoryHeaderBuilder& DirectoryHeaderBuilder::lid(const uint16_t lid)
+DirectoryHeaderAdapter::DirectoryHeaderBuilder&
+DirectoryHeaderAdapter::DirectoryHeaderBuilder::lid(std::uint16_t lid)
 {
     mLid = lid;
 
-    return* this;
+    return *this;
 }
 
-DirectoryHeaderBuilder& DirectoryHeaderBuilder::accessConditions(
-    const std::vector<uint8_t>& accessConditions)
+DirectoryHeaderAdapter::DirectoryHeaderBuilder&
+DirectoryHeaderAdapter::DirectoryHeaderBuilder::accessConditions(
+    const std::vector<std::uint8_t>& accessConditions)
 {
     mAccessConditions = accessConditions;
 
     return *this;
 }
 
-DirectoryHeaderBuilder& DirectoryHeaderBuilder::keyIndexes(
-    const std::vector<uint8_t>& keyIndexes)
+DirectoryHeaderAdapter::DirectoryHeaderBuilder&
+DirectoryHeaderAdapter::DirectoryHeaderBuilder::keyIndexes(
+    const std::vector<std::uint8_t>& keyIndexes)
 {
     mKeyIndexes = keyIndexes;
 
     return *this;
 }
 
-DirectoryHeaderBuilder& DirectoryHeaderBuilder::dfStatus(const uint8_t dfStatus)
+DirectoryHeaderAdapter::DirectoryHeaderBuilder&
+DirectoryHeaderAdapter::DirectoryHeaderBuilder::dfStatus(std::uint8_t dfStatus)
 {
     mDfStatus = dfStatus;
 
     return *this;
 }
 
-DirectoryHeaderBuilder& DirectoryHeaderBuilder::kif(const WriteAccessLevel level,
-                                                    const uint8_t kif)
+DirectoryHeaderAdapter::DirectoryHeaderBuilder&
+DirectoryHeaderAdapter::DirectoryHeaderBuilder::kif(
+    WriteAccessLevel level, std::uint8_t kif)
 {
     mKif.insert({level, kif});
 
     return *this;
 }
 
-DirectoryHeaderBuilder& DirectoryHeaderBuilder::kvc(const WriteAccessLevel level, const uint8_t kvc)
+DirectoryHeaderAdapter::DirectoryHeaderBuilder&
+DirectoryHeaderAdapter::DirectoryHeaderBuilder::kvc(
+    WriteAccessLevel level, std::uint8_t kvc)
 {
     mKvc.insert({level, kvc});
 
     return *this;
 }
 
-const std::shared_ptr<DirectoryHeader> DirectoryHeaderBuilder::build()
+std::unique_ptr<DirectoryHeader>
+DirectoryHeaderAdapter::DirectoryHeaderBuilder::build()
 {
-    return std::shared_ptr<DirectoryHeaderAdapter>(new DirectoryHeaderAdapter(shared_from_this()));
+    return std::unique_ptr<DirectoryHeaderAdapter>(
+        new DirectoryHeaderAdapter(this));
 }
 
-/* DIRECTORY HEADER ADAPTER --------------------------------------------------------------------- */
+DirectoryHeaderAdapter::DirectoryHeaderAdapter(DirectoryHeaderBuilder* builder)
+: mLid(builder->mLid)
+, mAccessConditions(builder->mAccessConditions)
+, mKeyIndexes(builder->mKeyIndexes)
+, mDfStatus(builder->mDfStatus)
+, mKif(builder->mKif)
+, mKvc(builder->mKvc)
+{
+}
 
-DirectoryHeaderAdapter::DirectoryHeaderAdapter(
-  const std::shared_ptr<DirectoryHeaderBuilder> builder)
-: mLid(builder->mLid),
-  mAccessConditions(builder->mAccessConditions),
-  mKeyIndexes(builder->mKeyIndexes),
-  mDfStatus(builder->mDfStatus),
-  mKif(builder->mKif),
-  mKvc(builder->mKvc) {}
-
-uint16_t DirectoryHeaderAdapter::getLid() const
+std::uint16_t
+DirectoryHeaderAdapter::getLid() const
 {
     return mLid;
 }
 
-const std::vector<uint8_t>& DirectoryHeaderAdapter::getAccessConditions() const
+const std::vector<std::uint8_t>&
+DirectoryHeaderAdapter::getAccessConditions() const
 {
     return mAccessConditions;
 }
 
-const std::vector<uint8_t>& DirectoryHeaderAdapter::getKeyIndexes() const
+const std::vector<std::uint8_t>&
+DirectoryHeaderAdapter::getKeyIndexes() const
 {
     return mKeyIndexes;
 }
 
-uint8_t DirectoryHeaderAdapter::getDfStatus() const
+std::uint8_t
+DirectoryHeaderAdapter::getDfStatus() const
 {
     return mDfStatus;
 }
 
-uint8_t DirectoryHeaderAdapter::getKif(const WriteAccessLevel writeAccessLevel) const
-{;
+std::uint8_t
+DirectoryHeaderAdapter::getKif(WriteAccessLevel writeAccessLevel) const
+{
     const auto it = mKif.find(writeAccessLevel);
     if (it != mKif.end()) {
         return it->second;
@@ -120,7 +135,8 @@ uint8_t DirectoryHeaderAdapter::getKif(const WriteAccessLevel writeAccessLevel) 
     }
 }
 
-uint8_t DirectoryHeaderAdapter::getKvc(const WriteAccessLevel writeAccessLevel) const
+std::uint8_t
+DirectoryHeaderAdapter::getKvc(WriteAccessLevel writeAccessLevel) const
 {
     const auto it = mKvc.find(writeAccessLevel);
     if (it != mKvc.end()) {
@@ -130,11 +146,13 @@ uint8_t DirectoryHeaderAdapter::getKvc(const WriteAccessLevel writeAccessLevel) 
     }
 }
 
-std::shared_ptr<DirectoryHeaderBuilder> DirectoryHeaderAdapter::builder()
+std::unique_ptr<DirectoryHeaderAdapter::DirectoryHeaderBuilder>
+DirectoryHeaderAdapter::builder()
 {
-    return std::shared_ptr<DirectoryHeaderBuilder>(new DirectoryHeaderBuilder());
+    return std::unique_ptr<DirectoryHeaderAdapter::DirectoryHeaderBuilder>(
+        new DirectoryHeaderAdapter::DirectoryHeaderBuilder());
 }
 
-}
-}
-}
+} /* namespace calypso */
+} /* namespace card */
+} /* namespace keyple */

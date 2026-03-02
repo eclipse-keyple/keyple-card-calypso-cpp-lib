@@ -1,35 +1,41 @@
-CONFIGURE_FILE(CMakeLists.txt.in ${GOOGLETEST_DIRECTORY}/googletest-download/CMakeLists.txt)
-EXECUTE_PROCESS(
-    COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${GOOGLETEST_DIRECTORY}/googletest-download
-)
+#******************************************************************************
+#* Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+#*                                                                            *
+#* This program and the accompanying materials are made available under the   *
+#* terms of the Eclipse Public License 2.0 which is available at              *
+#* http://www.eclipse.org/legal/epl-2.0                                       *
+#*                                                                            *
+#* SPDX-License-Identifier: EPL-2.0                                           *
+#******************************************************************************/
 
-# Prevent overriding the parent project's compiler/linker
-# settings on Windows
+# FetchContent added in CMake 3.11, downloads during the configure step
+# FetchContent_MakeAvailable was added in CMake 3.14; simpler usage
+INCLUDE(FetchContent)
+
+IF(NOT EXISTS "${CMAKE_BINARY_DIR}/_deps/googletest-src")
+
+    MESSAGE("-- > Fetching GTest from keyple-card-calypso-cpp-lib")
+
+    FetchContent_Declare(
+
+        googletest
+
+        GIT_REPOSITORY    https://github.com/google/googletest.git
+        GIT_TAG           v1.14.0
+    )
+
+ELSE()
+
+    FetchContent_Declare(
+
+        googletest
+
+        SOURCE_DIR ${CMAKE_BINARY_DIR}/_deps/googletest-src
+    )
+
+ENDIF()
+
+# For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-IF(result)
-    MESSAGE(FATAL_ERROR "CMake step for googletest failed: ${result}")
-ENDIF()
-
-EXECUTE_PROCESS(
-    COMMAND ${CMAKE_COMMAND} --build .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${GOOGLETEST_DIRECTORY}/googletest-download
-)
-
-IF(result)
-    MESSAGE(FATAL_ERROR "Build step for googletest failed: ${result}")
-ENDIF()
-
-# Prevent overriding the parent project's compiler/linker
-# settings on Windows
-#SET(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-# Add googletest directly to our build. This defines
-# the gtest and gtest_main targets.
-ADD_SUBDIRECTORY(${GOOGLETEST_DIRECTORY}/googletest-src
-				 ${GOOGLETEST_DIRECTORY}/googletest-build
-                 EXCLUDE_FROM_ALL
-)
+FetchContent_MakeAvailable(googletest)

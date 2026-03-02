@@ -1,30 +1,29 @@
-/**************************************************************************************************
- * Copyright (c) 2021 Calypso Networks Association https://calypsonet.org/                        *
- *                                                                                                *
- * See the NOTICE file(s) distributed with this work for additional information regarding         *
- * copyright ownership.                                                                           *
- *                                                                                                *
- * This program and the accompanying materials are made available under the terms of the Eclipse  *
- * Public License 2.0 which is available at http://www.eclipse.org/legal/epl-2.0                  *
- *                                                                                                *
- * SPDX-License-Identifier: EPL-2.0                                                               *
- **************************************************************************************************/
+/******************************************************************************
+ * Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+ *                                                                            *
+ * This program and the accompanying materials are made available under the   *
+ * terms of the MIT License which is available at                             *
+ * https://opensource.org/licenses/MIT.                                       *
+ *                                                                            *
+ * SPDX-License-Identifier: MIT                                               *
+ ******************************************************************************/
+
+#include <memory>
+#include <string>
 
 #include "gtest/gtest.h"
 
-/* Util */
-#include "Logger.h"
+#include "keyple/core/util/cpp/Logger.hpp"
 
-using namespace testing;
+using keyple::core::util::cpp::Logger;
 
-using namespace keyple::core::util::cpp;
-
-int main(int argc, char **argv)
+int
+main(int argc, char** argv)
 {
     /* Initialize GTest */
     ::testing::InitGoogleTest(&argc, argv);
 
-    Logger::setLoggerLevel(Logger::Level::logError);
+    Logger::setLoggerLevel(Logger::Level::logTrace);
 
     /* Run */
     return RUN_ALL_TESTS();

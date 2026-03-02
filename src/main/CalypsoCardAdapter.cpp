@@ -1,51 +1,52 @@
-/**************************************************************************************************
- * Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                        *
- *                                                                                                *
- * See the NOTICE file(s) distributed with this work for additional information regarding         *
- * copyright ownership.                                                                           *
- *                                                                                                *
- * This program and the accompanying materials are made available under the terms of the Eclipse  *
- * Public License 2.0 which is available at http://www.eclipse.org/legal/epl-2.0                  *
- *                                                                                                *
- * SPDX-License-Identifier: EPL-2.0                                                               *
- **************************************************************************************************/
+/******************************************************************************
+ * Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+ *                                                                            *
+ * See the NOTICE file(s) distributed with this work for additional           *
+ * information regarding copyright ownership.                                 *
+ *                                                                            *
+ * This program and the accompanying materials are made available under the   *
+ * terms of the Eclipse Public License 2.0 which is available at              *
+ * http://www.eclipse.org/legal/epl-2.0                                       *
+ *                                                                            *
+ * SPDX-License-Identifier: EPL-2.0                                           *
+ ******************************************************************************/
 
-#include "CalypsoCardAdapter.h"
+#include "keyple/card/calypso/CalypsoCardAdapter.hpp"
 
-/* Calypsonet Terminal Calypso */
-#include "FileHeader.h"
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
-/* Keyple Core Util */
-#include "ByteArrayUtil.h"
-#include "HexUtil.h"
-#include "IllegalArgumentException.h"
-#include "IllegalStateException.h"
-#include "KeypleStd.h"
-#include "System.h"
-
-/* Keyple Core Calypso */
-#include "CalypsoCardConstant.h"
-#include "CmdCardGetDataFci.h"
-#include "SvDebitLogRecordAdapter.h"
-#include "SvLoadLogRecordAdapter.h"
+#include "keyple/card/calypso/CalypsoCardAdapter.hpp"
+#include "keyple/card/calypso/CalypsoCardClass.hpp"
+#include "keyple/card/calypso/CalypsoCardConstant.hpp"
+#include "keyple/card/calypso/DtoAdapters.hpp"
+#include "keyple/core/util/ByteArrayUtil.hpp"
+#include "keyple/core/util/HexUtil.hpp"
+#include "keyple/core/util/cpp/KeypleStd.hpp"
+#include "keyple/core/util/cpp/System.hpp"
+#include "keyple/core/util/cpp/exception/IllegalArgumentException.hpp"
+#include "keyple/core/util/cpp/exception/IllegalStateException.hpp"
+#include "keypop/card/CardSelectionResponseApi.hpp"
 
 namespace keyple {
 namespace card {
 namespace calypso {
 
-using namespace calypsonet::terminal::calypso;
-using namespace keyple::core::util;
-using namespace keyple::core::util::cpp;
-using namespace keyple::core::util::cpp::exception;
-
-/* CALYPSO CARD ADAPTER ------------------------------------------------------------------------- */
-
-const std::string CalypsoCardAdapter::PATTERN_1_BYTE_HEX = "%02Xh";
-const std::string CalypsoCardAdapter::PATTERN_2_BYTES_HEX = "%04Xh";
+using keyple::core::util::ByteArrayUtil;
+using keyple::core::util::HexUtil;
+using keyple::core::util::cpp::System;
+using keyple::core::util::cpp::exception::IllegalArgumentException;
+using keyple::core::util::cpp::exception::IllegalStateException;
+using keypop::card::CardSelectionResponseApi;
 
 const int CalypsoCardAdapter::CARD_REV1_ATR_LENGTH = 20;
-const int CalypsoCardAdapter::REV1_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION = 3;
-const int CalypsoCardAdapter::REV2_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION = 6;
+const int CalypsoCardAdapter ::
+    REV1_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION = 3;
+const int CalypsoCardAdapter ::
+    REV2_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION = 6;
 const int CalypsoCardAdapter::SI_BUFFER_SIZE_INDICATOR = 0;
 const int CalypsoCardAdapter::SI_PLATFORM = 1;
 const int CalypsoCardAdapter::SI_APPLICATION_TYPE = 2;
@@ -61,84 +62,75 @@ const uint8_t CalypsoCardAdapter::APP_TYPE_RATIFICATION_COMMAND_REQUIRED = 0x04;
 const uint8_t CalypsoCardAdapter::APP_TYPE_CALYPSO_REV_32_MODE = 0x08;
 const uint8_t CalypsoCardAdapter::APP_TYPE_WITH_PUBLIC_AUTHENTICATION = 0x10;
 
-const std::vector<int> CalypsoCardAdapter::BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE = {
-    0, 0, 0, 0, 0, 0, 215, 256, 304, 362, 430, 512, 608, 724, 861, 1024, 1217, 1448, 1722, 2048,
-    2435, 2896, 3444, 4096, 4870, 5792, 6888, 8192, 9741, 11585, 13777, 16384, 19483, 23170,
-    27554, 32768, 38967, 46340, 55108, 65536, 77935, 92681, 110217, 131072, 155871, 185363,
-    220435, 262144, 311743, 370727, 440871, 524288, 623487, 741455, 881743, 1048576
-};
+const std::vector<int> CalypsoCardAdapter::BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE
+    = {0,      0,      0,      0,      0,      0,      215,    256,
+       304,    362,    430,    512,    608,    724,    861,    1024,
+       1217,   1448,   1722,   2048,   2435,   2896,   3444,   4096,
+       4870,   5792,   6888,   8192,   9741,   11585,  13777,  16384,
+       19483,  23170,  27554,  32768,  38967,  46340,  55108,  65536,
+       77935,  92681,  110217, 131072, 155871, 185363, 220435, 262144,
+       311743, 370727, 440871, 524288, 623487, 741455, 881743, 1048576};
 
 const std::vector<std::shared_ptr<CalypsoCardAdapter::PatchRev3>>
     CalypsoCardAdapter::mPatchesRev3 = initPatchRev3();
 const std::vector<std::shared_ptr<CalypsoCardAdapter::PatchRev12>>
     CalypsoCardAdapter::mPatchesRev12 = initPatchRev12();
 
-CalypsoCardAdapter::CalypsoCardAdapter() {}
+CalypsoCardAdapter::CalypsoCardAdapter()
+{
+}
 
-void CalypsoCardAdapter::initialize(
+void
+CalypsoCardAdapter::initialize(
     const std::shared_ptr<CardSelectionResponseApi> cardSelectionResponse)
 {
     if (cardSelectionResponse != nullptr) {
-
         if (cardSelectionResponse->getSelectApplicationResponse() != nullptr) {
+            initializeWithFci(
+                cardSelectionResponse->getSelectApplicationResponse());
 
-            initializeWithFci(cardSelectionResponse->getSelectApplicationResponse());
-
-        } else if (cardSelectionResponse->getPowerOnData() != "") {
-
+        } else if (cardSelectionResponse->getPowerOnData() != std::string("")) {
             initializeWithPowerOnData(cardSelectionResponse->getPowerOnData());
         }
     }
 }
 
 const std::vector<std::shared_ptr<CalypsoCardAdapter::PatchRev12>>
-    CalypsoCardAdapter::initPatchRev12()
+CalypsoCardAdapter::initPatchRev12()
 {
-    std::shared_ptr<PatchRev12> p = nullptr;
-    std::vector<std::shared_ptr<PatchRev12>> v;
+    std::shared_ptr<PatchRev12> p12 = nullptr;
+    std::vector<std::shared_ptr<PatchRev12>> v12;
 
     /* Patches for revision 1 & 2 */
 
-    /* 06 XX 01 03 XX XX XX */
-    p = std::shared_ptr<PatchRev12>(new PatchRev12("06000103000000", "FF00FFFF000000"));
-    p->setCounterValuePostponed();
-    v.push_back(p);
+    /* 03 08 03 04 00 02 00: targets ASK Tango having this startup info value */
+    p12 = std::shared_ptr<PatchRev12>(
+        new PatchRev12("03080304000200", "FFFFFFFFFFFFFF"));
+    p12->setLegacyCase1();
+    v12.push_back(p12);
 
-    /* 06 0A 01 02 XX XX XX */
-    p = std::shared_ptr<PatchRev12>(new PatchRev12("060A0102000000", "FFFFFFFF000000"));
-    p->setCounterValuePostponed();
-    v.push_back(p);
-
-    /* XX XX 0X XX 15 XX XX */
-    p = std::shared_ptr<PatchRev12>(new PatchRev12("00000000150000", "0000F000FF0000"));
-    p->setCounterValuePostponed();
-    v.push_back(p);
-
-    /* XX XX 1X XX 15 XX XX */
-    p = std::shared_ptr<PatchRev12>(new PatchRev12("00001000150000", "0000F000FF0000"));
-    p->setCounterValuePostponed();
-    v.push_back(p);
-
-    return v;
+    return v12;
 }
 
 const std::vector<std::shared_ptr<CalypsoCardAdapter::PatchRev3>>
-    CalypsoCardAdapter::initPatchRev3()
+CalypsoCardAdapter::initPatchRev3()
 {
-    std::shared_ptr<PatchRev3> p = nullptr;
-    std::vector<std::shared_ptr<PatchRev3>> v;
+    std::shared_ptr<PatchRev3> p3 = nullptr;
+    std::vector<std::shared_ptr<PatchRev3>> v3;
 
     /* Patches for revision 3 */
 
     /* XX 3C XX XX XX 10 XX */
-    p = std::shared_ptr<PatchRev3>(new PatchRev3("003C0000001000", "00FF000000FF00"));
-    p->setPayloadCapacity(235);
-    v.push_back(p);
+    p3 = std::shared_ptr<PatchRev3>(
+        new PatchRev3("003C0000001000", "00FF000000FF00"));
+    p3->setPayloadCapacity(235);
+    v3.push_back(p3);
 
-    return v;
+    return v3;
 }
 
-void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnData)
+void
+CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnData)
 {
     mProductType = ProductType::PRIME_REVISION_1;
     mCalypsoCardClass = CalypsoCardClass::LEGACY;
@@ -146,26 +138,31 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
     mPowerOnData = powerOnData;
 
     /*
-     * FCI is not provided: we consider it is Calypso card rev 1, it's serial number is provided in
-     * the ATR.
+     * FCI is not provided: we consider it is Calypso card rev 1, it's serial
+     * number is provided in the ATR.
      */
     const std::vector<uint8_t> atr = HexUtil::toByteArray(powerOnData);
 
-    /* Basic check: we expect to be here following a selection based on the ATR */
+    /*
+     * Basic check: we expect to be here following a selection based on the ATR.
+     */
     if (atr.size() != CARD_REV1_ATR_LENGTH) {
-
-        throw IllegalArgumentException("Unexpected ATR length: " + powerOnData);
+        throw IllegalArgumentException(
+            std::string("ATR is not the correct length. ")
+            + "Expected: " + std::to_string(CARD_REV1_ATR_LENGTH) + ", "
+            + "got: " + std::to_string(atr.size()));
     }
 
     mDfName.clear();
     mCalypsoSerialNumber = std::vector<uint8_t>(8);
 
     /*
-     * Old cards have their modification counter expressed in number of commands the array is
-     * initialized with 0 (cf. default value for primitive types).
+     * Old cards have their modification counter expressed in number of commands
+     * the array is initialized with 0 (cf. default value for primitive types).
      */
     System::arraycopy(atr, 12, mCalypsoSerialNumber, 4, 4);
-    mModificationsCounterMax = REV1_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION;
+    mModificationsCounterMax
+        = REV1_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION;
 
     mStartupInfo = std::vector<uint8_t>(7);
 
@@ -178,33 +175,37 @@ void CalypsoCardAdapter::initializeWithPowerOnData(const std::string& powerOnDat
     mIsRatificationOnDeselectSupported = true;
 }
 
-void CalypsoCardAdapter::initializeWithFci(
+void
+CalypsoCardAdapter::initializeWithFci(
     const std::shared_ptr<ApduResponseApi> selectApplicationResponse)
 {
     mSelectApplicationResponse = selectApplicationResponse;
 
     if (selectApplicationResponse->getDataOut().size() == 0) {
-
         /* No FCI provided. May be filled later with a Get Data response */
         return;
     }
 
     /*
-     * Parse card FCI - to retrieve DF Name (AID), Serial Number, &amp; StartupInfo
-     * CL-SEL-TLVSTRUC.1
+     * Parse card FCI - to retrieve DF Name (AID), Serial Number, &amp;
+     * StartupInfo CL-SEL-TLVSTRUC.1
      */
-    auto cardGetDataFci = std::make_shared<CmdCardGetDataFci>(CalypsoCardClass::ISO);
-    cardGetDataFci->AbstractCardCommand::parseApduResponse(selectApplicationResponse,
-                                                           shared_from_this());
+    auto cmdCardGetDataFci(
+        std::make_shared<CommandGetDataFci>(
+            std::make_shared<DtoAdapters::TransactionContextDto>(),
+            std::make_shared<DtoAdapters::CommandContextDto>(false, false)));
+    cmdCardGetDataFci->parseResponseForSelection(
+        selectApplicationResponse,
+        std::dynamic_pointer_cast<CalypsoCardAdapter>(shared_from_this()));
 
-    if (!cardGetDataFci->isValidCalypsoFCI()) {
-        throw IllegalArgumentException("Bad FCI format.");
+    if (!cmdCardGetDataFci->isValidCalypsoFCI()) {
+        throw IllegalArgumentException("FCI has a bad format");
     }
-
 }
 
-void CalypsoCardAdapter::initializeWithFci(
-    const std::shared_ptr<CmdCardGetDataFci> cmdCardGetDataFci)
+void
+CalypsoCardAdapter::initializeWithFci(
+    const std::shared_ptr<CommandGetDataFci>& cmdCardGetDataFci)
 {
     mIsDfInvalidated = cmdCardGetDataFci->isDfInvalidated();
 
@@ -228,8 +229,9 @@ void CalypsoCardAdapter::initializeWithFci(
     /* CL-SI-ASRFU.1 */
     mApplicationSubType = mStartupInfo[SI_APPLICATION_SUBTYPE];
     if (mApplicationSubType == 0x00 || mApplicationSubType == 0xFF) {
-        throw IllegalArgumentException("Unexpected application subtype: " +
-                                       std::to_string(mApplicationSubType));
+        throw IllegalArgumentException(
+            std::string("Unexpected application subtype: ")
+            + HexUtil::toHex(mApplicationSubType));
     }
 
     mSessionModification = mStartupInfo[SI_BUFFER_SIZE_INDICATOR];
@@ -237,21 +239,24 @@ void CalypsoCardAdapter::initializeWithFci(
     if (mProductType == ProductType::PRIME_REVISION_2) {
         mCalypsoCardClass = CalypsoCardClass::LEGACY;
 
-        /* Old cards have their modification counter expressed in number of commands */
+        /* Old cards have their modification counter expressed in number of
+         * commands */
         mIsModificationCounterInBytes = false;
-        mModificationsCounterMax = REV2_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION;
+        mModificationsCounterMax
+            = REV2_CARD_DEFAULT_WRITE_OPERATIONS_NUMBER_SUPPORTED_PER_SESSION;
 
     } else if (mProductType == ProductType::BASIC) {
         /* CL-SI-SMBASIC.1 */
         if (mSessionModification < 0x04 || mSessionModification > 0x37) {
-            throw IllegalArgumentException("Wrong session modification value for a Basic type " \
-                                           "(should be between 04h and 37h): " +
-                                           std::to_string(mSessionModification));
+            throw IllegalArgumentException(
+                std::string("Wrong session modification value for a Basic type")
+                + " (should be between 04h and 37h): "
+                + HexUtil::toHex(mSessionModification));
         }
 
         mCalypsoCardClass = CalypsoCardClass::ISO;
         mIsModificationCounterInBytes = false;
-        mModificationsCounterMax = 3; // TODO Verify this
+        mModificationsCounterMax = 4; /* 3 generic + 1 counter modification */
     } else {
         mCalypsoCardClass = CalypsoCardClass::ISO;
 
@@ -260,34 +265,46 @@ void CalypsoCardAdapter::initializeWithFci(
          * CL-SI-SM.1
          */
         if (mSessionModification < 0x06 || mSessionModification > 0x37) {
-            throw IllegalArgumentException("Session modifications byte should be in range 06h to" \
-                                           " 47h. Was: " +
-                                           std::to_string(mSessionModification));
+            throw IllegalArgumentException(
+                "Session modifications byte should be in range [06h..47h]. "
+                "Actual: "
+                + HexUtil::toHex(mSessionModification));
         }
 
-        mModificationsCounterMax = BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE[mSessionModification];
+        mModificationsCounterMax
+            = BUFFER_SIZE_INDICATOR_TO_BUFFER_SIZE[mSessionModification];
     }
 
     /* CL-SI-ATOPT.1 */
     if (mProductType == ProductType::PRIME_REVISION_3) {
-        mIsExtendedModeSupported = (mApplicationType & APP_TYPE_CALYPSO_REV_32_MODE) != 0;
-        mIsRatificationOnDeselectSupported =
-            (mApplicationType & APP_TYPE_RATIFICATION_COMMAND_REQUIRED) == 0;
-        mIsPkiModeSupported = (mApplicationType & APP_TYPE_WITH_PUBLIC_AUTHENTICATION) != 0;
+        mIsExtendedModeSupported
+            = (mApplicationType & APP_TYPE_CALYPSO_REV_32_MODE) != 0;
+        mIsRatificationOnDeselectSupported
+            = (mApplicationType & APP_TYPE_RATIFICATION_COMMAND_REQUIRED) == 0;
+        mIsPkiModeSupported
+            = (mApplicationType & APP_TYPE_WITH_PUBLIC_AUTHENTICATION) != 0;
     }
 
-    if (mProductType == ProductType::PRIME_REVISION_3 ||
-        mProductType == ProductType::PRIME_REVISION_2) {
-        mIsSvFeatureAvailable = (mApplicationType & APP_TYPE_WITH_CALYPSO_SV) != 0;
-        mIsPinFeatureAvailable = (mApplicationType & APP_TYPE_WITH_CALYPSO_PIN) != 0;
+    if (mProductType == ProductType::PRIME_REVISION_3
+        || mProductType == ProductType::PRIME_REVISION_2) {
+        mIsSvFeatureAvailable
+            = (mApplicationType & APP_TYPE_WITH_CALYPSO_SV) != 0;
+        mIsPinFeatureAvailable
+            = (mApplicationType & APP_TYPE_WITH_CALYPSO_PIN) != 0;
     }
 
     mIsHce = (mCalypsoSerialNumber[3] & 0x80) == 0x80;
 
+    if (mProductType != ProductType::PRIME_REVISION_2
+        && mProductType != ProductType::PRIME_REVISION_1) {
+        mIsCounterValuePostponed = std::make_shared<bool>(false);
+    }
+
     applyPatchIfNeeded();
 }
 
-CalypsoCard::ProductType CalypsoCardAdapter::computeProductType(const int applicationType) const
+CalypsoCard::ProductType
+CalypsoCardAdapter::computeProductType(const int applicationType) const
 {
     if (applicationType == 0) {
         throw IllegalArgumentException("Invalid application type 00h");
@@ -304,27 +321,32 @@ CalypsoCard::ProductType CalypsoCardAdapter::computeProductType(const int applic
     return ProductType::PRIME_REVISION_3;
 }
 
-const CalypsoCard::ProductType& CalypsoCardAdapter::getProductType() const
+const CalypsoCard::ProductType&
+CalypsoCardAdapter::getProductType() const
 {
     return mProductType;
 }
 
-bool CalypsoCardAdapter::isHce() const
+bool
+CalypsoCardAdapter::isHce() const
 {
     return mIsHce;
 }
 
-const std::vector<uint8_t>& CalypsoCardAdapter::getDfName() const
+const std::vector<uint8_t>&
+CalypsoCardAdapter::getDfName() const
 {
     return mDfName;
 }
 
-const std::vector<uint8_t>& CalypsoCardAdapter::getCalypsoSerialNumberFull() const
+const std::vector<uint8_t>&
+CalypsoCardAdapter::getCalypsoSerialNumberFull() const
 {
     return mCalypsoSerialNumber;
 }
 
-const std::vector<uint8_t> CalypsoCardAdapter::getApplicationSerialNumber() const
+const std::vector<uint8_t>
+CalypsoCardAdapter::getApplicationSerialNumber() const
 {
     std::vector<uint8_t> applicationSerialNumber = mCalypsoSerialNumber;
     applicationSerialNumber[0] = 0;
@@ -333,237 +355,289 @@ const std::vector<uint8_t> CalypsoCardAdapter::getApplicationSerialNumber() cons
     return applicationSerialNumber;
 }
 
-const std::vector<uint8_t>& CalypsoCardAdapter::getStartupInfoRawData() const
+const std::vector<uint8_t>&
+CalypsoCardAdapter::getStartupInfoRawData() const
 {
     return mStartupInfo;
 }
 
-uint8_t CalypsoCardAdapter::getPayloadCapacity() const
+int
+CalypsoCardAdapter::getPayloadCapacity() const
 {
     return mPayloadCapacity;
 }
 
-bool CalypsoCardAdapter::isModificationsCounterInBytes() const
+bool
+CalypsoCardAdapter::isModificationsCounterInBytes() const
 {
     return mIsModificationCounterInBytes;
 }
 
-int CalypsoCardAdapter::getModificationsCounter() const
+int
+CalypsoCardAdapter::getModificationsCounter() const
 {
     return mModificationsCounterMax;
 }
 
-uint8_t CalypsoCardAdapter::getPlatform() const
+uint8_t
+CalypsoCardAdapter::getPlatform() const
 {
     return mStartupInfo[SI_PLATFORM];
 }
 
-uint8_t CalypsoCardAdapter::getApplicationType() const
+uint8_t
+CalypsoCardAdapter::getApplicationType() const
 {
     return mApplicationType;
 }
 
-bool CalypsoCardAdapter::isExtendedModeSupported() const
+bool
+CalypsoCardAdapter::isExtendedModeSupported() const
 {
     return mIsExtendedModeSupported;
 }
 
-bool CalypsoCardAdapter::isRatificationOnDeselectSupported() const
+bool
+CalypsoCardAdapter::isRatificationOnDeselectSupported() const
 {
     return mIsRatificationOnDeselectSupported;
 }
 
-bool CalypsoCardAdapter::isSvFeatureAvailable() const
+bool
+CalypsoCardAdapter::isSvFeatureAvailable() const
 {
     return mIsSvFeatureAvailable;
 }
 
-bool CalypsoCardAdapter::isPinFeatureAvailable() const
+bool
+CalypsoCardAdapter::isPinFeatureAvailable() const
 {
     return mIsPinFeatureAvailable;
 }
 
-bool CalypsoCardAdapter::isPkiModeSupported() const
+bool
+CalypsoCardAdapter::isPkiModeSupported() const
 {
     return mIsPkiModeSupported;
 }
 
-uint8_t CalypsoCardAdapter::getApplicationSubtype() const
+std::uint8_t
+CalypsoCardAdapter::getApplicationSubtype() const
 {
     return mApplicationSubType;
 }
 
-uint8_t CalypsoCardAdapter::getSoftwareIssuer() const
+std::uint8_t
+CalypsoCardAdapter::getSoftwareIssuer() const
 {
     return mStartupInfo[SI_SOFTWARE_ISSUER];
 }
 
-uint8_t CalypsoCardAdapter::getSoftwareVersion() const
+std::uint8_t
+CalypsoCardAdapter::getSoftwareVersion() const
 {
     return mStartupInfo[SI_SOFTWARE_VERSION];
 }
 
-uint8_t CalypsoCardAdapter::getSoftwareRevision() const
+std::uint8_t
+CalypsoCardAdapter::getSoftwareRevision() const
 {
     return mStartupInfo[SI_SOFTWARE_REVISION];
 }
 
-uint8_t CalypsoCardAdapter::getSessionModification() const
+std::uint8_t
+CalypsoCardAdapter::getSessionModification() const
 {
     return mSessionModification;
 }
 
-const std::vector<uint8_t> CalypsoCardAdapter::getTraceabilityInformation() const
+const std::vector<uint8_t>
+CalypsoCardAdapter::getTraceabilityInformation() const
 {
-    /* Java code: return traceabilityInformation != null ? traceabilityInformation : new byte[0]; */
+    /*
+     * Java code:
+     * return traceabilityInformation != null ?
+     *  traceabilityInformation : new byte[0];
+     */
     return mTraceabilityInformation;
 }
 
-bool CalypsoCardAdapter::isDfInvalidated() const
+const std::vector<std::uint8_t>&
+CalypsoCardAdapter::getCardPublicKey() const
+{
+    return mCardPublicKey;
+}
+
+const std::vector<std::uint8_t>&
+CalypsoCardAdapter::getCardCertificate() const
+{
+    return mCardCertificate;
+}
+
+const std::vector<std::uint8_t>&
+CalypsoCardAdapter::getCaCertificate() const
+{
+    return mCaCertificate;
+}
+
+bool
+CalypsoCardAdapter::isDfInvalidated() const
 {
     return mIsDfInvalidated;
 }
 
-bool CalypsoCardAdapter::isDfRatified() const
+bool
+CalypsoCardAdapter::isDfRatified() const
 {
     if (mIsDfRatified != nullptr) {
         return *mIsDfRatified.get();
     }
 
-    throw IllegalStateException("Unable to determine the ratification status. No session was " \
-                                "opened.");
+    throw IllegalStateException(
+        "Unable to determine the ratification status. No session was opened");
 }
 
-int CalypsoCardAdapter::getTransactionCounter() const
+int
+CalypsoCardAdapter::getTransactionCounter() const
 {
     if (mTransactionCounter == nullptr) {
-        throw IllegalStateException("Unable to determine the transaction counter. No session was " \
-                                    "opened.");
+        throw IllegalStateException(
+            "Unable to determine the transaction counter. No session was "
+            "opened");
     }
 
     return *mTransactionCounter.get();
 }
 
-void CalypsoCardAdapter::setTransactionCounter(const int transactionCounter)
+void
+CalypsoCardAdapter::setTransactionCounter(const int transactionCounter)
 {
     mTransactionCounter = std::make_shared<int>(transactionCounter);
 }
 
-void CalypsoCardAdapter::setSvData(const uint8_t svKvc,
-                                   const std::vector<uint8_t>& svGetHeader,
-                                   const std::vector<uint8_t>& svGetData,
-                                   const int svBalance,
-                                   const int svLastTNum,
-                                   const std::shared_ptr<SvLoadLogRecord> svLoadLogRecord,
-                                   const std::shared_ptr<SvDebitLogRecord> svDebitLogRecord)
+void
+CalypsoCardAdapter::setSvData(
+    std::uint8_t svKvc,
+    const std::vector<uint8_t>& svGetHeader,
+    const std::vector<uint8_t>& svGetData,
+    int svBalance,
+    int svLastTNum)
 {
     mSvKvc = svKvc;
     mSvGetHeader = svGetHeader;
     mSvGetData = svGetData;
     mSvBalance = std::make_shared<int>(svBalance);
     mSvLastTNum = svLastTNum;
-
-    /* Update logs, do not overwrite existing values (case of double reading) */
-    if (mSvLoadLogRecord == nullptr) {
-        mSvLoadLogRecord = svLoadLogRecord;
-    }
-
-    if (mSvDebitLogRecord == nullptr) {
-        mSvDebitLogRecord = svDebitLogRecord;
-    }
 }
 
-int CalypsoCardAdapter::getSvBalance() const
+void
+CalypsoCardAdapter::updateSvData(int svBalance, int svLastTNum)
+{
+    *mSvBalance = svBalance;
+    mSvLastTNum = svLastTNum;
+}
+
+int
+CalypsoCardAdapter::getSvBalance() const
 {
     if (mSvBalance == nullptr) {
-        throw IllegalStateException("No SV Get command has been executed.");
+        throw IllegalStateException("No SV Get command has been executed");
     }
 
     return *mSvBalance.get();
 }
 
-int CalypsoCardAdapter::getSvLastTNum() const
+int
+CalypsoCardAdapter::getSvLastTNum() const
 {
     if (mSvBalance == nullptr) {
-         new IllegalStateException("No SV Get command has been executed.");
+        new IllegalStateException("No SV Get command has been executed");
     }
 
     return mSvLastTNum;
 }
 
-const std::shared_ptr<SvLoadLogRecord> CalypsoCardAdapter::getSvLoadLogRecord()
+const std::shared_ptr<SvLoadLogRecord>
+CalypsoCardAdapter::getSvLoadLogRecord()
 {
-    if (mSvLoadLogRecord == nullptr) {
-        /* Try to get it from the file data */
-        const std::shared_ptr<ElementaryFile> ef =
-            getFileBySfi(CalypsoCardConstant::SV_RELOAD_LOG_FILE_SFI);
-        if (ef != nullptr) {
-            const std::vector<uint8_t> logRecord = ef->getData()->getContent();
-            mSvLoadLogRecord = std::make_shared<SvLoadLogRecordAdapter>(logRecord, 0);
-        }
+    /* Try to get it from the file data */
+    const std::shared_ptr<ElementaryFile> ef
+        = getFileBySfi(CalypsoCardConstant::SV_RELOAD_LOG_FILE_SFI);
+    if (ef != nullptr) {
+        const std::vector<uint8_t> logRecord = ef->getData()->getContent();
+        return std::make_shared<DtoAdapters::SvLoadLogRecordAdapter>(
+            logRecord, 0);
     }
 
-    return mSvLoadLogRecord;
+    return nullptr;
 }
 
-const std::shared_ptr<SvDebitLogRecord> CalypsoCardAdapter::getSvDebitLogLastRecord()
+const std::shared_ptr<SvDebitLogRecord>
+CalypsoCardAdapter::getSvDebitLogLastRecord()
 {
-    if (mSvDebitLogRecord == nullptr) {
-        /* Try to get it from the file data */
-        const std::vector<std::shared_ptr<SvDebitLogRecord>> svDebitLogRecords =
-            getSvDebitLogAllRecords();
-        mSvDebitLogRecord = svDebitLogRecords[0];
+    /* Try to get it from the file data */
+    const std::vector<std::shared_ptr<SvDebitLogRecord>> svDebitLogRecords
+        = getSvDebitLogAllRecords();
+    if (!svDebitLogRecords.empty()) {
+        return svDebitLogRecords[0];
     }
 
-    return mSvDebitLogRecord;
+    return nullptr;
 }
 
-const std::vector<std::shared_ptr<SvDebitLogRecord>> CalypsoCardAdapter::getSvDebitLogAllRecords()
-    const
+const std::vector<std::shared_ptr<SvDebitLogRecord>>
+CalypsoCardAdapter::getSvDebitLogAllRecords() const
 {
     std::vector<std::shared_ptr<SvDebitLogRecord>> svDebitLogRecords;
 
     /* Get the logs from the file data */
-    const std::shared_ptr<ElementaryFile> ef =
-        getFileBySfi(CalypsoCardConstant::SV_DEBIT_LOG_FILE_SFI);
+    const std::shared_ptr<ElementaryFile> ef
+        = getFileBySfi(CalypsoCardConstant::SV_DEBIT_LOG_FILE_SFI);
     if (ef == nullptr) {
         return svDebitLogRecords;
     }
 
-    const std::map<const uint8_t, std::vector<uint8_t>>& logRecords =
-        ef->getData()->getAllRecordsContent();
+    const std::map<const uint8_t, std::vector<uint8_t>>& logRecords
+        = ef->getData()->getAllRecordsContent();
     for (const auto& entry : logRecords) {
-        svDebitLogRecords.push_back(std::make_shared<SvDebitLogRecordAdapter>(entry.second, 0));
+        svDebitLogRecords.push_back(
+            std::make_shared<DtoAdapters::SvDebitLogRecordAdapter>(
+                entry.second, 0));
     }
 
     return svDebitLogRecords;
 }
 
-void CalypsoCardAdapter::setDfRatified(const bool dfRatified)
+void
+CalypsoCardAdapter::setDfRatified(const bool dfRatified)
 {
     mIsDfRatified = std::make_shared<bool>(dfRatified);
 }
 
-CalypsoCardClass CalypsoCardAdapter::getCardClass() const
+CalypsoCardClass
+CalypsoCardAdapter::getCardClass() const
 {
     return mCalypsoCardClass;
 }
 
-const std::shared_ptr<DirectoryHeader> CalypsoCardAdapter::getDirectoryHeader() const
+const std::shared_ptr<DirectoryHeader>
+CalypsoCardAdapter::getDirectoryHeader() const
 {
     return mDirectoryHeader;
 }
 
-CalypsoCard& CalypsoCardAdapter::setDirectoryHeader(
-    const std::shared_ptr<DirectoryHeader> directoryHeader)
+CalypsoCard&
+CalypsoCardAdapter::setDirectoryHeader(
+    std::unique_ptr<DirectoryHeader> directoryHeader)
 {
-    mDirectoryHeader = directoryHeader;
-    mIsDfInvalidated = (directoryHeader->getDfStatus() & 0x01) != 0;
+    mDirectoryHeader = std::move(directoryHeader);
+    mIsDfInvalidated = (mDirectoryHeader->getDfStatus() & 0x01) != 0;
 
     return *this;
 }
 
-const std::shared_ptr<ElementaryFile> CalypsoCardAdapter::getFileBySfi(const uint8_t sfi) const
+const std::shared_ptr<ElementaryFile>
+CalypsoCardAdapter::getFileBySfi(const uint8_t sfi) const
 {
     if (sfi == 0) {
         return nullptr;
@@ -575,12 +649,13 @@ const std::shared_ptr<ElementaryFile> CalypsoCardAdapter::getFileBySfi(const uin
         }
     }
 
-    mLogger->warn("EF with SFI % is not found\n", sfi);
+    mLogger->warn("EF not found [sfi=%]\n", HexUtil::toHex(sfi));
 
     return nullptr;
 }
 
-const std::shared_ptr<ElementaryFile> CalypsoCardAdapter::getFileByLid(const uint16_t lid) const
+const std::shared_ptr<ElementaryFile>
+CalypsoCardAdapter::getFileByLid(const uint16_t lid) const
 {
     for (const auto& ef : mFiles) {
         if (ef->getHeader() != nullptr && ef->getHeader()->getLid() == lid) {
@@ -588,57 +663,42 @@ const std::shared_ptr<ElementaryFile> CalypsoCardAdapter::getFileByLid(const uin
         }
     }
 
-    mLogger->warn("EF with LID % is not found\n", lid);
+    mLogger->warn("EF not found [lid=%]\n", HexUtil::toHex(lid));
 
     return nullptr;
 }
 
-const std::map<const uint8_t, const std::shared_ptr<ElementaryFile>>
-    CalypsoCardAdapter::getAllFiles() const
-{
-    std::map<const uint8_t, const std::shared_ptr<ElementaryFile>> res;
-    for (const auto& ef : mFiles) {
-        if (ef->getSfi() != 0) {
-            res.insert({ef->getSfi(), ef});
-        }
-    }
-
-    return res;
-}
-
-const std::vector<std::shared_ptr<ElementaryFile>>& CalypsoCardAdapter::getFiles() const
+const std::vector<std::shared_ptr<ElementaryFile>>&
+CalypsoCardAdapter::getFiles() const
 {
     return mFiles;
 }
 
-const std::shared_ptr<ElementaryFileAdapter> CalypsoCardAdapter::getOrCreateFile(const uint8_t sfi,
-                                                                                 const uint16_t lid)
+const std::shared_ptr<ElementaryFileAdapter>
+CalypsoCardAdapter::getOrCreateFile(
+    const std::uint8_t sfi, const std::uint16_t lid)
 {
     if (sfi == 0 && lid == 0 && mCurrentEf != nullptr) {
-
         return mCurrentEf;
     }
 
     if (sfi != 0) {
-
         /* Search by SFI */
         for (const auto& ef : mFiles) {
-
             if (ef->getSfi() == sfi) {
-
-                mCurrentEf = std::dynamic_pointer_cast<ElementaryFileAdapter>(ef);
+                mCurrentEf
+                    = std::dynamic_pointer_cast<ElementaryFileAdapter>(ef);
                 return mCurrentEf;
             }
         }
 
     } else if (lid != 0) {
-
         /* Search by LID */
         for (const auto& ef : mFiles) {
-
-            if (ef->getHeader() != nullptr && ef->getHeader()->getLid() == lid) {
-
-                mCurrentEf = std::dynamic_pointer_cast<ElementaryFileAdapter>(ef);
+            if (ef->getHeader() != nullptr
+                && ef->getHeader()->getLid() == lid) {
+                mCurrentEf
+                    = std::dynamic_pointer_cast<ElementaryFileAdapter>(ef);
                 return mCurrentEf;
             }
         }
@@ -651,12 +711,14 @@ const std::shared_ptr<ElementaryFileAdapter> CalypsoCardAdapter::getOrCreateFile
     return mCurrentEf;
 }
 
-bool CalypsoCardAdapter::isPinBlocked() const
+bool
+CalypsoCardAdapter::isPinBlocked() const
 {
     return getPinAttemptRemaining() == 0;
 }
 
-int CalypsoCardAdapter::getPinAttemptRemaining() const
+int
+CalypsoCardAdapter::getPinAttemptRemaining() const
 {
     if (mPinAttemptCounter == nullptr) {
         throw IllegalStateException("PIN status has not been checked.");
@@ -665,80 +727,102 @@ int CalypsoCardAdapter::getPinAttemptRemaining() const
     return *mPinAttemptCounter.get();
 }
 
-void CalypsoCardAdapter::setPinAttemptRemaining(const int pinAttemptCounter)
+void
+CalypsoCardAdapter::setPinAttemptRemaining(int pinAttemptCounter)
 {
     mPinAttemptCounter = std::make_shared<int>(pinAttemptCounter);
 }
 
-void CalypsoCardAdapter::setFileHeader(const uint8_t sfi,
-                                       const std::shared_ptr<FileHeaderAdapter> header)
+void
+CalypsoCardAdapter::setFileHeader(
+    std::uint8_t sfi, std::shared_ptr<FileHeaderAdapter> header)
 {
-    std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, header->getLid());
+    std::shared_ptr<ElementaryFileAdapter> ef
+        = getOrCreateFile(sfi, header->getLid());
     if (ef->getHeader() == nullptr) {
-
         ef->setHeader(header);
 
     } else {
-
         std::dynamic_pointer_cast<FileHeaderAdapter>(ef->getHeader())
-            ->updateMissingInfoFrom(header);
+            ->updateMissingInfoFrom(*header.get());
     }
 }
 
-void CalypsoCardAdapter::setContent(const uint8_t sfi,
-                                    const uint8_t numRecord,
-                                    const std::vector<uint8_t>& content)
+void
+CalypsoCardAdapter::setContent(
+    std::uint8_t sfi,
+    std::uint8_t numRecord,
+    const std::vector<uint8_t>& content)
 {
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
-    std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())->setContent(numRecord, content);
+    std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())
+        ->setContent(numRecord, content);
 }
 
-void CalypsoCardAdapter::setCounter(const uint8_t sfi,
-                                    const uint8_t numCounter,
-                                    const std::vector<uint8_t>& content)
+void
+CalypsoCardAdapter::setCounter(
+    std::uint8_t sfi,
+    std::uint8_t numCounter,
+    const std::vector<uint8_t>& content)
 {
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
-    std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())->setCounter(numCounter, content);
+    std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())
+        ->setCounter(numCounter, content);
 }
 
-void CalypsoCardAdapter::setContent(const uint8_t sfi,
-                                    const uint8_t numRecord,
-                                    const std::vector<uint8_t>& content,
-                                    const int offset)
+void
+CalypsoCardAdapter::setContent(
+    std::uint8_t sfi,
+    std::uint8_t numRecord,
+    const std::vector<uint8_t>& content,
+    const int offset)
 {
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())
         ->setContent(numRecord, content, offset);
 }
 
-void CalypsoCardAdapter::fillContent(const uint8_t sfi,
-                                     const uint8_t numRecord,
-                                     const std::vector<uint8_t>& content,
-                                     const int offset)
+void
+CalypsoCardAdapter::fillContent(
+    std::uint8_t sfi,
+    std::uint8_t numRecord,
+    const std::vector<uint8_t>& content,
+    int offset)
 {
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
     std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())
         ->fillContent(numRecord, content, offset);
 }
 
-void CalypsoCardAdapter::addCyclicContent(const uint8_t sfi, const std::vector<uint8_t> content)
+void
+CalypsoCardAdapter::addCyclicContent(
+    std::uint8_t sfi, const std::vector<std::uint8_t>& content)
 {
     std::shared_ptr<ElementaryFileAdapter> ef = getOrCreateFile(sfi, 0);
-    std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())->addCyclicContent(content);
+    std::dynamic_pointer_cast<FileDataAdapter>(ef->getData())
+        ->addCyclicContent(content);
 }
 
-void CalypsoCardAdapter::backupFiles()
+void
+CalypsoCardAdapter::backupFiles()
 {
     copyFiles(mFiles, mFilesBackup);
+    mSvBalanceBackup = mSvBalance;
+    mSvLastTNumBackup = mSvLastTNum;
 }
 
-void CalypsoCardAdapter::restoreFiles()
+void
+CalypsoCardAdapter::restoreFiles()
 {
     copyFiles(mFilesBackup, mFiles);
+    mSvBalance = mSvBalanceBackup;
+    mSvLastTNum = mSvLastTNumBackup;
 }
 
-void CalypsoCardAdapter::copyFiles(const std::vector<std::shared_ptr<ElementaryFile>>& src,
-                                   std::vector<std::shared_ptr<ElementaryFile>>& dest)
+void
+CalypsoCardAdapter::copyFiles(
+    const std::vector<std::shared_ptr<ElementaryFile>>& src,
+    std::vector<std::shared_ptr<ElementaryFile>>& dest)
 {
     dest.clear();
     for (const auto& file : src) {
@@ -746,190 +830,320 @@ void CalypsoCardAdapter::copyFiles(const std::vector<std::shared_ptr<ElementaryF
     }
 }
 
-const std::string& CalypsoCardAdapter::getPowerOnData() const
+const std::string&
+CalypsoCardAdapter::getPowerOnData() const
 {
     return mPowerOnData;
 }
 
-const std::vector<uint8_t> CalypsoCardAdapter::getSelectApplicationResponse() const
+std::vector<std::uint8_t>
+CalypsoCardAdapter::getSelectApplicationResponse() const
 {
     if (mSelectApplicationResponse == nullptr) {
-        return std::vector<uint8_t>();
+        return {};
     }
 
     return mSelectApplicationResponse->getApdu();
 }
 
-void CalypsoCardAdapter::setCardChallenge(const std::vector<uint8_t>& cardChallenge)
+void
+CalypsoCardAdapter::setDfInvalidated(bool isInvalidated)
 {
-    mCardChallenge = cardChallenge;
+    mIsDfInvalidated = isInvalidated;
 }
 
-void CalypsoCardAdapter::setTraceabilityInformation(
+void
+CalypsoCardAdapter::setChallenge(const std::vector<uint8_t>& challenge)
+{
+    mChallenge = challenge;
+}
+
+void
+CalypsoCardAdapter::setTraceabilityInformation(
     const std::vector<uint8_t>& traceabilityInformation)
 {
     mTraceabilityInformation = traceabilityInformation;
 }
 
-void CalypsoCardAdapter::setSvOperationSignature(const std::vector<uint8_t>& svOperationSignature)
+void
+CalypsoCardAdapter::setCardPublicKey(
+    const std::vector<std::uint8_t>& cardPublicKey)
+{
+    mCardPublicKey = cardPublicKey;
+}
+
+void
+CalypsoCardAdapter::setCardPublicKeySpi(
+    std::shared_ptr<CardPublicKeySpi> cardPublicKeySpi)
+{
+    mCardPublicKeySpi = cardPublicKeySpi;
+}
+
+std::shared_ptr<CardPublicKeySpi>
+CalypsoCardAdapter::getCardPublicKeySpi() const
+{
+    return mCardPublicKeySpi;
+}
+
+void
+CalypsoCardAdapter::addCardCertificateBytes(
+    const std::vector<std::uint8_t>& cardCertificateBytes, bool isFirstPart)
+{
+    if (isFirstPart) {
+        mCardCertificate.clear();
+        mCardCertificate.reserve(CalypsoCardConstant::CARD_CERTIFICATE_SIZE);
+    }
+
+    const size_t remaining
+        = CalypsoCardConstant::CARD_CERTIFICATE_SIZE - mCardCertificate.size();
+    if (cardCertificateBytes.size() > remaining) {
+        throw IllegalArgumentException(
+            std::string("Card certificate is not the correct length. ")
+            + "Expected: "
+            + std::to_string(CalypsoCardConstant::CARD_CERTIFICATE_SIZE) + ", "
+            + "Actual: " + std::to_string(cardCertificateBytes.size()));
+    }
+
+    mCardCertificate.insert(
+        mCardCertificate.end(),
+        cardCertificateBytes.begin(),
+        cardCertificateBytes.end());
+}
+
+void
+CalypsoCardAdapter::addCaCertificateBytes(
+    const std::vector<std::uint8_t>& caCertificateBytes, bool isFirstPart)
+{
+    if (isFirstPart) {
+        mCaCertificate.reserve(CalypsoCardConstant::CA_CERTIFICATE_SIZE);
+    }
+
+    const size_t remaining
+        = CalypsoCardConstant::CA_CERTIFICATE_SIZE - mCaCertificate.size();
+    if (caCertificateBytes.size() > remaining) {
+        throw IllegalArgumentException(
+            "CA certificate is not the correct length. Expected: "
+            + std::to_string(CalypsoCardConstant::CA_CERTIFICATE_SIZE) + ", "
+            + "Actual: " + std::to_string(caCertificateBytes.size()));
+    }
+
+    mCaCertificate.insert(
+        mCaCertificate.end(),
+        caCertificateBytes.begin(),
+        caCertificateBytes.end());
+}
+
+void
+CalypsoCardAdapter::setSvOperationSignature(
+    const std::vector<uint8_t>& svOperationSignature)
 {
     mSvOperationSignature = svOperationSignature;
 }
 
-const std::vector<uint8_t>& CalypsoCardAdapter::getCardChallenge() const
+const std::vector<uint8_t>&
+CalypsoCardAdapter::getChallenge() const
 {
-    return mCardChallenge;
+    return mChallenge;
 }
 
-uint8_t CalypsoCardAdapter::getSvKvc() const
+std::uint8_t
+CalypsoCardAdapter::getSvKvc() const
 {
     return mSvKvc;
 }
 
-const std::vector<uint8_t>& CalypsoCardAdapter::getSvGetHeader() const
+const std::vector<uint8_t>&
+CalypsoCardAdapter::getSvGetHeader() const
 {
     if (mSvGetHeader.empty()) {
-
-        throw IllegalStateException("SV Get Header not available.");
+        throw IllegalStateException("SV Get Header in not available");
     }
 
     return mSvGetHeader;
 }
 
-const std::vector<uint8_t>& CalypsoCardAdapter::getSvGetData() const
+const std::vector<uint8_t>&
+CalypsoCardAdapter::getSvGetData() const
 {
     if (mSvGetData.empty()) {
-
-        throw new IllegalStateException("SV Get Data not available.");
+        throw IllegalStateException("SV Get Data is not available");
     }
 
     return mSvGetData;
 }
 
-const std::vector<uint8_t>& CalypsoCardAdapter::getSvOperationSignature() const
+const std::vector<uint8_t>&
+CalypsoCardAdapter::getSvOperationSignature() const
 {
     return mSvOperationSignature;
 }
 
-void CalypsoCardAdapter::applyPatchIfNeeded()
+void
+CalypsoCardAdapter::setIsCounterValuePostponed(bool isCounterValuePostponed)
 {
-    uint64_t startupInfoLong =
-        ByteArrayUtil::extractLong(mStartupInfo, 0, mStartupInfo.size(), false);
+    mIsCounterValuePostponed = std::make_shared<bool>(isCounterValuePostponed);
+}
+
+void
+CalypsoCardAdapter::applyPatchIfNeeded()
+{
+    std::uint64_t startupInfoLong = ByteArrayUtil::extractLong(
+        mStartupInfo, 0, mStartupInfo.size(), false);
 
     if (mProductType == ProductType::PRIME_REVISION_3) {
-
         std::vector<std::shared_ptr<CalypsoCardAdapter::Patch>> v;
         for (const auto& p : mPatchesRev3) {
-
-            v.push_back(std::dynamic_pointer_cast<CalypsoCardAdapter::Patch>(p));
+            v.push_back(
+                std::dynamic_pointer_cast<CalypsoCardAdapter::Patch>(p));
         }
 
         applyPatchIfNeededForRevision(v, startupInfoLong);
 
-    } else if (mProductType == ProductType::PRIME_REVISION_2 ||
-               mProductType == ProductType::PRIME_REVISION_1) {
-
+    } else if (
+        mProductType == ProductType::PRIME_REVISION_2
+        || mProductType == ProductType::PRIME_REVISION_1) {
         mPayloadCapacity = 128;
 
         std::vector<std::shared_ptr<CalypsoCardAdapter::Patch>> v;
         for (const auto& p : mPatchesRev12) {
-
-            v.push_back(std::dynamic_pointer_cast<CalypsoCardAdapter::Patch>(p));
+            v.push_back(
+                std::dynamic_pointer_cast<CalypsoCardAdapter::Patch>(p));
         }
 
         applyPatchIfNeededForRevision(v, startupInfoLong);
     }
 }
 
-void CalypsoCardAdapter::applyPatchIfNeededForRevision(
+void
+CalypsoCardAdapter::applyPatchIfNeededForRevision(
     const std::vector<std::shared_ptr<CalypsoCardAdapter::Patch>>& patches,
     const uint64_t startupInfoLong)
 {
     for (const auto& patch : patches) {
-
         if (patch->isApplicableTo(startupInfoLong)) {
-
-            patch->apply(this);
+            patch->apply(shared_from_this());
             return;
         }
     }
 }
 
-bool CalypsoCardAdapter::isCounterValuePostponed() const
+std::shared_ptr<bool>
+CalypsoCardAdapter::getIsCounterValuePostponed() const
 {
     return mIsCounterValuePostponed;
 }
 
-/* PATCH ---------------------------------------------------------------------------------------- */
+bool
+CalypsoCardAdapter::isLegacyCase1() const
+{
+    return mIsLegacyCase1;
+}
 
-CalypsoCardAdapter::Patch::Patch(const std::string& startupInfo)
-: mStartupInfo(HexUtil::toLong(startupInfo)) {}
+void
+CalypsoCardAdapter::disableExtendedMode()
+{
+    mIsExtendedModeSupported = false;
+}
 
-CalypsoCardAdapter::Patch::Patch(const std::string& startupInfo, const std::string& mask)
-: mStartupInfo(HexUtil::toLong(startupInfo)),
-  mMask(HexUtil::toLong(mask)) {}
+WriteAccessLevel
+CalypsoCardAdapter::getPreOpenWriteAccessLevel() const
+{
+    return mPreOpenWriteAccessLevel;
+}
 
-bool CalypsoCardAdapter::Patch::isApplicableTo(const uint64_t startupInfo) const
+CalypsoCardAdapter&
+CalypsoCardAdapter::setPreOpenWriteAccessLevel(
+    WriteAccessLevel preOpenWriteAccessLevel)
+{
+    mPreOpenWriteAccessLevel = preOpenWriteAccessLevel;
+
+    return *this;
+}
+
+const std::vector<std::uint8_t>&
+CalypsoCardAdapter::getPreOpenDataOut() const
+{
+    return mPreOpenDataOut;
+}
+
+CalypsoCardAdapter&
+CalypsoCardAdapter::setPreOpenDataOut(
+    const std::vector<std::uint8_t>& preOpenDataOut)
+{
+    mPreOpenDataOut = preOpenDataOut;
+
+    return *this;
+}
+
+CalypsoCardAdapter::Patch::Patch(
+    const std::string& startupInfo, const std::string& mask)
+: mStartupInfo(HexUtil::toLong(startupInfo))
+, mMask(HexUtil::toLong(mask))
+{
+}
+
+bool
+CalypsoCardAdapter::Patch::isApplicableTo(const uint64_t startupInfo) const
 {
     return mStartupInfo == (startupInfo & mMask);
 }
 
-/* PATCH REV 3 ---------------------------------------------------------------------------------- */
+CalypsoCardAdapter::PatchRev3::PatchRev3(
+    const std::string& startupInfo, const std::string& mask)
+: CalypsoCardAdapter::Patch(startupInfo, mask)
+{
+}
 
-CalypsoCardAdapter::PatchRev3::PatchRev3(const std::string& startupInfo)
-: CalypsoCardAdapter::Patch(startupInfo) {}
-
-CalypsoCardAdapter::PatchRev3::PatchRev3(const std::string& startupInfo, const std::string& mask)
-: CalypsoCardAdapter::Patch(startupInfo, mask) {}
-
-CalypsoCardAdapter::PatchRev3& CalypsoCardAdapter::PatchRev3::setPayloadCapacity(
-    const int payloadCapacity)
+CalypsoCardAdapter::PatchRev3&
+CalypsoCardAdapter::PatchRev3::setPayloadCapacity(const int payloadCapacity)
 {
     mPayloadCapacity = std::make_shared<int>(payloadCapacity);
 
     return *this;
 }
 
-void CalypsoCardAdapter::PatchRev3::apply(CalypsoCardAdapter* calypsoCard)
+void
+CalypsoCardAdapter::PatchRev3::apply(
+    std::shared_ptr<CalypsoCardAdapter> calypsoCard)
 {
     if (mPayloadCapacity != nullptr) {
-
         calypsoCard->mPayloadCapacity = *mPayloadCapacity;
     }
 }
 
-/* PATCH REV 12 --------------------------------------------------------------------------------- */
-
-CalypsoCardAdapter::PatchRev12::PatchRev12(const std::string& startupInfo)
-: CalypsoCardAdapter::Patch(startupInfo) {}
-
-CalypsoCardAdapter::PatchRev12::PatchRev12(const std::string& startupInfo, const std::string& mask)
-: CalypsoCardAdapter::Patch(startupInfo, mask) {}
-
-CalypsoCardAdapter::PatchRev12& CalypsoCardAdapter::PatchRev12::setCounterValuePostponed()
+CalypsoCardAdapter::PatchRev12::PatchRev12(
+    const std::string& startupInfo, const std::string& mask)
+: CalypsoCardAdapter::Patch(startupInfo, mask)
 {
-    mIsCounterValuePostponed = std::make_shared<bool>(true);
+}
+
+CalypsoCardAdapter::PatchRev12&
+CalypsoCardAdapter::PatchRev12::setLegacyCase1()
+{
+    mIsLegacyCase1 = std::make_shared<bool>(true);
 
     return *this;
 }
 
-void CalypsoCardAdapter::PatchRev12::apply(CalypsoCardAdapter* calypsoCard)
+void
+CalypsoCardAdapter::PatchRev12::apply(
+    std::shared_ptr<CalypsoCardAdapter> calypsoCard)
 {
-    if (mIsCounterValuePostponed != nullptr) {
-
-        calypsoCard->mIsCounterValuePostponed = *mIsCounterValuePostponed;
+    if (mIsLegacyCase1 != nullptr) {
+        calypsoCard->mIsLegacyCase1 = *mIsLegacyCase1;
     }
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-
-std::ostream& operator<<(std::ostream& os, const CalypsoCardAdapter& cca)
+std::ostream&
+operator<<(std::ostream& os, const CalypsoCardAdapter& cca)
 {
     os << "CALYPSO_CARD_ADAPTER: {"
-       << "SELECT_APPLICATION_RESPONSE: " << cca.mSelectApplicationResponse << ", "
+       << "SELECT_APPLICATION_RESPONSE: " << cca.mSelectApplicationResponse
+       << ", "
        << "POWER_ON_DATA: " << cca.mPowerOnData << ", "
        << "IS_EXTENDED_MODE_SUPPORTED: " << cca.mIsExtendedModeSupported << ", "
-       << "IS_RATIFICATION_ON_DESELECT_SUPPORTED: " << cca.mIsRatificationOnDeselectSupported <<", "
+       << "IS_RATIFICATION_ON_DESELECT_SUPPORTED: "
+       << cca.mIsRatificationOnDeselectSupported << ", "
        << "IS_SV_FEATURE_AVAILABLE: " << cca.mIsSvFeatureAvailable << ", "
        << "IS_PIN_FEATURE_AVAILABLE: " << cca.mIsPinFeatureAvailable << ", "
        << "IS_PKI_MODE_SUPPORTED:" << cca.mIsPkiModeSupported << ", "
@@ -940,7 +1154,8 @@ std::ostream& operator<<(std::ostream& os, const CalypsoCardAdapter& cca)
        << "PRODUCT_TYPE: " << cca.mProductType << ", "
        << "DF_NAME: " << cca.mDfName << ", "
        << "MODIFICATIONS_COUNTER_MAX: " << cca.mModificationsCounterMax << ", "
-       << "IS_MODIFICATION_COUNTER_IN_BYTES: " << cca.mIsModificationCounterInBytes << ", "
+       << "IS_MODIFICATION_COUNTER_IN_BYTES: "
+       << cca.mIsModificationCounterInBytes << ", "
        << "DIRECTORY_HEADER: " << cca.mDirectoryHeader << ", "
        << "FILES: " << cca.mFiles << ", "
        << "FILES_BACKUP: " << cca.mFilesBackup << ", "
@@ -948,10 +1163,7 @@ std::ostream& operator<<(std::ostream& os, const CalypsoCardAdapter& cca)
        << "PIN_ATTEMPT_COUNTER: " << cca.mPinAttemptCounter << ", "
        << "SV_BALANCE: " << cca.mSvBalance << ", "
        << "SV_LAST_T_NUM: " << cca.mSvLastTNum << ", "
-       << "SV_LOAD_LOG_RECORD: " << cca.mSvLoadLogRecord << ", "
-       << "SV_DEBIT_LOG_RECORD: " << cca.mSvDebitLogRecord << ", "
        << "IS_HCE: " << cca.mIsHce << ", "
-       << "CARD_CHALLENGE: " << cca.mCardChallenge << ", "
        << "TRACEABILITY_INFORMATION: " << cca.mTraceabilityInformation << ", "
        << "SV_KVC: " << cca.mSvKvc << ", "
        << "SV_GET_HEADER: " << cca.mSvGetHeader << ", "
@@ -959,26 +1171,24 @@ std::ostream& operator<<(std::ostream& os, const CalypsoCardAdapter& cca)
        << "SV_OPERATION_SIGNATURE: " << cca.mSvOperationSignature << ", "
        << "APPLICATION_SUB_TYPE: " << cca.mApplicationSubType << ", "
        << "APPLICATION_TYPE: " << cca.mApplicationType << ", "
-       << "SESSION_MODIFICATION: " << cca.mSessionModification
-       << "}";
+       << "SESSION_MODIFICATION: " << cca.mSessionModification << "}";
 
-       return os;
+    return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const std::shared_ptr<CalypsoCardAdapter> cca)
+std::ostream&
+operator<<(std::ostream& os, const std::shared_ptr<CalypsoCardAdapter> cca)
 {
     if (cca == nullptr) {
-
         os << "CALYPSO_CARD_ADAPTER: null";
 
     } else {
-
         os << *cca.get();
     }
 
     return os;
 }
 
-}
-}
-}
+} /* namespace calypso */
+} /* namespace card */
+} /* namespace keyple */

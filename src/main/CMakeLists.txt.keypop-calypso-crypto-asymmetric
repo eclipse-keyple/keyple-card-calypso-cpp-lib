@@ -1,0 +1,40 @@
+#******************************************************************************
+#* Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+#*                                                                            *
+#* See the NOTICE file(s) distributed with this work for additional           *
+#* information regarding copyright ownership.                                 *
+#*                                                                            *
+#* This program and the accompanying materials are made available under the   *
+#* terms of the Eclipse Public License 2.0 which is available at              *
+#* http://www.eclipse.org/legal/epl-2.0                                       *
+#*                                                                            *
+#* SPDX-License-Identifier: EPL-2.0                                           *
+#******************************************************************************/
+
+INCLUDE(FetchContent)
+
+IF(NOT EXISTS "${CMAKE_BINARY_DIR}/_deps/keypopcalypsocryptoasymmetric-src")
+
+    MESSAGE("-- > Fetching keypop calypso crypto asymmetric api from keyple card calypso")
+
+    FetchContent_Declare(
+
+            KeypopCalypsoCryptoAsymmetricCppApi
+
+            DOWNLOAD_EXTRACT_TIMESTAMP true
+            GIT_REPOSITORY https://github.com/eclipse-keypop/keypop-calypso-crypto-asymmetric-cpp-api
+            GIT_TAG develop-0.2.0
+    )
+
+ELSE()
+
+    FetchContent_Declare(
+
+        KeypopCalypsoCryptoAsymmetricCppApi
+
+        SOURCE_DIR ${CMAKE_BINARY_DIR}/_deps/keypopcalypsocryptoasymmetric-src
+    )
+
+ENDIF()
+
+FetchContent_MakeAvailable(KeypopCalypsoCryptoAsymmetricCppApi)

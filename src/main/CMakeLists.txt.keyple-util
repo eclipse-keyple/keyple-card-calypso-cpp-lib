@@ -1,0 +1,40 @@
+#******************************************************************************
+#* Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+#*                                                                            *
+#* See the NOTICE file(s) distributed with this work for additional           *
+#* information regarding copyright ownership.                                 *
+#*                                                                            *
+#* This program and the accompanying materials are made available under the   *
+#* terms of the Eclipse Public License 2.0 which is available at              *
+#* http://www.eclipse.org/legal/epl-2.0                                       *
+#*                                                                            *
+#* SPDX-License-Identifier: EPL-2.0                                           *
+#******************************************************************************/
+
+INCLUDE(FetchContent)
+
+IF(NOT EXISTS "${CMAKE_BINARY_DIR}/_deps/keypleutilcpplib-src")
+
+    MESSAGE("-- > Fetching keyple util from keyple card calypso crypto legacy sam")
+
+    FetchContent_Declare(
+
+            KeypleUtilCppLib
+
+            DOWNLOAD_EXTRACT_TIMESTAMP true
+            GIT_REPOSITORY https://github.com/eclipse-keyple/keyple-util-cpp-lib
+            GIT_TAG develop-2.4.0
+    )
+
+ELSE()
+
+    FetchContent_Declare(
+
+        KeypleUtilCppLib
+
+        SOURCE_DIR ${CMAKE_BINARY_DIR}/_deps/keypleutilcpplib-src
+    )
+
+ENDIF()
+
+FetchContent_MakeAvailable(KeypleUtilCppLib)

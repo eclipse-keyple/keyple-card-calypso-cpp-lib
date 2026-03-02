@@ -1,27 +1,29 @@
-# *************************************************************************************************
-# Copyright (c) 2023 Calypso Networks Association https://calypsonet.org/                         *
-#                                                                                                 *
-# See the NOTICE file(s) distributed with this work for additional information regarding          *
-# copyright ownership.                                                                            *
-#                                                                                                 *
-# This program and the accompanying materials are made available under the terms of the Eclipse   *
-# Public License 2.0 which is available at http://www.eclipse.org/legal/epl-2.0                   *
-#                                                                                                 *
-# SPDX-License-Identifier: EPL-2.0                                                                *
-# *************************************************************************************************/
+#******************************************************************************
+#* Copyright (c) 2025 Calypso Networks Association https://calypsonet.org/    *
+#*                                                                            *
+#* See the NOTICE file(s) distributed with this work for additional           *
+#* information regarding copyright ownership.                                 *
+#*                                                                            *
+#* This program and the accompanying materials are made available under the   *
+#* terms of the Eclipse Public License 2.0 which is available at              *
+#* http://www.eclipse.org/legal/epl-2.0                                       *
+#*                                                                            *
+#* SPDX-License-Identifier: EPL-2.0                                           *
+#******************************************************************************/
 
-PROJECT(KeypleCardCalypsoCppLib C CXX)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+PROJECT(
+    KeypleCardCalypsoCppLib
+    VERSION 3.2.2
+    LANGUAGES C CXX)
 
-SET(CMAKE_PROJECT_VERSION_MAJOR "2")
+SET(CMAKE_PROJECT_VERSION_MAJOR "3")
 SET(CMAKE_PROJECT_VERSION_MINOR "2")
-SET(CMAKE_PROJECT_VERSION_PATCH "5")
-SET(CMAKE_PROJECT_VERSION_TWEAK "6")
+SET(CMAKE_PROJECT_VERSION_PATCH "2")
 
 SET(CMAKE_PROJECT_VERSION "${CMAKE_PROJECT_VERSION_MAJOR}.
                            ${CMAKE_PROJECT_VERSION_MINOR}.
-                           ${CMAKE_PROJECT_VERSION_PATCH}.
-                           ${CMAKE_PROJECT_VERSION_TWEAK}")
+                           ${CMAKE_PROJECT_VERSION_PATCH}")
 
 SET(PACKAGE_NAME "keyple-card-calypso-cpp-lib")
 SET(PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
