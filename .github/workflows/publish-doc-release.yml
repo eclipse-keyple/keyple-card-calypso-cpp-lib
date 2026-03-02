@@ -1,41 +1,14 @@
-name: Publish API documentation
-
+name: Publish API documentation (release)
 on:
   release:
     types: [published]
 
+permissions:
+  checks: write
+
 jobs:
   publish-doc-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository code from ${{ github.repository }}/${{ github.ref }}
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Make scripts executable
-        run: chmod +x ./.github/scripts/*.sh
-      - name: Check version
-        working-directory: .
-        run: ./.github/scripts/check_version.sh $(echo "${{ github.ref }}" | sed -e "s,^refs/tags/,,")
-      - name: Patch Doxyfile
-        working-directory: .
-        run: ./.github/scripts/patch_doxyfile.sh ${{ env.PROJECT_VERSION }}
-      - name: Generate project documentation with Doxygen
-        uses: mattnotmitt/doxygen-action@v1.9.2
-        with:
-          working-directory: .github/doxygen/
-          doxyfile-path: ./Doxyfile
-      - name: Prepare Doxygen doc page locally
-        working-directory: .
-        run: ./.github/scripts/prepare_doxygen.sh ${{ env.PROJECT_VERSION }}
-      - name: Deploy to doc branch
-        run: |
-          git config --global user.name "Eclipse Keypop Bot"
-          git config --global user.email "${{ github.repository }}-bot@eclipse.org"
-          cd ${{ github.event.repository.name }}
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git add .
-          git commit -m "docs: update ${{ github.event.inputs.version || github.ref_name }} documentation"
-          git push origin doc --force
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-publish-doxygen.yml@main # NOSONAR - Same organization, trusted source
+    with:
+      version: ${{ github.event.inputs.version || github.ref_name }}
+    secrets: inherit # NOSONAR - Same organization, trusted source
