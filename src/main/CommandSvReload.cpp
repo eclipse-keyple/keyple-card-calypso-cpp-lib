@@ -279,17 +279,37 @@ CommandSvReload::finalizeCommand(
         svCommandSecurityData->getTerminalSvMac().size());
 
     /* APDU Case 3 (in session) or 4 (outside session) */
-    auto apdu(
-        std::make_shared<DtoAdapters::ApduRequestAdapter>(ApduUtil::build(
+    const std::unique_ptr<std::uint8_t> le(
+        computeLe(getCommandContext(), mIsExtendedModeAllowed));
+
+    std::vector<std::uint8_t> _apdu;
+    if (le == nullptr)
+    {
+        _apdu = ApduUtil::build(
             getTransactionContext()->getCard()->getCardClass()
-                    == CalypsoCardClass::LEGACY
+                == CalypsoCardClass::LEGACY
+                ? CalypsoCardClass::LEGACY_STORED_VALUE.getValue()
+                : CalypsoCardClass::ISO.getValue(),
+            getCommandRef().getInstructionByte(),
+            p1,
+            p2,
+            mDataIn);
+    }
+    else
+    {
+        _apdu = ApduUtil::build(
+            getTransactionContext()->getCard()->getCardClass()
+                == CalypsoCardClass::LEGACY
                 ? CalypsoCardClass::LEGACY_STORED_VALUE.getValue()
                 : CalypsoCardClass::ISO.getValue(),
             getCommandRef().getInstructionByte(),
             p1,
             p2,
             mDataIn,
-            *computeLe(getCommandContext(), mIsExtendedModeAllowed))));
+            *le);
+    }
+
+    auto apdu(std::make_shared<DtoAdapters::ApduRequestAdapter>(_apdu));
     apdu->addSuccessfulStatusWord(SW_POSTPONED_DATA);
     setApduRequest(apdu);
 }

@@ -943,11 +943,7 @@ TransactionManagerAdapter<T>::prepareAppendRecord(
         prepareNewSecureSessionIfNeeded(command);
         mCommands.push_back(command);
 
-<<<<<<< HEAD
-    } catch (const RuntimeException&) {
-=======
     } catch (...) {
->>>>>>> ed80895 (fix: run the transaction cleanup for every exception type)
         resetTransaction();
         throw;
     }
@@ -989,11 +985,7 @@ TransactionManagerAdapter<T>::prepareUpdateRecord(
         prepareNewSecureSessionIfNeeded(command);
         mCommands.push_back(command);
 
-<<<<<<< HEAD
-    } catch (const RuntimeException&) {
-=======
     } catch (...) {
->>>>>>> ed80895 (fix: run the transaction cleanup for every exception type)
         resetTransaction();
         throw;
     }
@@ -1034,11 +1026,7 @@ TransactionManagerAdapter<T>::prepareWriteRecord(
         prepareNewSecureSessionIfNeeded(command);
         mCommands.push_back(command);
 
-<<<<<<< HEAD
-    } catch (const RuntimeException&) {
-=======
     } catch (...) {
->>>>>>> ed80895 (fix: run the transaction cleanup for every exception type)
         resetTransaction();
         throw;
     }
@@ -1132,11 +1120,7 @@ TransactionManagerAdapter<T>::prepareUpdateOrWriteBinary(
 
         } while (currentIndex < dataLength);
 
-<<<<<<< HEAD
-    } catch (const RuntimeException&) {
-=======
     } catch (...) {
->>>>>>> ed80895 (fix: run the transaction cleanup for every exception type)
         resetTransaction();
         throw;
     }
@@ -1225,11 +1209,7 @@ TransactionManagerAdapter<T>::prepareSetCounter(
                 newValue);
         }
 
-<<<<<<< HEAD
-    } catch (const RuntimeException&) {
-=======
     } catch (...) {
->>>>>>> ed80895 (fix: run the transaction cleanup for every exception type)
         resetTransaction();
         throw;
     }
@@ -1273,11 +1253,7 @@ TransactionManagerAdapter<T>::prepareIncreaseOrDecreaseCounter(
         prepareNewSecureSessionIfNeeded(command);
         mCommands.push_back(command);
 
-<<<<<<< HEAD
-    } catch (const RuntimeException&) {
-=======
     } catch (...) {
->>>>>>> ed80895 (fix: run the transaction cleanup for every exception type)
         resetTransaction();
         throw;
     }
@@ -1387,11 +1363,7 @@ TransactionManagerAdapter<T>::prepareIncreaseOrDecreaseCounters(
             }
         }
 
-<<<<<<< HEAD
-    } catch (const RuntimeException&) {
-=======
     } catch (...) {
->>>>>>> ed80895 (fix: run the transaction cleanup for every exception type)
         resetTransaction();
         throw;
     }
@@ -1429,11 +1401,7 @@ TransactionManagerAdapter<T>::prepareSvReadAllLogs()
             CalypsoCardConstant::SV_DEBIT_LOG_FILE_NB_REC,
             CalypsoCardConstant::SV_LOG_FILE_REC_LENGTH);
 
-<<<<<<< HEAD
-    } catch (const RuntimeException&) {
-=======
     } catch (...) {
->>>>>>> ed80895 (fix: run the transaction cleanup for every exception type)
         resetTransaction();
         throw;
     }

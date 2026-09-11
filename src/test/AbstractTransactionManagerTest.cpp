@@ -593,6 +593,24 @@ AbstractTransactionManagerTest::mockTransmitCardRequest(
 std::shared_ptr<CardResponseApi>
 AbstractTransactionManagerTest::popNextQueuedCardResponse()
 {
+    if (mQueuedCardResponses.empty()) {
+        /*
+         * No response was queued for this call. This happens when the SUT
+         * makes an extra, best-effort transmitCardRequest() call that the
+         * test did not anticipate (e.g. an internal session abort attempt
+         * triggered while unwinding after a failure). Return a generic
+         * successful response instead of invoking undefined behavior on
+         * the empty queue; the triggering exception, if any, is unaffected
+         * since it is rethrown by the SUT after cleanup.
+         */
+        std::vector<std::shared_ptr<ApduResponseApi>> apduResponses
+            = {std::make_shared<TestDtoAdapters::ApduResponseAdapter>(
+                HexUtil::toByteArray("9000"))};
+
+        return std::make_shared<TestDtoAdapters::CardResponseAdapter>(
+            apduResponses, true);
+    }
+
     auto response = mQueuedCardResponses.front();
     mQueuedCardResponses.pop_front();
 
