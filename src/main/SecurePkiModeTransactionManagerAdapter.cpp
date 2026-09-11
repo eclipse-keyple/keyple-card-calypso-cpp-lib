@@ -193,7 +193,7 @@ SecurePkiModeTransactionManagerAdapter::prepareVerifyPin(
             std::make_shared<CommandVerifyPin>(
                 mTransactionContext, getCommandContext(), pin));
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -217,7 +217,7 @@ SecurePkiModeTransactionManagerAdapter::prepareChangePin(
             std::make_shared<CommandChangePin>(
                 mTransactionContext, getCommandContext(), newPin));
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -286,7 +286,7 @@ SecurePkiModeTransactionManagerAdapter::processCommands(
             executeCardCommands(mCommands, channelControl);
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
 
         /* Finally */
