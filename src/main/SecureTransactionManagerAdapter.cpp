@@ -85,7 +85,7 @@ SecureTransactionManagerAdapter<T>::prepareCancelSecureSession()
                     this->getCommandContext(),
                     true)));
 
-    } catch (const RuntimeException&) {
+    } catch (...) {
         this->resetTransaction();
 
         /* Finally */
