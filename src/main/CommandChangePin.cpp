@@ -103,7 +103,7 @@ CommandChangePin::CommandChangePin(
     std::uint8_t cipheringKvc)
 : Command(CardCommandRef::CHANGE_PIN, 0, transactionContext, commandContext)
 , mPin(pin)
-, mIsPinEncryptedMode(false)
+, mIsPinEncryptedMode(true)
 , mCipheringKif(cipheringKif)
 , mCipheringKvc(cipheringKvc)
 {
