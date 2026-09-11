@@ -54,8 +54,9 @@ const std::vector<std::uint8_t> Command::APDU_RESPONSE_9000 = {0x90, 0x00};
 
 const std::map<int, const std::shared_ptr<Command::StatusProperties>>
     Command::STATUS_TABLE = [] {
-        std::map<int, const std::shared_ptr<Command::StatusProperties>> m(
-            Command::STATUS_TABLE);
+        /* Do not copy Command::STATUS_TABLE here: it is the object being
+         * initialized (undefined behaviour, crashes at DLL load with MSVC). */
+        std::map<int, const std::shared_ptr<Command::StatusProperties>> m;
 
         m.insert(
             {{0x9000, std::make_shared<Command::StatusProperties>("Success")}});
