@@ -401,7 +401,12 @@ void
 SecureSymmetricCryptoTransactionManagerAdapter<T>::handleCommandPostProcessing(
     int commandIndex, const std::vector<std::shared_ptr<Command>>& commands)
 {
-    if (!mTransactionContext->getCard()->getIsCounterValuePostponed()) {
+    /* Only a card that really postpones the counter value produces postponed
+     * data; an unknown behaviour, i.e. a null pointer, counts as "no". */
+    const auto isCounterValuePostponed
+        = mTransactionContext->getCard()->getIsCounterValuePostponed();
+
+    if (isCounterValuePostponed == nullptr || !*isCounterValuePostponed) {
         return;
     }
 
