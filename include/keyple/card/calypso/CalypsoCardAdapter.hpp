@@ -1048,10 +1048,10 @@ private:
     std::shared_ptr<bool> mIsCounterValuePostponed;
 
     /** */
-    bool mIsLegacyCase1;
+    bool mIsLegacyCase1 = false;
 
     /** */
-    WriteAccessLevel mPreOpenWriteAccessLevel;
+    WriteAccessLevel mPreOpenWriteAccessLevel = WriteAccessLevel::UNKOWN;
 
     /** */
     std::vector<std::uint8_t> mPreOpenDataOut;

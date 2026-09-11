@@ -165,7 +165,7 @@ CommandIncreaseOrDecreaseMultiple ::
         return false;
     }
 
-    updateTerminalSessionIfNeeded(APDU_RESPONSE_9000);
+    updateTerminalSessionIfNeeded(buildAnticipatedResponse());
 
     return true;
 }

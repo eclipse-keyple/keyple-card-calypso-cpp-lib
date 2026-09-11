@@ -132,7 +132,7 @@ FreeTransactionManagerAdapter::processCommands(ChannelControl channelControl)
 
         executeCardCommands(cardRequestCommands, channelControl);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
 
         /* Finally */
@@ -163,7 +163,7 @@ FreeTransactionManagerAdapter::prepareVerifyPin(
             std::make_shared<CommandVerifyPin>(
                 getTransactionContext(), getCommandContext(), pin));
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -187,7 +187,7 @@ FreeTransactionManagerAdapter::prepareChangePin(
             std::make_shared<CommandChangePin>(
                 getTransactionContext(), getCommandContext(), newPin));
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }

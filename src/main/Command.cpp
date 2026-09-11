@@ -54,8 +54,9 @@ const std::vector<std::uint8_t> Command::APDU_RESPONSE_9000 = {0x90, 0x00};
 
 const std::map<int, const std::shared_ptr<Command::StatusProperties>>
     Command::STATUS_TABLE = [] {
-        std::map<int, const std::shared_ptr<Command::StatusProperties>> m(
-            Command::STATUS_TABLE);
+        /* Do not copy Command::STATUS_TABLE here: it is the object being
+         * initialized (undefined behaviour, crashes at DLL load with MSVC). */
+        std::map<int, const std::shared_ptr<Command::StatusProperties>> m;
 
         m.insert(
             {{0x9000, std::make_shared<Command::StatusProperties>("Success")}});
@@ -351,35 +352,35 @@ Command::checkStatus()
         = props != nullptr ? props->getInformation() : "Unknown status";
 
     /* Throw the exception */
-    throw buildCommandException(exceptionClass, message);
+    throwCommandException(exceptionClass, message);
 }
 
-CardCommandException
-Command::buildCommandException(
+void
+Command::throwCommandException(
     const std::type_info& exceptionClass, const std::string& message)
 {
     if (exceptionClass == typeid(CardAccessForbiddenException)) {
-        return CardAccessForbiddenException(message, mCommandRef);
+        throw CardAccessForbiddenException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardDataAccessException)) {
-        return CardDataAccessException(message, mCommandRef);
+        throw CardDataAccessException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardDataOutOfBoundsException)) {
-        return CardDataOutOfBoundsException(message, mCommandRef);
+        throw CardDataOutOfBoundsException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardIllegalArgumentException)) {
-        return CardIllegalArgumentException(message, mCommandRef);
+        throw CardIllegalArgumentException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardIllegalParameterException)) {
-        return CardIllegalParameterException(message, mCommandRef);
+        throw CardIllegalParameterException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardPinException)) {
-        return CardPinException(message, mCommandRef);
+        throw CardPinException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardSecurityContextException)) {
-        return CardSecurityContextException(message, mCommandRef);
+        throw CardSecurityContextException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardSecurityDataException)) {
-        return CardSecurityDataException(message, mCommandRef);
+        throw CardSecurityDataException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardSessionBufferOverflowException)) {
-        return CardSessionBufferOverflowException(message, mCommandRef);
+        throw CardSessionBufferOverflowException(message, mCommandRef);
     } else if (exceptionClass == typeid(CardTerminatedException)) {
-        return CardTerminatedException(message, mCommandRef);
+        throw CardTerminatedException(message, mCommandRef);
     } else {
-        return CardUnknownStatusException(message, mCommandRef);
+        throw CardUnknownStatusException(message, mCommandRef);
     }
 }
 

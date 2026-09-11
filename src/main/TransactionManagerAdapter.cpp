@@ -316,7 +316,7 @@ TransactionManagerAdapter<T>::prepareSelectFile(std::uint16_t lid)
             std::unique_ptr<CommandSelectFile>(new CommandSelectFile(
                 getTransactionContext(), getCommandContext(), lid)));
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -336,7 +336,7 @@ TransactionManagerAdapter<T>::prepareSelectFile(
                 getCommandContext(),
                 selectFileControl)));
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -404,7 +404,7 @@ TransactionManagerAdapter<T>::prepareGetData(GetDataTag tag)
                 + std::to_string(static_cast<int>(tag)));
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -551,7 +551,7 @@ TransactionManagerAdapter<T>::prepareReadRecord(
                 CommandReadRecords::ReadMode::ONE_RECORD,
                 std::move(recordSize),
                 recordSize != nullptr ? *recordSize : 0));
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -665,7 +665,7 @@ TransactionManagerAdapter<T>::prepareReadRecords(
             }
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -738,7 +738,7 @@ TransactionManagerAdapter<T>::prepareReadRecordsPartially(
             currentRecordNumber += nbRecordsPerApdu;
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -808,7 +808,7 @@ TransactionManagerAdapter<T>::prepareReadBinary(
 
         } while (nbBytesRemainingToRead > 0);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -884,7 +884,7 @@ TransactionManagerAdapter<T>::prepareSearchRecords(
         mCommands.push_back(
             std::make_shared<CommandSearchRecordMultiple>(
                 getTransactionContext(), getCommandContext(), dataAdapter));
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -904,7 +904,7 @@ TransactionManagerAdapter<T>::prepareCheckPinStatus()
         mCommands.push_back(
             std::make_shared<CommandVerifyPin>(
                 getTransactionContext(), getCommandContext()));
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -935,7 +935,7 @@ TransactionManagerAdapter<T>::prepareAppendRecord(
         prepareNewSecureSessionIfNeeded(command);
         mCommands.push_back(command);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -977,7 +977,7 @@ TransactionManagerAdapter<T>::prepareUpdateRecord(
         prepareNewSecureSessionIfNeeded(command);
         mCommands.push_back(command);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -1018,7 +1018,7 @@ TransactionManagerAdapter<T>::prepareWriteRecord(
         prepareNewSecureSessionIfNeeded(command);
         mCommands.push_back(command);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -1112,7 +1112,7 @@ TransactionManagerAdapter<T>::prepareUpdateOrWriteBinary(
 
         } while (currentIndex < dataLength);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -1201,7 +1201,7 @@ TransactionManagerAdapter<T>::prepareSetCounter(
                 newValue);
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -1245,7 +1245,7 @@ TransactionManagerAdapter<T>::prepareIncreaseOrDecreaseCounter(
         prepareNewSecureSessionIfNeeded(command);
         mCommands.push_back(command);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -1355,7 +1355,7 @@ TransactionManagerAdapter<T>::prepareIncreaseOrDecreaseCounters(
             }
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -1393,7 +1393,7 @@ TransactionManagerAdapter<T>::prepareSvReadAllLogs()
             CalypsoCardConstant::SV_DEBIT_LOG_FILE_NB_REC,
             CalypsoCardConstant::SV_LOG_FILE_REC_LENGTH);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }

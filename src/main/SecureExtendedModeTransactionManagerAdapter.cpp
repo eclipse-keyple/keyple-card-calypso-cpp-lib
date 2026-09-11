@@ -86,7 +86,7 @@ SecureExtendedModeTransactionManagerAdapter::prepareEarlyMutualAuthentication()
             mCommands.push_back(session);
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -128,7 +128,7 @@ SecureExtendedModeTransactionManagerAdapter::prepareActivateEncryption()
 
         mIsEncryptionActive = true;
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -170,7 +170,7 @@ SecureExtendedModeTransactionManagerAdapter::prepareDeactivateEncryption()
 
         mIsEncryptionActive = false;
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }

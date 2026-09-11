@@ -436,14 +436,16 @@ private:
     void checkStatus();
 
     /**
-     * Builds a specific APDU command exception.
+     * Throws the specific APDU command exception matching the given class.
+     *
+     * Throws instead of returning: returning by value would slice the
+     * exception down to CardCommandException.
      *
      * @param exceptionClass the exception class.
      * @param message The message.
-     * @return A not null reference.
      * @since 2.0.1
      */
-    CardCommandException buildCommandException(
+    [[noreturn]] void throwCommandException(
         const std::type_info& exceptionClass, const std::string& message);
 };
 

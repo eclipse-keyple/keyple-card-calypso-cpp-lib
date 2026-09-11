@@ -371,7 +371,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::processCommands(
             cardRequestCommands, channelControl);
         processCryptoPreparedCommands();
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
 
         /* Finally  */
@@ -401,7 +401,12 @@ void
 SecureSymmetricCryptoTransactionManagerAdapter<T>::handleCommandPostProcessing(
     int commandIndex, const std::vector<std::shared_ptr<Command>>& commands)
 {
-    if (!mTransactionContext->getCard()->getIsCounterValuePostponed()) {
+    /* Only a card that really postpones the counter value produces postponed
+     * data; an unknown behaviour, i.e. a null pointer, counts as "no". */
+    const auto isCounterValuePostponed
+        = mTransactionContext->getCard()->getIsCounterValuePostponed();
+
+    if (isCounterValuePostponed == nullptr || !*isCounterValuePostponed) {
         return;
     }
 
@@ -514,7 +519,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareVerifyPin(
                          ->getPinVerificationCipheringKvc()));
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -562,7 +567,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareChangePin(
                          ->getPinModificationCipheringKvc()));
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -620,7 +625,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareOpenSecureSession(
         mSvPostponedDataIndex = -1;
         mIsSvOperationInSecureSession = false;
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -665,7 +670,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareCloseSecureSession()
                         mSvPostponedDataIndex)));
         }
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
 
         /* Finally */
@@ -725,7 +730,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareSvGet(
         mSvOperation = svOperation;
         mSvAction = svAction;
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -779,7 +784,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareSvReload(
         prepareNewSecureSessionIfNeeded(command);
         SecureTransactionManagerAdapter<T>::mCommands.push_back(command);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -868,7 +873,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareSvDebit(
         prepareNewSecureSessionIfNeeded(command);
         SecureTransactionManagerAdapter<T>::mCommands.push_back(command);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -902,7 +907,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareInvalidate()
         prepareNewSecureSessionIfNeeded(command);
         SecureTransactionManagerAdapter<T>::mCommands.push_back(command);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -925,7 +930,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareRehabilitate()
         prepareNewSecureSessionIfNeeded(command);
         SecureTransactionManagerAdapter<T>::mCommands.push_back(command);
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
@@ -966,7 +971,7 @@ SecureSymmetricCryptoTransactionManagerAdapter<T>::prepareChangeKey(
                 issuerKif,
                 issuerKvc)));
 
-    } catch (const RuntimeException& e) {
+    } catch (...) {
         resetTransaction();
         throw;
     }
