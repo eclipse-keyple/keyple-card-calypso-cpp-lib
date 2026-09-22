@@ -14,7 +14,6 @@
 #include "keyple/card/calypso/TransactionManagerAdapter.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
@@ -168,11 +167,6 @@ TransactionManagerAdapter<T>::executeCardCommands(
     for (int i = 0; i < static_cast<int>(apduResponses.size()); i++) {
         std::shared_ptr<Command> command = commands[i];
         try {
-            std::cout << "apdu cmd: " << command->getName() << std::endl;
-            std::cout << "apdu resp: "
-                      << HexUtil::toHex(apduResponses[i]->getDataOut())
-                      << std::endl;
-
             parseCommandResponse(command, apduResponses[i]);
             handleCommandPostProcessing(i, commands);
         } catch (const CardCommandException& e) {
