@@ -103,10 +103,10 @@ private:
         STATUS_TABLE;
 
     /** */
-    bool mIsEncryptionRequested;
+    bool mIsEncryptionRequested = false;
 
     /** */
-    bool mIsMutualAuthenticationRequested;
+    bool mIsMutualAuthenticationRequested = false;
 
     /** Updates the crypto service "encryption" state if needed. */
     void updateCryptoServiceEncryptionStateIfNeeded();
