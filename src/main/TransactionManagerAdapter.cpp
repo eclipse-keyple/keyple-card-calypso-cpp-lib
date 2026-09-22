@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -268,11 +269,38 @@ template <typename T>
 std::string
 TransactionManagerAdapter<T>::getTransactionAuditDataAsString() const
 {
-    return std::string("\nTransaction audit JSON data: {")
-           + "\"targetSmartCard\":" + "FIXME"  // JsonUtil.toJson(card)
-           + ","
-           + "\"apdus\":" + " FIXME"  // JsonUtil.toJson(transactionAuditData)
-           + "}";
+    std::stringstream ss;
+
+    ss << "\nTransaction audit JSON data: {\"targetSmartCard\":";
+
+    if (mCard == nullptr) {
+        ss << "null";
+    } else {
+        ss << "{"
+           << "\"productType\":\"" << mCard->getProductType() << "\","
+           << "\"powerOnData\":\"" << mCard->getPowerOnData() << "\","
+           << "\"selectApplicationResponse\":\""
+           << HexUtil::toHex(mCard->getSelectApplicationResponse()) << "\","
+           << "\"dfName\":\"" << HexUtil::toHex(mCard->getDfName()) << "\","
+           << "\"serialNumber\":\""
+           << HexUtil::toHex(mCard->getCalypsoSerialNumberFull()) << "\","
+           << "\"startupInfo\":\""
+           << HexUtil::toHex(mCard->getStartupInfoRawData()) << "\""
+           << "}";
+    }
+
+    ss << ",\"apdus\":[";
+
+    for (size_t i = 0; i < mTransactionAuditData.size(); i++) {
+        if (i != 0) {
+            ss << ",";
+        }
+        ss << "\"" << HexUtil::toHex(mTransactionAuditData[i]) << "\"";
+    }
+
+    ss << "]}";
+
+    return ss.str();
 }
 
 template <typename T>
