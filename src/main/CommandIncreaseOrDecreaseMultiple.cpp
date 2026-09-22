@@ -249,7 +249,7 @@ CommandIncreaseOrDecreaseMultiple::getOldCounterValues()
         }
     }
 
-    throw new IllegalStateException(
+    throw IllegalStateException(
         std::string("Unable to determine anticipated APDU response ")
         + "because some expected counters have not been read beforehand. "
         + "Command: " + getName() + ", SFI: " + HexUtil::toHex(mSfi) + "h");

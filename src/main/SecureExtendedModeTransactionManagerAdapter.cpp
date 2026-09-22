@@ -122,7 +122,7 @@ SecureExtendedModeTransactionManagerAdapter::prepareActivateEncryption()
         } else {
             auto session = std::make_shared<CommandManageSession>(
                 mTransactionContext, getCommandContext());
-            session->setEncryptionRequested(mIsEncryptionActive);
+            session->setEncryptionRequested(true);
             mCommands.push_back(session);
         }
 

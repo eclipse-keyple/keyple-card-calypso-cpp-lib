@@ -14,9 +14,9 @@
 #include "keyple/card/calypso/TransactionManagerAdapter.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -168,11 +168,6 @@ TransactionManagerAdapter<T>::executeCardCommands(
     for (int i = 0; i < static_cast<int>(apduResponses.size()); i++) {
         std::shared_ptr<Command> command = commands[i];
         try {
-            std::cout << "apdu cmd: " << command->getName() << std::endl;
-            std::cout << "apdu resp: "
-                      << HexUtil::toHex(apduResponses[i]->getDataOut())
-                      << std::endl;
-
             parseCommandResponse(command, apduResponses[i]);
             handleCommandPostProcessing(i, commands);
         } catch (const CardCommandException& e) {
@@ -274,11 +269,38 @@ template <typename T>
 std::string
 TransactionManagerAdapter<T>::getTransactionAuditDataAsString() const
 {
-    return std::string("\nTransaction audit JSON data: {")
-           + "\"targetSmartCard\":" + "FIXME"  // JsonUtil.toJson(card)
-           + ","
-           + "\"apdus\":" + " FIXME"  // JsonUtil.toJson(transactionAuditData)
-           + "}";
+    std::stringstream ss;
+
+    ss << "\nTransaction audit JSON data: {\"targetSmartCard\":";
+
+    if (mCard == nullptr) {
+        ss << "null";
+    } else {
+        ss << "{"
+           << "\"productType\":\"" << mCard->getProductType() << "\","
+           << "\"powerOnData\":\"" << mCard->getPowerOnData() << "\","
+           << "\"selectApplicationResponse\":\""
+           << HexUtil::toHex(mCard->getSelectApplicationResponse()) << "\","
+           << "\"dfName\":\"" << HexUtil::toHex(mCard->getDfName()) << "\","
+           << "\"serialNumber\":\""
+           << HexUtil::toHex(mCard->getCalypsoSerialNumberFull()) << "\","
+           << "\"startupInfo\":\""
+           << HexUtil::toHex(mCard->getStartupInfoRawData()) << "\""
+           << "}";
+    }
+
+    ss << ",\"apdus\":[";
+
+    for (size_t i = 0; i < mTransactionAuditData.size(); i++) {
+        if (i != 0) {
+            ss << ",";
+        }
+        ss << "\"" << HexUtil::toHex(mTransactionAuditData[i]) << "\"";
+    }
+
+    ss << "]}";
+
+    return ss.str();
 }
 
 template <typename T>

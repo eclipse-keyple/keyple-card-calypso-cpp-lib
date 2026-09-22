@@ -218,10 +218,10 @@ CommandManageSession::parseResponse(
                     "Invalid card (authentication failed)");
             }
         } catch (const SymmetricCryptoException& e) {
-            throw new CryptoException(e.what(), e);
+            throw CryptoException(e.what(), e);
 
         } catch (const SymmetricCryptoIOException& e) {
-            throw new CryptoIOException(e.what(), e);
+            throw CryptoIOException(e.what(), e);
         }
     }
 
