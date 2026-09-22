@@ -75,9 +75,9 @@ $(function() {
 <div class="contents">
 <div class="textblock"><code>#include &quot;keyple/card/calypso/TransactionManagerAdapter.hpp&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
-<code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
@@ -125,54 +125,54 @@ Include dependency graph for TransactionManagerAdapter.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="_transaction_manager_adapter_8cpp__incl.png" border="0" usemap="#a_2github_2workspace_2src_2main_2_transaction_manager_adapter_8cpp" alt=""/></div>
 <map name="a_2github_2workspace_2src_2main_2_transaction_manager_adapter_8cpp" id="a_2github_2workspace_2src_2main_2_transaction_manager_adapter_8cpp">
-<area shape="rect" title=" " alt="" coords="4204,5,4449,47"/>
+<area shape="rect" title=" " alt="" coords="4203,5,4448,47"/>
 <area shape="rect" title=" " alt="" coords="5,102,219,143"/>
 <area shape="rect" title=" " alt="" coords="243,109,317,136"/>
-<area shape="rect" title=" " alt="" coords="341,109,413,136"/>
-<area shape="rect" title=" " alt="" coords="438,109,485,136"/>
-<area shape="rect" title=" " alt="" coords="509,109,577,136"/>
-<area shape="rect" title=" " alt="" coords="601,109,655,136"/>
-<area shape="rect" title=" " alt="" coords="679,109,731,136"/>
-<area shape="rect" title=" " alt="" coords="756,109,815,136"/>
-<area shape="rect" title=" " alt="" coords="839,102,1014,143"/>
-<area shape="rect" title=" " alt="" coords="1039,102,1233,143"/>
-<area shape="rect" title=" " alt="" coords="1258,95,1465,151"/>
-<area shape="rect" title=" " alt="" coords="1489,102,1732,143"/>
-<area shape="rect" title=" " alt="" coords="1757,102,1971,143"/>
-<area shape="rect" title=" " alt="" coords="1995,102,2186,143"/>
-<area shape="rect" title=" " alt="" coords="2211,102,2389,143"/>
-<area shape="rect" title=" " alt="" coords="2414,95,2613,151"/>
-<area shape="rect" title=" " alt="" coords="2637,102,2865,143"/>
-<area shape="rect" title=" " alt="" coords="2889,95,3093,151"/>
-<area shape="rect" title=" " alt="" coords="3117,102,3345,143"/>
-<area shape="rect" title=" " alt="" coords="3369,102,3525,143"/>
-<area shape="rect" title=" " alt="" coords="3549,102,3723,143"/>
-<area shape="rect" title=" " alt="" coords="3747,102,3973,143"/>
-<area shape="rect" title=" " alt="" coords="3997,102,4184,143"/>
-<area shape="rect" title=" " alt="" coords="4209,102,4445,143"/>
-<area shape="rect" title=" " alt="" coords="4469,102,4635,143"/>
-<area shape="rect" title=" " alt="" coords="4659,102,4890,143"/>
-<area shape="rect" title=" " alt="" coords="4915,102,5107,143"/>
-<area shape="rect" title=" " alt="" coords="5131,102,5293,143"/>
-<area shape="rect" title=" " alt="" coords="5317,102,5497,143"/>
-<area shape="rect" title=" " alt="" coords="5521,109,5701,136"/>
-<area shape="rect" title=" " alt="" coords="5725,109,5939,136"/>
-<area shape="rect" title=" " alt="" coords="5963,102,6098,143"/>
-<area shape="rect" title=" " alt="" coords="6122,102,6377,143"/>
-<area shape="rect" title=" " alt="" coords="6401,102,6631,143"/>
-<area shape="rect" title=" " alt="" coords="6656,102,6869,143"/>
-<area shape="rect" title=" " alt="" coords="6894,95,7109,151"/>
-<area shape="rect" title=" " alt="" coords="7133,95,7325,151"/>
-<area shape="rect" title=" " alt="" coords="7350,102,7605,143"/>
-<area shape="rect" title=" " alt="" coords="7629,102,7821,143"/>
-<area shape="rect" title=" " alt="" coords="7845,102,8048,143"/>
-<area shape="rect" title=" " alt="" coords="8072,102,8296,143"/>
-<area shape="rect" title=" " alt="" coords="8321,102,8559,143"/>
-<area shape="rect" title=" " alt="" coords="8584,102,8813,143"/>
-<area shape="rect" title=" " alt="" coords="8837,95,9083,151"/>
-<area shape="rect" title=" " alt="" coords="9107,95,9343,151"/>
-<area shape="rect" title=" " alt="" coords="9367,95,9555,151"/>
-<area shape="rect" title=" " alt="" coords="9580,95,9767,151"/>
+<area shape="rect" title=" " alt="" coords="342,109,389,136"/>
+<area shape="rect" title=" " alt="" coords="413,109,481,136"/>
+<area shape="rect" title=" " alt="" coords="505,109,575,136"/>
+<area shape="rect" title=" " alt="" coords="599,109,654,136"/>
+<area shape="rect" title=" " alt="" coords="678,109,730,136"/>
+<area shape="rect" title=" " alt="" coords="755,109,813,136"/>
+<area shape="rect" title=" " alt="" coords="838,102,1013,143"/>
+<area shape="rect" title=" " alt="" coords="1037,102,1232,143"/>
+<area shape="rect" title=" " alt="" coords="1257,95,1463,151"/>
+<area shape="rect" title=" " alt="" coords="1488,102,1731,143"/>
+<area shape="rect" title=" " alt="" coords="1755,102,1970,143"/>
+<area shape="rect" title=" " alt="" coords="1994,102,2185,143"/>
+<area shape="rect" title=" " alt="" coords="2209,102,2388,143"/>
+<area shape="rect" title=" " alt="" coords="2413,95,2611,151"/>
+<area shape="rect" title=" " alt="" coords="2635,102,2863,143"/>
+<area shape="rect" title=" " alt="" coords="2887,95,3091,151"/>
+<area shape="rect" title=" " alt="" coords="3115,102,3343,143"/>
+<area shape="rect" title=" " alt="" coords="3367,102,3523,143"/>
+<area shape="rect" title=" " alt="" coords="3547,102,3722,143"/>
+<area shape="rect" title=" " alt="" coords="3746,102,3971,143"/>
+<area shape="rect" title=" " alt="" coords="3996,102,4183,143"/>
+<area shape="rect" title=" " alt="" coords="4207,102,4443,143"/>
+<area shape="rect" title=" " alt="" coords="4467,102,4634,143"/>
+<area shape="rect" title=" " alt="" coords="4658,102,4889,143"/>
+<area shape="rect" title=" " alt="" coords="4913,102,5105,143"/>
+<area shape="rect" title=" " alt="" coords="5130,102,5291,143"/>
+<area shape="rect" title=" " alt="" coords="5315,102,5495,143"/>
+<area shape="rect" title=" " alt="" coords="5519,109,5699,136"/>
+<area shape="rect" title=" " alt="" coords="5723,109,5938,136"/>
+<area shape="rect" title=" " alt="" coords="5962,102,6097,143"/>
+<area shape="rect" title=" " alt="" coords="6121,102,6375,143"/>
+<area shape="rect" title=" " alt="" coords="6399,102,6630,143"/>
+<area shape="rect" title=" " alt="" coords="6655,102,6868,143"/>
+<area shape="rect" title=" " alt="" coords="6893,95,7107,151"/>
+<area shape="rect" title=" " alt="" coords="7132,95,7324,151"/>
+<area shape="rect" title=" " alt="" coords="7349,102,7603,143"/>
+<area shape="rect" title=" " alt="" coords="7628,102,7820,143"/>
+<area shape="rect" title=" " alt="" coords="7844,102,8047,143"/>
+<area shape="rect" title=" " alt="" coords="8071,102,8295,143"/>
+<area shape="rect" title=" " alt="" coords="8319,102,8558,143"/>
+<area shape="rect" title=" " alt="" coords="8583,102,8812,143"/>
+<area shape="rect" title=" " alt="" coords="8836,95,9081,151"/>
+<area shape="rect" title=" " alt="" coords="9106,95,9342,151"/>
+<area shape="rect" title=" " alt="" coords="9366,95,9554,151"/>
+<area shape="rect" title=" " alt="" coords="9579,95,9765,151"/>
 </map>
 </div>
 </div>
