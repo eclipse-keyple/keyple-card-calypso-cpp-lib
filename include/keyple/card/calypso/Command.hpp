@@ -358,6 +358,19 @@ public:
         std::shared_ptr<ApduResponseApi> apduResponse);
 
     /**
+     * (package-private)<br>
+     * C++: checks that the data received from the card contains at least the
+     * expected number of bytes before indexing it (std::vector::operator[] does
+     * not throw on out-of-range access, unlike Java arrays).
+     *
+     * @param data The data received from the card.
+     * @param minLength The minimum expected length.
+     * @throw CardUnexpectedResponseLengthException If the data is too short.
+     */
+    void checkMinResponseDataLength(
+        const std::vector<std::uint8_t>& data, const int minLength) const;
+
+    /**
      * Returns the internal status table
      *
      * @return A not null reference

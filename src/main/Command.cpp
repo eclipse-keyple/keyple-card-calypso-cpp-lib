@@ -304,6 +304,19 @@ Command::setApduResponseAndCheckStatusInBestEffortMode(
     return true;
 }
 
+void
+Command::checkMinResponseDataLength(
+    const std::vector<std::uint8_t>& data, const int minLength) const
+{
+    if (minLength < 0 || static_cast<int>(data.size()) < minLength) {
+        throw CardUnexpectedResponseLengthException(
+            "APDU response is too short. Command: " + mCommandRef.getName()
+                + ", Expected at least: " + std::to_string(minLength)
+                + ", Actual: " + std::to_string(data.size()),
+            mCommandRef);
+    }
+}
+
 const std::map<int, const std::shared_ptr<Command::StatusProperties>>&
 Command::getStatusTable() const
 {

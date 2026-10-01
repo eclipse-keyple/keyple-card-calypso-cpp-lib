@@ -2285,6 +2285,39 @@ TEST_F(
 
 TEST_F(
     SecureExtendedModeTransactionManagerAdapterTest,
+    prepareOpenSecureSession_whenResponseIsEmpty_shouldThrowICRE)  // NOLINT
+{
+    std::vector<std::string> apdusOpen
+        = {CARD_OPEN_SECURE_SESSION_CMD, SW_9000};
+    mockTransmitCardRequest(apdusOpen);
+
+    EXPECT_THROW(
+        dynamic_cast<SecureExtendedModeTransactionManagerAdapter*>(
+            cardTransactionManager.get())
+            ->prepareOpenSecureSession(WriteAccessLevel::DEBIT)
+            .processCommands(CHANNEL_CONTROL_KEEP_OPEN),
+        InvalidCardResponseException);
+}
+
+TEST_F(
+    SecureExtendedModeTransactionManagerAdapterTest,
+    prepareOpenSecureSession_whenResponseIsTruncated_shouldThrowICRE)  // NOLINT
+{
+    /* Only the challenge/counter part: ratification, KIF, KVC, length missing */
+    std::vector<std::string> apdusOpen
+        = {CARD_OPEN_SECURE_SESSION_CMD, "03049098" + SW_9000};
+    mockTransmitCardRequest(apdusOpen);
+
+    EXPECT_THROW(
+        dynamic_cast<SecureExtendedModeTransactionManagerAdapter*>(
+            cardTransactionManager.get())
+            ->prepareOpenSecureSession(WriteAccessLevel::DEBIT)
+            .processCommands(CHANNEL_CONTROL_KEEP_OPEN),
+        InvalidCardResponseException);
+}
+
+TEST_F(
+    SecureExtendedModeTransactionManagerAdapterTest,
     prepareCloseSecureSession_whenCardAuthenticationFails_shouldThrowICME)  // NOLINT
 {
     EXPECT_CALL(

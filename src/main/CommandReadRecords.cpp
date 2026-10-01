@@ -212,8 +212,11 @@ CommandReadRecords::parseResponse(std::shared_ptr<ApduResponseApi> apduResponse)
         int apduLen = static_cast<int>(dataOut.size());
         int index = 0;
         while (apduLen > 0) {
+            /* C++: record number, length and data must be fully present */
+            checkMinResponseDataLength(dataOut, index + 2);
             const std::uint8_t recordNb = dataOut[index++];
             const std::uint8_t len = dataOut[index++];
+            checkMinResponseDataLength(dataOut, index + len);
             getTransactionContext()->getCard()->setContent(
                 static_cast<std::uint8_t>(mSfi),
                 recordNb,
