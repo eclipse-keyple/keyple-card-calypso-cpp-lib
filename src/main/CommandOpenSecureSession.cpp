@@ -575,6 +575,10 @@ CommandOpenSecureSession::parseRev3(
 {
     int offset;
 
+    /* C++: ensure the fixed part of the response is present before indexing */
+    checkMinResponseDataLength(
+        apduResponseData, mIsExtendedModeAllowed ? 12 : 8);
+
     /* CL-CSS-OSSRFU.1 */
     if (mIsExtendedModeAllowed) {
         offset = 4;
@@ -683,8 +687,12 @@ void
 CommandOpenSecureSession::parsePki(
     const std::vector<std::uint8_t>& apduResponseData)
 {
+    checkMinResponseDataLength(apduResponseData, 1);
     const int li = apduResponseData[0] & 0xFF;
     int offset = 1 + li + 8 + 1;
+
+    /* C++: challenge/counter (8), ratification (1), RFU (2), Ld (1) */
+    checkMinResponseDataLength(apduResponseData, offset + 8 + 1 + 2 + 1);
 
     mChallengeTransactionCounter
         = Arrays::copyOfRange(apduResponseData, offset, offset + 3);
@@ -696,6 +704,7 @@ CommandOpenSecureSession::parsePki(
     const int ld = apduResponseData[offset] & 0xFF;
     offset += 1;
 
+    checkMinResponseDataLength(apduResponseData, offset + ld);
     mRecordData = Arrays::copyOfRange(apduResponseData, offset, offset + ld);
 }
 

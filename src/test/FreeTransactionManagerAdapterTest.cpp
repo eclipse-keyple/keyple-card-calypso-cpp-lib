@@ -24,6 +24,7 @@
 #include "keypop/calypso/card/card/ElementaryFile.hpp"
 #include "keypop/calypso/card/card/FileHeader.hpp"
 #include "keypop/calypso/card/transaction/FreeTransactionManager.hpp"
+#include "keypop/reader/selection/InvalidCardResponseException.hpp"
 
 #include "AbstractTransactionManagerTest.hpp"
 #include "FreeTransactionManagerMock.hpp"
@@ -36,6 +37,7 @@ using keypop::calypso::card::card::CalypsoCard;
 using keypop::calypso::card::card::ElementaryFile;
 using keypop::calypso::card::card::FileHeader;
 using keypop::calypso::card::transaction::FreeTransactionManager;
+using keypop::reader::selection::InvalidCardResponseException;
 
 using testing::ReturnRef;
 
@@ -167,6 +169,38 @@ TEST_F(
 
     cardTransactionManager->prepareGetData(GetDataTag::FCP_FOR_CURRENT_FILE);
     cardTransactionManager->processCommands(CHANNEL_CONTROL_KEEP_OPEN);
+}
+
+TEST_F(
+    FreeTransactionManagerAdapterTest,
+    prepareGetData_whenEfListResponseIsTruncated_shouldThrowICRE)
+{
+    /* Announces 5 descriptors (40 bytes) but none is present */
+    std::vector<std::string> apdus
+        = {CARD_GET_DATA_EF_LIST_CMD, "C028" + SW_9000};
+
+    std::shared_ptr<CardRequestSpi> cardRequest(mockTransmitCardRequest(apdus));
+
+    cardTransactionManager->prepareGetData(GetDataTag::EF_LIST);
+    EXPECT_THROW(
+        cardTransactionManager->processCommands(CHANNEL_CONTROL_KEEP_OPEN),
+        InvalidCardResponseException);
+}
+
+TEST_F(
+    FreeTransactionManagerAdapterTest,
+    prepareGetData_whenEfListResponseHasNoLength_shouldThrowICRE)
+{
+    /* Tag only: the length byte read at index 1 is missing */
+    std::vector<std::string> apdus
+        = {CARD_GET_DATA_EF_LIST_CMD, "C0" + SW_9000};
+
+    std::shared_ptr<CardRequestSpi> cardRequest(mockTransmitCardRequest(apdus));
+
+    cardTransactionManager->prepareGetData(GetDataTag::EF_LIST);
+    EXPECT_THROW(
+        cardTransactionManager->processCommands(CHANNEL_CONTROL_KEEP_OPEN),
+        InvalidCardResponseException);
 }
 
 TEST_F(
@@ -412,6 +446,26 @@ TEST_F(
     ASSERT_EQ(
         calypsoCard->getFileBySfi(1)->getData()->getContent(5),
         HexUtil::toByteArray("55"));
+}
+
+TEST_F(
+    FreeTransactionManagerAdapterTest,
+    prepareReadRecords_whenRecordLengthExceedsResponse_shouldThrowICRE)
+{
+    /* 2nd record header is truncated: record number present, length missing */
+    std::vector<std::string> apdus
+        = {CARD_READ_RECORDS_FROM1_TO2_CMD, "010311223344" + SW_9000};
+
+    std::shared_ptr<CardRequestSpi> cardRequest(mockTransmitCardRequest(apdus));
+
+    EXPECT_CALL(*calypsoCard, getPayloadCapacity()).WillRepeatedly(Return(7));
+
+    initTransactionManager();
+
+    cardTransactionManager->prepareReadRecords(1, 1, 2, 1);
+    EXPECT_THROW(
+        cardTransactionManager->processCommands(CHANNEL_CONTROL_KEEP_OPEN),
+        InvalidCardResponseException);
 }
 
 TEST_F(
@@ -986,6 +1040,52 @@ TEST_F(
 
     const std::vector<int> expected {4, 6};
     ASSERT_EQ(data->getMatchingRecordNumbers(), expected);
+}
+
+TEST_F(
+    FreeTransactionManagerAdapterTest,
+    prepareSearchRecords_whenResponseIsEmpty_shouldThrowICRE)
+{
+    std::vector<std::string> apdus = {
+        CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NO_FETCH_1234_FFFF_CMD,
+        SW_9000};
+
+    std::shared_ptr<CardRequestSpi> cardRequest(mockTransmitCardRequest(apdus));
+
+    std::shared_ptr<SearchCommandData> data(
+        CalypsoExtensionService::getInstance()
+            ->getCalypsoCardApiFactory()
+            ->createSearchCommandData());
+
+    data->setSearchData({0x12, 0x34});
+
+    cardTransactionManager->prepareSearchRecords(data);
+    EXPECT_THROW(
+        cardTransactionManager->processCommands(CHANNEL_CONTROL_KEEP_OPEN),
+        InvalidCardResponseException);
+}
+
+TEST_F(
+    FreeTransactionManagerAdapterTest,
+    prepareSearchRecords_whenNbRecordsExceedsResponse_shouldThrowICRE)
+{
+    std::vector<std::string> apdus = {
+        CARD_SEARCH_RECORD_MULTIPLE_SFI1_REC1_OFFSET0_AT_NO_FETCH_1234_FFFF_CMD,
+        "FF" + SW_9000};
+
+    std::shared_ptr<CardRequestSpi> cardRequest(mockTransmitCardRequest(apdus));
+
+    std::shared_ptr<SearchCommandData> data(
+        CalypsoExtensionService::getInstance()
+            ->getCalypsoCardApiFactory()
+            ->createSearchCommandData());
+
+    data->setSearchData({0x12, 0x34});
+
+    cardTransactionManager->prepareSearchRecords(data);
+    EXPECT_THROW(
+        cardTransactionManager->processCommands(CHANNEL_CONTROL_KEEP_OPEN),
+        InvalidCardResponseException);
 }
 
 TEST_F(

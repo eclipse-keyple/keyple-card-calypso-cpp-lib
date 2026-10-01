@@ -126,7 +126,10 @@ CommandGetDataEfList::getEfHeaders()
     const std::vector<std::uint8_t> rawList = getApduResponse()->getDataOut();
     std::map<std::shared_ptr<FileHeaderAdapter>, std::uint8_t>
         fileHeaderToSfiMap;
+    checkMinResponseDataLength(rawList, DESCRIPTORS_OFFSET);
     int nbFiles = rawList[1] / DESCRIPTOR_TAG_LENGTH;
+    checkMinResponseDataLength(
+        rawList, DESCRIPTORS_OFFSET + (nbFiles * DESCRIPTOR_TAG_LENGTH));
 
     for (int i = 0; i < nbFiles; i++) {
         fileHeaderToSfiMap.insert(

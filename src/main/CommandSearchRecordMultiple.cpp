@@ -204,7 +204,9 @@ CommandSearchRecordMultiple::parseResponse(
     }
 
     const std::vector<uint8_t> dataOut = apduResponse->getDataOut();
+    checkMinResponseDataLength(dataOut, 1);
     const int nbRecords = dataOut[0];
+    checkMinResponseDataLength(dataOut, 1 + nbRecords);
 
     for (int i = 1; i <= nbRecords; i++) {
         mData->getMatchingRecordNumbers().push_back(dataOut[i]);
